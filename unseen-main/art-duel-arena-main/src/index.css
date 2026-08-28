@@ -1,0 +1,232 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 20% 7%;
+    --foreground: 210 20% 93%;
+
+    --card: 220 18% 11%;
+    --card-foreground: 210 20% 93%;
+
+    --popover: 220 18% 11%;
+    --popover-foreground: 210 20% 93%;
+
+    --primary: 200 80% 55%;
+    --primary-foreground: 220 20% 7%;
+
+    --secondary: 220 15% 16%;
+    --secondary-foreground: 210 20% 93%;
+
+    --muted: 220 15% 14%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 200 60% 20%;
+    --accent-foreground: 200 80% 70%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 210 20% 98%;
+
+    --arena-red: 0 65% 50%;
+    --arena-red-foreground: 0 0% 100%;
+
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
+    --ring: 200 80% 55%;
+
+    --radius: 0.75rem;
+
+    --glass-bg: 220 18% 11% / 0.6;
+    --glass-border: 200 30% 40% / 0.15;
+
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Space Grotesk', sans-serif;
+
+    --sidebar-background: 220 20% 7%;
+    --sidebar-foreground: 210 20% 93%;
+    --sidebar-primary: 200 80% 55%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent: 220 15% 16%;
+    --sidebar-accent-foreground: 210 20% 93%;
+    --sidebar-border: 220 15% 18%;
+    --sidebar-ring: 200 80% 55%;
+  }
+
+  .light-mode {
+    --background: 0 0% 98%;
+    --foreground: 220 20% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 12%;
+
+    --primary: 200 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 15% 92%;
+    --secondary-foreground: 220 20% 12%;
+
+    --muted: 210 10% 94%;
+    --muted-foreground: 215 15% 45%;
+
+    --accent: 200 60% 90%;
+    --accent-foreground: 200 80% 35%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --arena-red: 0 65% 50%;
+    --arena-red-foreground: 0 0% 100%;
+
+    --border: 210 15% 88%;
+    --input: 210 15% 88%;
+    --ring: 200 80% 50%;
+
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 200 30% 70% / 0.2;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 20% 12%;
+    --sidebar-primary: 200 80% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 15% 92%;
+    --sidebar-accent-foreground: 220 20% 12%;
+    --sidebar-border: 210 15% 88%;
+    --sidebar-ring: 200 80% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .glass-strong {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(30px);
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .marble-bg {
+    background: 
+      radial-gradient(ellipse at 20% 50%, hsl(200 40% 15% / 0.3) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, hsl(220 30% 12% / 0.5) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, hsl(210 20% 10% / 0.4) 0%, transparent 50%),
+      hsl(var(--background));
+  }
+
+  .light-mode .marble-bg {
+    background: 
+      radial-gradient(ellipse at 20% 50%, hsl(200 60% 90% / 0.5) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, hsl(200 40% 92% / 0.4) 0%, transparent 50%),
+      hsl(var(--background));
+  }
+
+  .arena-bg {
+    background: 
+      radial-gradient(ellipse at 30% 40%, hsl(0 50% 15% / 0.4) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 60%, hsl(0 40% 12% / 0.3) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 90%, hsl(220 30% 8% / 0.8) 0%, transparent 40%),
+      hsl(var(--background));
+  }
+
+  .light-mode .arena-bg {
+    background: 
+      radial-gradient(ellipse at 30% 40%, hsl(0 60% 90% / 0.4) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 60%, hsl(0 50% 92% / 0.3) 0%, transparent 50%),
+      hsl(var(--background));
+  }
+
+  .gallery-bg {
+    background: hsl(var(--background));
+  }
+
+  .detail-overlay-bg {
+    background: 
+      radial-gradient(ellipse at 20% 30%, hsl(200 60% 90% / 0.3) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, hsl(200 50% 85% / 0.2) 0%, transparent 50%),
+      hsl(0 0% 98% / 0.97);
+  }
+
+  .detail-overlay-bg * {
+    color: hsl(220 20% 12%);
+  }
+
+  .detail-overlay-bg .text-primary {
+    color: hsl(200 80% 45%) !important;
+  }
+
+  .detail-overlay-bg .text-muted-foreground {
+    color: hsl(215 15% 40%) !important;
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(200 90% 70%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-arena {
+    background: linear-gradient(135deg, hsl(var(--arena-red)) 0%, hsl(20 80% 60%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 30px hsl(200 80% 55% / 0.15), 0 0 60px hsl(200 80% 55% / 0.05);
+  }
+
+  .glow-red {
+    box-shadow: 0 0 30px hsl(0 65% 50% / 0.2), 0 0 60px hsl(0 65% 50% / 0.08);
+  }
+
+  .light-beam {
+    position: absolute;
+    bottom: 0;
+    width: 120px;
+    height: 300px;
+    background: linear-gradient(0deg, hsl(200 80% 70% / 0.12) 0%, transparent 100%);
+    filter: blur(30px);
+    pointer-events: none;
+  }
+
+  .light-mode .light-beam {
+    background: linear-gradient(0deg, hsl(200 80% 60% / 0.15) 0%, transparent 100%);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-body {
+    font-family: var(--font-body);
+  }
+}
