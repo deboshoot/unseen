@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import { supabase } from "@/supabaseClient";
+import { getInstagramProfile } from "@/lib/instagram";
 
 type GalleryWork = {
   id: string;
@@ -208,8 +209,19 @@ const Gallery = () => {
             </h2>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-sm text-foreground">
               <span className="font-medium">{selectedWork.autore}</span>
-              <span className="text-muted-foreground">·</span>
-              <span className="text-arena">{selectedWork.social_link}</span>
+              {getInstagramProfile(selectedWork.social_link) ? (
+                <>
+                  <span className="text-muted-foreground">·</span>
+                  <a
+                    href={getInstagramProfile(selectedWork.social_link)?.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-arena transition-colors hover:text-foreground hover:underline"
+                  >
+                    @{getInstagramProfile(selectedWork.social_link)?.username}
+                  </a>
+                </>
+              ) : null}
             </div>
             <p className="text-pretty font-body text-base leading-relaxed text-muted-foreground md:text-lg">
               {selectedWork.storia}

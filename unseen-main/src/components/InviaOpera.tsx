@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient'; 
 import { LoaderCircle, UploadCloud, X } from 'lucide-react';
+import { getInstagramProfile } from '@/lib/instagram';
 
 export default function InviaOpera() {
   const [titolo, setTitolo] = useState('');
@@ -49,6 +50,7 @@ export default function InviaOpera() {
     setLoading(true);
 
     try {
+      const instagramProfile = getInstagramProfile(social);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       
@@ -68,7 +70,7 @@ export default function InviaOpera() {
           titolo, 
           autore, 
           storia, 
-          social_link: social, 
+          social_link: instagramProfile?.username ?? '', 
           immagine_url: urlData.publicUrl, 
           status: 'pending' 
         }]);
@@ -169,13 +171,15 @@ export default function InviaOpera() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">Link Social</label>
+            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">Username Instagram</label>
             <input 
               type="text" 
               className="w-full bg-background/60 border border-border rounded-xl px-5 py-4 outline-none focus:border-primary/60 focus:bg-background transition-all placeholder:text-muted-foreground text-foreground" 
               value={social} 
               onChange={e => setSocial(e.target.value)} 
               placeholder="@username"
+              pattern="@?[A-Za-z0-9._]{1,30}"
+              title="Inserisci solo il tuo username Instagram, ad esempio @nomeutente"
             />
           </div>
 
