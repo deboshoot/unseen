@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { memo, useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
@@ -416,7 +416,7 @@ const Arena = () => {
   );
 };
 
-const ChallengerCard = ({
+const ChallengerCard = memo(({ 
   challenger,
   side,
   onSelect,
@@ -455,6 +455,10 @@ const ChallengerCard = ({
       <p className="text-muted-foreground text-xs tracking-wider">{challenger?.autore}</p>
     </div>
   </motion.div>
-);
+), (previous, next) => (
+  previous.challenger === next.challenger && previous.side === next.side
+));
+
+ChallengerCard.displayName = "ChallengerCard";
 
 export default Arena;

@@ -79,6 +79,8 @@ const Gallery = () => {
   const [isLoading, setIsLoading] = useState(true);
   const lastScrollLeft = useRef(0);
   const velocityTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const scrollFrame = useRef<number | null>(null);
+  const pendingVelocity = useRef(0);
 
   useEffect(() => {
     (async () => {
@@ -103,7 +105,13 @@ const Gallery = () => {
     lastScrollLeft.current = currentScroll;
 
     const clampedVelocity = Math.max(-15, Math.min(15, delta * 0.3));
-    setScrollVelocity(clampedVelocity);
+    pendingVelocity.current = clampedVelocity;
+    if (scrollFrame.current === null) {
+      scrollFrame.current = requestAnimationFrame(() => {
+        setScrollVelocity(pendingVelocity.current);
+        scrollFrame.current = null;
+      });
+    }
 
     if (velocityTimeout.current) clearTimeout(velocityTimeout.current);
     velocityTimeout.current = setTimeout(() => setScrollVelocity(0), 100);
@@ -113,7 +121,11 @@ const Gallery = () => {
     const el = scrollRef.current;
     if (!el) return;
     el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => el.removeEventListener("scroll", handleScroll);
+    return () => {
+      el.removeEventListener("scroll", handleScroll);
+      if (scrollFrame.current !== null) cancelAnimationFrame(scrollFrame.current);
+      if (velocityTimeout.current) clearTimeout(velocityTimeout.current);
+    };
   }, [handleScroll]);
 
   return (
