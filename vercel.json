@@ -1,0 +1,8 @@
+{
+  "installCommand": "npm install --prefix unseen-main",
+  "buildCommand": "npm run build --prefix unseen-main",
+  "outputDirectory": "unseen-main/dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
