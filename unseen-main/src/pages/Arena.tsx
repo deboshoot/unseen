@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence, useScroll } from "framer-motion";
+import { motion } from "framer-motion";
 import { ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -25,10 +25,7 @@ type ArenaChallenger = {
 
 const Arena = () => {
   const navigate = useNavigate();
-  const [introPhase, setIntroPhase] = useState(0);
-  const [introComplete, setIntroComplete] = useState(false);
   const [selectedWork, setSelectedWork] = useState<ArenaChallenger | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const [duelId, setDuelId] = useState<string | null>(null);
   const [challengers, setChallengers] = useState<ArenaChallenger[]>([]);
@@ -37,8 +34,6 @@ const Arena = () => {
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isDuelActive, setIsDuelActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
-  const { scrollYProgress } = useScroll({ target: containerRef });
 
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
@@ -62,7 +57,6 @@ const Arena = () => {
       if (duelErr || !duel) {
         if (duelErr) console.error("Arena: duello attivo", duelErr);
         setIsDuelActive(false);
-        setIntroComplete(true);
         setIsLoading(false);
         return;
       }
@@ -89,7 +83,6 @@ const Arena = () => {
       if (opereErr || !opere?.length) {
         if (opereErr) console.error("Arena: opere", opereErr);
         setIsDuelActive(false);
-        setIntroComplete(true);
         setIsLoading(false);
         return;
       }
@@ -98,7 +91,6 @@ const Arena = () => {
       const o2 = opere.find((o) => o.id === duel.challenger_id);
       if (!o1 || !o2) {
         setIsDuelActive(false);
-        setIntroComplete(true);
         setIsLoading(false);
         return;
       }
@@ -235,159 +227,10 @@ const Arena = () => {
     }
   }, [duelId, navigate]);
 
-  // Scroll-driven intro phases
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.on("change", (v) => {
-      if (introComplete) return;
-      if (v < 0.15) setIntroPhase(0);
-      else if (v < 0.3) setIntroPhase(1);
-      else if (v < 0.5) setIntroPhase(2);
-      else if (v < 0.65) setIntroPhase(3);
-      else if (v < 0.8) setIntroPhase(4);
-      else {
-        setIntroPhase(5);
-        setIntroComplete(true);
-      }
-    });
-    return unsubscribe;
-  }, [scrollYProgress, introComplete]);
-
-  if (!introComplete) {
-    if (isLoading) {
-      return (
-        <div className="min-h-screen arena-bg flex items-center justify-center">
-          <p className="text-muted-foreground text-sm tracking-[0.3em] uppercase font-body">Caricamento...</p>
-        </div>
-      );
-    }
+  if (isLoading) {
     return (
-      <div ref={containerRef} className="h-[500vh] relative">
-        <div className="sticky top-0 h-screen overflow-hidden arena-bg flex items-center justify-center">
-          <AnimatePresence mode="wait">
-            {introPhase === 0 && (
-              <motion.div
-                key="scroll-prompt"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-center"
-              >
-                <motion.p
-                  animate={{ y: [0, 10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="text-muted-foreground text-sm tracking-[0.3em] uppercase font-body"
-                >
-                  Scorri per entrare nell'Arena
-                </motion.p>
-                <motion.div
-                  animate={{ y: [0, 8, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="mt-6 mx-auto w-[1px] h-12 bg-gradient-to-b from-arena/50 to-transparent"
-                />
-              </motion.div>
-            )}
-
-            {introPhase === 1 && (
-              <motion.div
-                key="c1-title"
-                initial={{ scale: 2.4, opacity: 0, filter: "blur(8px)" }}
-                animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
-                exit={{ scale: 0.6, opacity: 0, filter: "blur(8px)" }}
-                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="text-center"
-              >
-                <span className="font-display text-6xl md:text-9xl font-black text-gradient-arena tracking-wider">
-                  SFIDANTE I
-                </span>
-              </motion.div>
-            )}
-
-            {introPhase === 2 && challengers[0] && (
-              <motion.div
-                key="c1-photo"
-                initial={{ scale: 0, rotate: -10, y: 80 }}
-                animate={{ scale: 1, rotate: 0, y: 0 }}
-                exit={{ x: -500, opacity: 0 }}
-                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="w-64 h-64 md:w-80 md:h-80 relative"
-              >
-                <div className="absolute inset-0 border-2 border-foreground/20 p-2">
-                  {challengers[0]?.immagine_url ? (
-                    <img src={challengers[0]?.immagine_url} alt={challengers[0]?.titolo} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-black/40" />
-                  )}
-                </div>
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="absolute -bottom-10 left-0 right-0 text-center text-foreground font-display text-xl tracking-wider"
-                >
-                  {challengers[0]?.titolo}
-                </motion.p>
-              </motion.div>
-            )}
-
-            {introPhase === 3 && (
-              <motion.div
-                key="c2-title"
-                initial={{ scale: 2.4, opacity: 0, filter: "blur(8px)" }}
-                animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
-                exit={{ scale: 0.6, opacity: 0, filter: "blur(8px)" }}
-                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="text-center"
-              >
-                <span className="font-display text-6xl md:text-9xl font-black text-gradient-arena tracking-wider">
-                  SFIDANTE II
-                </span>
-              </motion.div>
-            )}
-
-            {introPhase === 4 && challengers[1] && (
-              <motion.div
-                key="c2-photo"
-                initial={{ scale: 0, rotate: 10, y: 80 }}
-                animate={{ scale: 1, rotate: 0, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="w-64 h-64 md:w-80 md:h-80 relative"
-              >
-                <div className="absolute inset-0 border-2 border-foreground/20 p-2">
-                  {challengers[1]?.immagine_url ? (
-                    <img src={challengers[1]?.immagine_url} alt={challengers[1]?.titolo} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-black/40" />
-                  )}
-                </div>
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="absolute -bottom-10 left-0 right-0 text-center text-foreground font-display text-xl tracking-wider"
-                >
-                  {challengers[1]?.titolo}
-                </motion.p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {[...Array(4)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full blur-3xl"
-              style={{
-                width: 150 + i * 60,
-                height: 150 + i * 60,
-                left: `${10 + i * 25}%`,
-                top: `${20 + (i % 2) * 40}%`,
-                background: `hsl(var(--arena-red) / ${0.12 + i * 0.03})`,
-              }}
-              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.55, 0.3], x: [0, 30, 0], y: [0, -20, 0] }}
-              transition={{ duration: 6 + i, repeat: Infinity }}
-            />
-          ))}
-        </div>
+      <div className="min-h-screen arena-bg flex items-center justify-center">
+        <p className="text-muted-foreground text-sm tracking-[0.3em] uppercase font-body">Caricamento...</p>
       </div>
     );
   }
