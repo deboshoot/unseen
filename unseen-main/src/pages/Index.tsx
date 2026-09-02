@@ -65,6 +65,33 @@ const Index = () => {
             </motion.button>
           </Link>
         </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2.0, duration: 0.8 }}
+          className="mt-20 pt-16 border-t border-border/30"
+        >
+          <p className="text-muted-foreground/80 text-xs tracking-[0.3em] uppercase mb-6 font-body">
+            Sei un artista?
+          </p>
+          <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-4">
+            Metti in gioco le tue opere
+          </h2>
+          <p className="text-muted-foreground max-w-md mx-auto text-sm md:text-base mb-8 font-body leading-relaxed">
+            Condividi le tue migliori creazioni e lascia che il pubblico decide quali meritano di entrare nella galleria permanente.
+          </p>
+          <Link to="/submit" className="block">
+            <motion.button
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.96 }}
+              type="button"
+              className="submit-cta"
+            >
+              Invia la tua opera
+            </motion.button>
+          </Link>
+        </motion.div>
       </div>
     </div>
   );

@@ -346,6 +346,57 @@
     background: hsl(224 35% 14% / 0.9);
     border-color: hsl(220 78% 52% / 0.55);
   }
+
+  /* Submit CTA: Premium style with gradient and prominent glow */
+  .submit-cta {
+    @apply rounded-lg px-10 py-5 font-display text-sm tracking-[0.15em] uppercase font-semibold transition-[box-shadow,transform,background] duration-300;
+    background: linear-gradient(135deg, hsl(200 80% 55%) 0%, hsl(210 75% 48%) 100%);
+    color: hsl(0 0% 100%);
+    box-shadow:
+      0 0 40px hsl(200 80% 55% / 0.25),
+      0 0 80px hsl(210 80% 50% / 0.1),
+      0 8px 24px hsl(0 0% 0% / 0.2);
+    border: 1px solid hsl(200 85% 65% / 0.35);
+    position: relative;
+  }
+
+  .submit-cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, hsl(200 85% 70% / 0) 0%, hsl(210 80% 60% / 0.15) 100%);
+    pointer-events: none;
+  }
+
+  .submit-cta:hover {
+    box-shadow:
+      0 0 60px hsl(200 80% 55% / 0.35),
+      0 0 120px hsl(210 80% 50% / 0.15),
+      0 12px 36px hsl(0 0% 0% / 0.25);
+    background: linear-gradient(135deg, hsl(200 85% 60%) 0%, hsl(210 80% 52%) 100%);
+    transform: translateY(-2px);
+  }
+
+  .submit-cta:active {
+    transform: translateY(0);
+  }
+
+  .light-mode .submit-cta {
+    background: linear-gradient(135deg, hsl(200 80% 48%) 0%, hsl(210 85% 42%) 100%);
+    box-shadow:
+      0 0 40px hsl(200 85% 50% / 0.3),
+      0 0 80px hsl(210 85% 45% / 0.15),
+      0 8px 24px hsl(0 0% 0% / 0.15);
+  }
+
+  .light-mode .submit-cta:hover {
+    background: linear-gradient(135deg, hsl(200 88% 52%) 0%, hsl(210 90% 46%) 100%);
+    box-shadow:
+      0 0 60px hsl(200 88% 52% / 0.4),
+      0 0 120px hsl(210 90% 48% / 0.2),
+      0 12px 36px hsl(0 0% 0% / 0.2);
+  }
 }
 
 @layer utilities {
