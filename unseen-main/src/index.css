@@ -226,6 +226,18 @@
       radial-gradient(ellipse at 50% 100%, hsl(220 72% 18% / 0.42) 0%, transparent 42%),
       linear-gradient(145deg, hsl(223 34% 9%) 0%, hsl(228 30% 12%) 48%, hsl(232 28% 10%) 100%),
       hsl(var(--background));
+    
+    /* Override colori testo per Arena in light-mode */
+    --foreground: 0 0% 100%;
+    --muted-foreground: 210 20% 85%;
+    --card-foreground: 0 0% 100%;
+    color: hsl(var(--foreground));
+  }
+
+  .light-mode .arena-bg p,
+  .light-mode .arena-bg span,
+  .light-mode .arena-bg div {
+    color: inherit;
   }
 
   .gallery-bg {
@@ -281,6 +293,26 @@
 
   .light-mode .glow-red {
     box-shadow: 0 0 30px hsl(220 82% 38% / 0.34), 0 0 60px hsl(210 85% 30% / 0.18);
+  }
+
+  /* Assicura che i vetri (glass) siano visibili anche in light-mode arena */
+  .light-mode .arena-bg .glass {
+    background: hsl(223 35% 15% / 0.65);
+    border-color: hsl(220 50% 50% / 0.25);
+    color: hsl(0 0% 100%);
+  }
+
+  .light-mode .arena-bg .glass p,
+  .light-mode .arena-bg .glass span {
+    color: hsl(0 0% 100%);
+  }
+
+  .light-mode .arena-bg .text-muted-foreground {
+    color: hsl(210 20% 80%) !important;
+  }
+
+  .light-mode .arena-bg .text-foreground {
+    color: hsl(0 0% 100%) !important;
   }
 
   .light-beam {
