@@ -384,11 +384,30 @@ const Arena = () => {
             />
           </div>
         ) : (
-          <div className="text-center py-20">
-            <p className="font-display text-2xl md:text-3xl text-muted-foreground tracking-wider">
-              In attesa del prossimo duello
-            </p>
-          </div>
+          <>
+            <div className="text-center py-8 mb-6">
+              <p className="font-display text-2xl md:text-3xl text-muted-foreground tracking-wider">
+                In attesa del prossimo duello
+              </p>
+            </div>
+            
+            <div className="flex items-center justify-center gap-3 md:gap-8 opacity-40">
+              <PlaceholderCard side="left" />
+
+              <div className="relative flex-shrink-0">
+                <div
+                  className="font-display text-3xl md:text-5xl font-black text-muted-foreground"
+                  style={{
+                    textShadow: "0 0 22px hsl(var(--arena-red) / 0.2), 0 4px 8px hsl(0 0% 0% / 0.3)",
+                  }}
+                >
+                  VS
+                </div>
+              </div>
+
+              <PlaceholderCard side="right" />
+            </div>
+          </>
         )}
 
         {isDuelActive && (
@@ -531,5 +550,30 @@ const ChallengerCard = memo(({
 ));
 
 ChallengerCard.displayName = "ChallengerCard";
+
+const PlaceholderCard = ({ side }: { side: "left" | "right" }) => (
+  <motion.div
+    initial={{ x: side === "left" ? -100 : 100, opacity: 0 }}
+    animate={{ x: 0, opacity: 1 }}
+    transition={{
+      x: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+      opacity: { duration: 0.8 },
+    }}
+    className="flex-1 max-w-[200px] md:max-w-[280px]"
+  >
+    <div className="relative aspect-square rounded-2xl border border-foreground/15 bg-black/20 p-1.5 md:p-2 backdrop-blur-sm">
+      <div className="w-full h-full rounded-xl bg-gradient-to-b from-foreground/10 to-foreground/5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl md:text-7xl font-display font-black text-arena/70">?</div>
+          <p className="text-[10px] tracking-[0.2em] text-muted-foreground mt-2 uppercase">Misterioso</p>
+        </div>
+      </div>
+    </div>
+    <div className="mt-3 text-center">
+      <p className="font-display text-sm md:text-base font-semibold text-muted-foreground/60">---</p>
+      <p className="text-muted-foreground text-xs tracking-wider opacity-60">---</p>
+    </div>
+  </motion.div>
+);
 
 export default Arena;
