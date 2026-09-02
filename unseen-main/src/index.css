@@ -221,10 +221,10 @@
 
   .light-mode .arena-bg {
     background:
-      radial-gradient(ellipse at 18% 16%, hsl(205 100% 48% / 0.28) 0%, transparent 46%),
-      radial-gradient(ellipse at 82% 78%, hsl(225 92% 36% / 0.22) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 100%, hsl(198 90% 55% / 0.16) 0%, transparent 42%),
-      linear-gradient(145deg, hsl(214 32% 97%) 0%, hsl(220 28% 95%) 48%, hsl(226 30% 96%) 100%),
+      radial-gradient(ellipse at 18% 16%, hsl(220 80% 26% / 0.6) 0%, transparent 46%),
+      radial-gradient(ellipse at 82% 78%, hsl(210 80% 25% / 0.46) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, hsl(220 72% 18% / 0.42) 0%, transparent 42%),
+      linear-gradient(145deg, hsl(223 34% 9%) 0%, hsl(228 30% 12%) 48%, hsl(232 28% 10%) 100%),
       hsl(var(--background));
   }
 
@@ -265,7 +265,7 @@
   }
 
   .light-mode .text-gradient-arena {
-    background: linear-gradient(135deg, hsl(217 92% 26%) 0%, hsl(205 95% 38%) 52%, hsl(196 90% 36%) 100%);
+    background: linear-gradient(135deg, hsl(223 88% 52%) 0%, hsl(210 90% 42%) 48%, hsl(198 82% 34%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -280,7 +280,7 @@
   }
 
   .light-mode .glow-red {
-    box-shadow: 0 0 30px hsl(217 90% 40% / 0.22), 0 0 60px hsl(205 90% 48% / 0.1);
+    box-shadow: 0 0 30px hsl(220 82% 38% / 0.34), 0 0 60px hsl(210 85% 30% / 0.18);
   }
 
   .light-beam {
@@ -327,8 +327,8 @@
   }
 
   .light-mode .home-cta:hover {
-    background: hsl(0 0% 100% / 0.92);
-    border-color: hsl(0 65% 50% / 0.4);
+    background: hsl(224 35% 14% / 0.9);
+    border-color: hsl(220 78% 52% / 0.55);
   }
 }
 

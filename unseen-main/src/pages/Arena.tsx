@@ -1,8 +1,8 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ThumbsUp } from "lucide-react";
+import { ThumbsUp, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import { supabase } from "@/supabaseClient";
 import { getInstagramProfile } from "@/lib/instagram";
@@ -25,6 +25,7 @@ type ArenaChallenger = {
 
 const Arena = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [selectedWork, setSelectedWork] = useState<ArenaChallenger | null>(null);
 
   const [duelId, setDuelId] = useState<string | null>(null);
@@ -37,17 +38,38 @@ const Arena = () => {
 
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
-  /** Duello attivo + opere collegate + countdown da end_at */
+  /** Duello attivo o specifico (via URL param) + opere collegate + countdown da end_at */
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       console.log("Fetching active duel...");
-      const { data: duel, error: duelErr } = await supabase
-        .from("duels")
-        .select("*")
-        .eq("is_active", true)
-        .single();
+      
+      // Controlla se è specificato un duelId nei query params
+      const urlDuelId = searchParams.get("duelId");
+      
+      let duel;
+      let duelErr;
+      
+      if (urlDuelId) {
+        // Carica il duello specifico
+        const result = await supabase
+          .from("duels")
+          .select("*")
+          .eq("id", urlDuelId)
+          .single();
+        duel = result.data;
+        duelErr = result.error;
+      } else {
+        // Carica il duello attivo
+        const result = await supabase
+          .from("duels")
+          .select("*")
+          .eq("is_active", true)
+          .single();
+        duel = result.data;
+        duelErr = result.error;
+      }
 
       console.log("Duel data:", duel);
       console.log("Duel error:", duelErr);
@@ -152,7 +174,7 @@ const Arena = () => {
         countdownRef.current = null;
       }
     };
-  }, []);
+  }, [searchParams]);
 
   const handleVote = useCallback(async (slot: 1 | 2) => {
     if (!duelId) {
@@ -227,6 +249,42 @@ const Arena = () => {
     }
   }, [duelId, navigate]);
 
+  const handleShare = useCallback(async () => {
+    if (!duelId) {
+      toast.error("Duello non disponibile", { description: "Impossibile condividere." });
+      return;
+    }
+
+    const shareUrl = `${window.location.origin}/arena?duelId=${duelId}`;
+    const shareText = `Vota nel duello Unseen! ${challengers[0]?.titolo} vs ${challengers[1]?.titolo}`;
+
+    // Prova Web Share API (WhatsApp, social media nativa)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Unseen Arena",
+          text: shareText,
+          url: shareUrl,
+        });
+        toast.success("Condiviso con successo!", { description: "Duello condiviso." });
+        return;
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          console.error("Share failed:", err);
+        }
+      }
+    }
+
+    // Fallback: copia negli appunti
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copiato!", { description: "Puoi condividere il link su WhatsApp, social o chat." });
+    } catch (err) {
+      toast.error("Errore", { description: "Impossibile copiare il link." });
+      console.error("Copy failed:", err);
+    }
+  }, [duelId, challengers]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen arena-bg flex items-center justify-center">
@@ -272,6 +330,19 @@ const Arena = () => {
               </div>
             ))}
           </div>
+          
+          {isDuelActive && duelId && (
+            <motion.button
+              type="button"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleShare}
+              className="mt-6 mx-auto flex items-center justify-center gap-2 rounded-lg border border-arena/35 bg-arena/10 px-6 py-2.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/18"
+            >
+              <Share2 className="h-4 w-4" strokeWidth={2} />
+              Condividi duello
+            </motion.button>
+          )}
         </div>
 
         {isDuelActive ? (
