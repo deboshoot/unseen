@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import { supabase } from "@/supabaseClient";
@@ -33,6 +34,7 @@ const Gallery = () => {
   const [artworks, setArtworks] = useState<Record<string, GalleryWork>>({});
   const [selectedWork, setSelectedWork] = useState<GalleryWork | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
   useEffect(() => {
     const loadGallery = async () => {
@@ -76,22 +78,36 @@ const Gallery = () => {
         {isLoading ? <p className="py-24 text-center font-body text-sm uppercase tracking-[0.3em] text-muted-foreground">Caricamento archivio...</p> : null}
         {!isLoading && months.length === 0 ? <p className="py-24 text-center font-display text-xl text-muted-foreground">Il primo campionato deve ancora essere proclamato.</p> : null}
 
-        <div className="space-y-24">
-          {months.map((month, monthIndex) => (
-            <motion.section key={month.id} initial={{ opacity: 0, y: 25 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.7 }}>
-              <div className="gallery-month-heading mb-7 flex items-end justify-between gap-5">
-                <div><p className="gallery-month-number">{String(monthIndex + 1).padStart(2, "0")}</p><h2 className="gallery-month-title">{month.month_label}</h2></div>
-                <p className="gallery-month-meta hidden md:block">Tre opere selezionate</p>
-              </div>
-              <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-5 scrollbar-hide">
-                {categories.map((category, categoryIndex) => {
-                  const work = artworks[month[category.key]];
-                  if (!work) return null;
-                  return <GalleryCard key={category.key} work={work} category={category.label} accent={category.accent} featured={categoryIndex === 0} onOpen={() => setSelectedWork(work)} />;
-                })}
-              </div>
-            </motion.section>
-          ))}
+        <div className="gallery-season-section">
+          <div className="gallery-season-heading">
+            <p className="gallery-section-label">Archivio dei vincitori</p>
+            <p className="gallery-season-hint">Seleziona una stagione per scoprire gli altri riconoscimenti</p>
+          </div>
+          <div className="gallery-winners-row">
+            {months.map((month, monthIndex) => {
+              const winner = artworks[month.winner_id];
+              if (!winner) return null;
+              const isExpanded = expandedMonth === month.id;
+              return (
+                <motion.section key={month.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.55, delay: monthIndex * 0.04 }} className="gallery-season-item">
+                  <GalleryCard work={winner} category="Vincitore del mese" accent="text-white" onOpen={() => setSelectedWork(winner)} />
+                  <button type="button" className={`gallery-season-toggle ${isExpanded ? "is-open" : ""}`} aria-expanded={isExpanded} onClick={() => setExpandedMonth(isExpanded ? null : month.id)}>
+                    <span><strong>{month.month_label}</strong><small>{isExpanded ? "Nascondi riconoscimenti" : "Mostra gli altri vincitori"}</small></span>
+                    <ChevronDown size={17} aria-hidden="true" />
+                  </button>
+                  {isExpanded ? (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="gallery-related-winners">
+                      {categories.slice(1).map((category) => {
+                        const work = artworks[month[category.key]];
+                        if (!work) return null;
+                        return <GalleryCard key={category.key} work={work} category={category.label} accent="text-white" onOpen={() => setSelectedWork(work)} />;
+                      })}
+                    </motion.div>
+                  ) : null}
+                </motion.section>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -102,10 +118,10 @@ const Gallery = () => {
   );
 };
 
-const GalleryCard = ({ work, category, accent, featured, onOpen }: { work: GalleryWork; category: string; accent: string; featured: boolean; onOpen: () => void }) => (
-  <button type="button" onClick={onOpen} className={`gallery-piece group w-[min(82vw,440px)] flex-shrink-0 snap-start text-left ${featured ? "md:w-[min(48vw,560px)]" : "md:w-[min(34vw,390px)]"}`}>
+const GalleryCard = ({ work, category, accent, onOpen }: { work: GalleryWork; category: string; accent: string; onOpen: () => void }) => (
+  <button type="button" onClick={onOpen} className="gallery-piece group w-[min(57vw,260px)] flex-shrink-0 snap-start text-left md:w-[min(18vw,230px)]">
     <span className="gallery-wire" aria-hidden="true" />
-    <div className={`gallery-frame ${featured ? "gallery-frame-featured" : ""}`}>
+    <div className="gallery-frame">
       <div className="gallery-frame-inner">
         <img src={work.immagine_url} alt={work.titolo} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" loading="lazy" />
         <div className="gallery-frame-sheen" />
