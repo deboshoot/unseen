@@ -71,7 +71,7 @@ const Gallery = () => {
       <div className="mx-auto max-w-7xl">
         <motion.header initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="gallery-heading mb-16 max-w-3xl">
           <p className="gallery-kicker mb-4">Archivio digitale · 2026</p>
-          <h1 className="gallery-title">UNSEEN <em>gallery</em></h1>
+          <h1 className="gallery-title">GALLERIA</h1>
           <p className="gallery-intro">Tre sguardi, un mese, una storia. Le opere che hanno definito ogni campionato sono esposte insieme.</p>
         </motion.header>
 

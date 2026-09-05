@@ -384,11 +384,11 @@
 
   .gallery-title {
     color: hsl(var(--gallery-ink));
-    font-family: 'Instrument Serif', Georgia, serif;
-    font-size: clamp(3.6rem, 8vw, 7rem);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.3rem, 4.8vw, 4rem);
     font-weight: 600;
-    letter-spacing: -0.035em;
-    line-height: 0.9;
+    letter-spacing: 0.045em;
+    line-height: 1;
   }
 
   .gallery-intro {
@@ -396,7 +396,7 @@
     font-family: 'DM Sans', sans-serif;
     font-size: 0.95rem;
     line-height: 1.8;
-    margin-top: 1.5rem;
+    margin-top: 0.9rem;
     max-width: 36rem;
   }
 
