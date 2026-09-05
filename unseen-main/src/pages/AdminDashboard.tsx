@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/supabaseClient";
 import { motion } from "framer-motion";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
+import GalleryMonthManager from "@/components/GalleryMonthManager";
 import { 
   Check, X, Trash2, Trophy, Users, Image as ImageIcon, 
   Shield, Clock, Calendar, ThumbsUp, Lock, Unlock
@@ -34,7 +35,7 @@ type ProfileRecord = {
   created_at: string;
 };
 
-type AdminTab = "moderation" | "arena" | "stats";
+type AdminTab = "moderation" | "gallery" | "arena" | "stats";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -264,6 +265,7 @@ const AdminDashboard = () => {
         >
           {[
             { id: "moderation", label: "Moderazione", icon: Shield },
+            { id: "gallery", label: "Galleria", icon: ImageIcon },
             { id: "arena", label: "Arena", icon: Trophy },
             { id: "stats", label: "Community", icon: Users },
           ].map((tab) => (
@@ -451,6 +453,8 @@ const AdminDashboard = () => {
               )}
             </div>
           )}
+
+          {activeTab === "gallery" && <GalleryMonthManager />}
 
           {activeTab === "stats" && (
             <div className="space-y-6">
