@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User, LogOut } from "lucide-react";
@@ -15,7 +16,7 @@ const navItems = [
 
 const Navbar = () => {
   const location = useLocation();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     (async () => {

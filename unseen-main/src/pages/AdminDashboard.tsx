@@ -7,25 +7,50 @@ import {
   Shield, Clock, Calendar, ThumbsUp, Lock, Unlock
 } from "lucide-react";
 
+type ArtworkRecord = {
+  id: string;
+  titolo: string;
+  autore: string;
+  immagine_url: string;
+  status: "accepted" | "rejected" | "pending" | string;
+  is_in_gallery: boolean;
+};
+
+type DuelRecord = {
+  id: string;
+  champion_id: string;
+  challenger_id: string;
+  end_at: string;
+  votes_champion: number;
+  votes_challenger: number;
+};
+
+type ProfileRecord = {
+  email: string;
+  created_at: string;
+};
+
+type AdminTab = "moderation" | "arena" | "stats";
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
-  const [activeTab, setActiveTab] = useState<"moderation" | "arena" | "stats">("moderation");
+  const [activeTab, setActiveTab] = useState<AdminTab>("moderation");
   
   // Moderation state
-  const [opere, setOpere] = useState<any[]>([]);
+  const [opere, setOpere] = useState<ArtworkRecord[]>([]);
   const [loadingOpere, setLoadingOpere] = useState(false);
   
   // Arena state
-  const [activeDuel, setActiveDuel] = useState<any>(null);
+  const [activeDuel, setActiveDuel] = useState<DuelRecord | null>(null);
   const [loadingDuel, setLoadingDuel] = useState(false);
-  const [championOpere, setChampionOpere] = useState<any>(null);
-  const [challengerOpere, setChallengerOpere] = useState<any>(null);
+  const [championOpere, setChampionOpere] = useState<ArtworkRecord | null>(null);
+  const [challengerOpere, setChallengerOpere] = useState<ArtworkRecord | null>(null);
   
   // Stats state
   const [stats, setStats] = useState({ users: 0, opere: 0, votes: 0 });
-  const [recentUsers, setRecentUsers] = useState<any[]>([]);
+  const [recentUsers, setRecentUsers] = useState<ProfileRecord[]>([]);
   const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
@@ -191,8 +216,9 @@ const AdminDashboard = () => {
       // Reload data
       fetchActiveDuel();
       fetchStats();
-    } catch (error: any) {
-      alert("Errore nella creazione del duello: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Errore sconosciuto";
+      alert("Errore nella creazione del duello: " + message);
     }
   };
 
@@ -238,7 +264,7 @@ const AdminDashboard = () => {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as AdminTab)}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-display text-sm font-semibold tracking-wide transition-all ${
                 activeTab === tab.id
                   ? "bg-white/10 text-white border border-white/20"

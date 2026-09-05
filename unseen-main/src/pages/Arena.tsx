@@ -197,44 +197,20 @@ const Arena = () => {
         return;
       }
 
-      const voteCol = slot === 1 ? "votes_champion" : "votes_challenger";
+      const { error: voteError } = await supabase.rpc("cast_vote", {
+        p_duel_id: duelId,
+        p_vote_slot: slot,
+      });
 
-      const { error: insertErr } = await supabase
-        .from("votes")
-        .insert({
-          user_id: user.id,
-          duel_id: duelId,
-          vote_slot: slot,
-        });
-
-      if (insertErr) {
-        if (insertErr.code === "23505") {
+      if (voteError) {
+        if (voteError.message.toLowerCase().includes("already voted")) {
           toast.error("Hai già votato!", {
             description: "Puoi votare solo una volta per duello.",
           });
-          votingRef.current = false;
-          setVoting(false);
           return;
         }
-        throw insertErr;
+        throw voteError;
       }
-
-      const { data: row, error: fetchErr } = await supabase
-        .from("duels")
-        .select(voteCol)
-        .eq("id", duelId)
-        .single();
-
-      if (fetchErr) throw fetchErr;
-
-      const current = Number((row as Record<string, unknown>)?.[voteCol] ?? 0);
-
-      const { error: updateErr } = await supabase
-        .from("duels")
-        .update({ [voteCol]: current + 1 })
-        .eq("id", duelId);
-
-      if (updateErr) throw updateErr;
 
       const label = slot === 1 ? "I" : "II";
       toast.success("Voto registrato", {

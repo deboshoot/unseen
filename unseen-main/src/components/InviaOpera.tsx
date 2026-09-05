@@ -81,9 +81,10 @@ export default function InviaOpera() {
         description: 'La tua visione è stata condivisa con successo.',
       });
       setTitolo(''); setAutore(''); setStoria(''); setSocial(''); setFile(null); setPreviewUrl(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Si è verificato un errore imprevisto.';
       toast.error('Errore durante l\'invio', {
-        description: err.message || 'Si è verificato un errore imprevisto.',
+        description: message,
       });
     } finally {
       setLoading(false);
