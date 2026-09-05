@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ThumbsUp, Share2 } from "lucide-react";
+import { Clock3, Sparkles, Swords, ThumbsUp, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
@@ -66,7 +66,7 @@ const Arena = () => {
           .from("duels")
           .select("*")
           .eq("is_active", true)
-          .single();
+          .maybeSingle();
         duel = result.data;
         duelErr = result.error;
       }
@@ -270,7 +270,7 @@ const Arena = () => {
   }
 
   return (
-    <div className="min-h-screen arena-bg pt-24 px-4">
+    <div className="arena-page min-h-screen arena-bg pt-24 px-4">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-20 left-10 w-96 h-96 rounded-full bg-arena/5 blur-[100px]" />
         <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-arena/8 blur-[80px]" />
@@ -288,9 +288,12 @@ const Arena = () => {
         transition={{ duration: 1 }}
         className="relative z-10 max-w-5xl mx-auto"
       >
-        <div className="text-center mb-8">
-          <p className="text-muted-foreground text-xs tracking-[0.4em] uppercase font-body mb-3">
-            Tempo rimanente
+        <div className="arena-heading mb-8 text-center">
+          <p className="arena-kicker">Unseen · Competizione fotografica</p>
+          <h1 className="arena-title">ARENA</h1>
+          <p className="arena-subtitle">Due opere. Una scelta. Il pubblico decide.</p>
+          <p className="text-muted-foreground text-xs tracking-[0.4em] uppercase font-body mb-3 mt-8">
+            {isDuelActive ? "Tempo rimanente" : "Stato del campionato"}
           </p>
           <div className="flex justify-center gap-3">
             {[
@@ -361,28 +364,7 @@ const Arena = () => {
           </div>
         ) : (
           <>
-            <div className="text-center py-8 mb-6">
-              <p className="font-display text-2xl md:text-3xl text-muted-foreground tracking-wider">
-                In attesa del prossimo duello
-              </p>
-            </div>
-            
-            <div className="flex items-center justify-center gap-3 md:gap-8 opacity-40">
-              <PlaceholderCard side="left" />
-
-              <div className="relative flex-shrink-0">
-                <div
-                  className="font-display text-3xl md:text-5xl font-black text-muted-foreground"
-                  style={{
-                    textShadow: "0 0 22px hsl(var(--arena-red) / 0.2), 0 4px 8px hsl(0 0% 0% / 0.3)",
-                  }}
-                >
-                  VS
-                </div>
-              </div>
-
-              <PlaceholderCard side="right" />
-            </div>
+            <EmptyArenaState />
           </>
         )}
 
@@ -550,6 +532,30 @@ const PlaceholderCard = ({ side }: { side: "left" | "right" }) => (
       <p className="text-muted-foreground text-xs tracking-wider opacity-60">---</p>
     </div>
   </motion.div>
+);
+
+const EmptyArenaState = () => (
+  <motion.section
+    initial={{ opacity: 0, y: 18 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.7, delay: 0.15 }}
+    className="arena-empty-state"
+  >
+    <div className="arena-empty-mark" aria-hidden="true">
+      <motion.div
+        animate={{ rotate: [0, 4, -4, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="arena-empty-frame"
+      >
+        <Swords size={34} strokeWidth={1.2} />
+      </motion.div>
+      <span className="arena-empty-dot" />
+    </div>
+    <p className="arena-empty-label"><Clock3 size={14} /> Prossimo confronto in preparazione</p>
+    <h2>La prossima sfida sta per iniziare</h2>
+    <p>Il team Unseen sta selezionando le opere del prossimo duello. Torna presto per esprimere la tua preferenza.</p>
+    <div className="arena-empty-rule"><Sparkles size={14} /><span>Nuove opere · Nuove sfide · Nuovi sguardi</span><Sparkles size={14} /></div>
+  </motion.section>
 );
 
 export default Arena;
