@@ -36,10 +36,17 @@ const GalleryMonthManager = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setMessage("");
     const [artworksResult, monthsResult] = await Promise.all([
       supabase.from("opere").select("id, titolo, autore, status").eq("status", "accepted").order("created_at", { ascending: false }),
       supabase.from("gallery_months").select("id, month_key, month_label, winner_id, people_choice_id, jury_choice_id").order("month_key", { ascending: false }),
     ]);
+
+    if (artworksResult.error) {
+      setMessage(`Impossibile caricare le opere: ${artworksResult.error.message}`);
+    } else if (monthsResult.error) {
+      setMessage(`Impossibile caricare i campionati: ${monthsResult.error.message}`);
+    }
 
     setArtworks((artworksResult.data ?? []) as ArtworkOption[]);
     setMonths((monthsResult.data ?? []) as GalleryMonth[]);
@@ -79,6 +86,16 @@ const GalleryMonthManager = () => {
     if (error) {
       setMessage(error.message);
     } else {
+      const { error: galleryError } = await supabase
+        .from("opere")
+        .update({ is_in_gallery: true })
+        .in("id", [form.winnerId, form.peopleChoiceId, form.juryChoiceId]);
+
+      if (galleryError) {
+        setMessage(`Mese salvato, ma impossibile pubblicare le opere: ${galleryError.message}`);
+        setSaving(false);
+        return;
+      }
       resetForm();
       await loadData();
       setMessage("Mese salvato nella galleria.");
@@ -140,6 +157,7 @@ const GalleryMonthManager = () => {
           </div>
         ))}
         {!loading && months.length === 0 ? <p className="py-8 text-center text-sm text-white/40">Nessun mese configurato.</p> : null}
+        {!loading && artworks.length === 0 ? <p className="rounded-xl border border-amber-300/20 bg-amber-300/5 p-4 text-sm text-amber-100">Non ci sono opere accettate. Vai nella scheda Moderazione e accetta prima le opere che vuoi inserire nei vincitori.</p> : null}
       </div>
     </div>
   );
