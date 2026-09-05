@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/supabaseClient";
 import { motion } from "framer-motion";
+import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import { 
   Check, X, Trash2, Trophy, Users, Image as ImageIcon, 
   Shield, Clock, Calendar, ThumbsUp, Lock, Unlock
@@ -12,6 +13,9 @@ type ArtworkRecord = {
   titolo: string;
   autore: string;
   immagine_url: string;
+  storia: string;
+  social_link: string;
+  created_at?: string;
   status: "accepted" | "rejected" | "pending" | string;
   is_in_gallery: boolean;
 };
@@ -40,6 +44,7 @@ const AdminDashboard = () => {
   
   // Moderation state
   const [opere, setOpere] = useState<ArtworkRecord[]>([]);
+  const [selectedArtwork, setSelectedArtwork] = useState<ArtworkRecord | null>(null);
   const [loadingOpere, setLoadingOpere] = useState(false);
   
   // Arena state
@@ -299,7 +304,16 @@ const AdminDashboard = () => {
                       key={opera.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-6 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedArtwork(opera)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedArtwork(opera);
+                        }
+                      }}
+                      className="flex cursor-pointer items-center gap-6 rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition-all hover:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
                     >
                       <img
                         src={opera.immagine_url}
@@ -319,7 +333,7 @@ const AdminDashboard = () => {
                           {opera.status === "accepted" ? "Accettata" : opera.status === "rejected" ? "Rifiutata" : "In attesa"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3" onClick={(event) => event.stopPropagation()}>
                         <button
                           onClick={() => toggleGalleryStatus(opera.id, opera.is_in_gallery)}
                           className={`p-3 rounded-xl transition-all ${
@@ -525,6 +539,50 @@ const AdminDashboard = () => {
           )}
         </motion.div>
       </div>
+
+      <ArtworkDetailModal
+        open={!!selectedArtwork}
+        onClose={() => setSelectedArtwork(null)}
+        imageSrc={selectedArtwork?.immagine_url ?? ""}
+        imageAlt={selectedArtwork?.titolo ?? ""}
+        titleId="admin-artwork-detail-title"
+      >
+        {selectedArtwork ? (
+          <>
+            <p className="font-body text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+              Opera in moderazione
+            </p>
+            <h2
+              id="admin-artwork-detail-title"
+              className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl"
+            >
+              {selectedArtwork.titolo || "Senza titolo"}
+            </h2>
+            <div className="space-y-1 font-body text-sm text-foreground">
+              <p>
+                <span className="text-muted-foreground">Inviata da: </span>
+                <span className="font-medium">{selectedArtwork.autore || "Autore non indicato"}</span>
+              </p>
+              {selectedArtwork.social_link ? (
+                <p className="text-muted-foreground">Instagram: @{selectedArtwork.social_link.replace(/^@/, "")}</p>
+              ) : null}
+              {selectedArtwork.created_at ? (
+                <p className="text-muted-foreground">
+                  Ricevuta il {new Date(selectedArtwork.created_at).toLocaleDateString("it-IT")}
+                </p>
+              ) : null}
+            </div>
+            <div>
+              <p className="mb-2 font-body text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                Descrizione
+              </p>
+              <p className="whitespace-pre-wrap font-body text-base leading-relaxed text-muted-foreground md:text-lg">
+                {selectedArtwork.storia || "Nessuna descrizione fornita."}
+              </p>
+            </div>
+          </>
+        ) : null}
+      </ArtworkDetailModal>
     </div>
   );
 };
