@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/supabaseClient";
 import { motion } from "framer-motion";
@@ -6,8 +6,10 @@ import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import GalleryMonthManager from "@/components/GalleryMonthManager";
 import { 
   Check, X, Trash2, Trophy, Users, Image as ImageIcon, 
-  Shield, Clock, Calendar, ThumbsUp, Lock, Unlock
+  Shield, Clock, Calendar, ThumbsUp, Lock, Unlock, BarChart3
 } from "lucide-react";
+
+const AnalyticsOverview = lazy(() => import("@/components/AnalyticsOverview"));
 
 type ArtworkRecord = {
   id: string;
@@ -35,7 +37,7 @@ type ProfileRecord = {
   created_at: string;
 };
 
-type AdminTab = "moderation" | "gallery" | "arena" | "stats";
+type AdminTab = "moderation" | "gallery" | "arena" | "stats" | "analytics";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -268,6 +270,7 @@ const AdminDashboard = () => {
             { id: "gallery", label: "Galleria", icon: ImageIcon },
             { id: "arena", label: "Arena", icon: Trophy },
             { id: "stats", label: "Community", icon: Users },
+            { id: "analytics", label: "Analytics", icon: BarChart3 },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -455,6 +458,12 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "gallery" && <GalleryMonthManager />}
+
+          {activeTab === "analytics" && (
+            <Suspense fallback={<p className="py-16 text-center text-sm uppercase tracking-[0.3em] text-white/45">Caricamento analytics...</p>}>
+              <AnalyticsOverview stats={stats} artworks={opere} />
+            </Suspense>
+          )}
 
           {activeTab === "stats" && (
             <div className="space-y-6">
