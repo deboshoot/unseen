@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Camera, Swords, Trophy, Image } from "lucide-react";
+import { Camera, Swords, Trophy, Image, Medal, Star } from "lucide-react";
 
 const steps = [
   {
@@ -21,6 +21,27 @@ const steps = [
     icon: Image,
     title: "Galleria permanente",
     description: "L'opera che vince l'ultima domenica del mese entra nella Galleria permanente di UNSEEN — esposta come un vero capolavoro digitale.",
+  },
+];
+
+const awards = [
+  {
+    icon: Trophy,
+    label: "01 · Campione finale",
+    title: "Vincitore del campionato",
+    description: "Il premio va all'opera che arriva fino alla fine del campionato e vince l'ultimo duello del mese.",
+  },
+  {
+    icon: Medal,
+    label: "02 · Resistenza",
+    title: "Vincitore delle vittorie consecutive",
+    description: "Riconosciamo l'opera che costruisce la serie più lunga di vittorie consecutive nell'Arena durante il mese.",
+  },
+  {
+    icon: Star,
+    label: "03 · Scelta editoriale",
+    title: "Scelto da Unseen",
+    description: "Il team Unseen assegna un premio speciale all'opera che interpreta meglio la nostra visione artistica.",
   },
 ];
 
@@ -77,6 +98,40 @@ const HowItWorks = () => {
             </motion.div>
           ))}
         </div>
+
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7 }}
+          className="mt-8"
+        >
+          <div className="mb-8 text-center">
+            <p className="text-primary text-xs font-body uppercase tracking-[0.3em]">Ogni mese</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mt-3">Tre vincitori, tre storie</h2>
+            <p className="text-muted-foreground font-body text-sm leading-relaxed max-w-xl mx-auto mt-4">
+              Il campionato premia risultati, costanza e sensibilità artistica. Le tre opere entrano insieme nell'archivio della Galleria Unseen.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            {awards.map((award, index) => (
+              <motion.article
+                key={award.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+                className="glass rounded-xl border border-primary/15 p-6"
+              >
+                <award.icon className="mb-5 h-8 w-8 text-primary" strokeWidth={1.5} />
+                <p className="font-body text-[10px] uppercase tracking-[0.22em] text-primary/80">{award.label}</p>
+                <h3 className="mt-3 font-display text-xl font-bold text-foreground">{award.title}</h3>
+                <p className="mt-3 font-body text-sm leading-relaxed text-muted-foreground">{award.description}</p>
+              </motion.article>
+            ))}
+          </div>
+        </motion.section>
       </div>
     </div>
   );
