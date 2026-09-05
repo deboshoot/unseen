@@ -89,14 +89,14 @@ const Navbar = () => {
         </div>
         <div className="md:hidden flex items-center gap-3">
           <ThemeToggle />
-          <MobileMenu />
+          <MobileMenu user={user} onSignOut={handleSignOut} />
         </div>
       </div>
     </motion.nav>
   );
 };
 
-const MobileMenu = () => {
+const MobileMenu = ({ user, onSignOut }: { user: User | null; onSignOut: () => Promise<void> }) => {
   const location = useLocation();
   const [open, setOpen] = React.useState(false);
 
@@ -139,6 +139,30 @@ const MobileMenu = () => {
               {item.label}
             </Link>
           ))}
+          {user ? (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                void onSignOut();
+              }}
+              className="flex items-center gap-2 border-t border-border/40 pt-4 text-left font-body text-sm tracking-wider uppercase text-muted-foreground hover:text-foreground"
+            >
+              <LogOut size={16} />
+              <span>Esci</span>
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              onClick={() => setOpen(false)}
+              className={`flex items-center gap-2 border-t border-border/40 pt-4 font-body text-sm tracking-wider uppercase ${
+                location.pathname === "/auth" ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <User size={16} />
+              <span>Accedi / Iscriviti</span>
+            </Link>
+          )}
         </div>
       </motion.div>
     </div>
