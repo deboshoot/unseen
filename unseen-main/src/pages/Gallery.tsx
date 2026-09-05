@@ -65,12 +65,12 @@ const Gallery = () => {
   }, []);
 
   return (
-    <div className="gallery-bg min-h-screen px-5 pb-24 pt-28 md:px-10">
+    <div className="luxury-gallery min-h-screen px-5 pb-24 pt-28 md:px-10">
       <div className="mx-auto max-w-7xl">
-        <motion.header initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-16 max-w-3xl">
-          <p className="mb-4 font-body text-xs uppercase tracking-[0.35em] text-primary">Archivio Unseen</p>
-          <h1 className="font-display text-5xl font-black tracking-tight text-foreground md:text-7xl">I campionati</h1>
-          <p className="mt-5 max-w-2xl font-body text-base leading-relaxed text-muted-foreground md:text-lg">Tre sguardi, un mese, una storia. Le opere che hanno definito ogni campionato sono esposte insieme.</p>
+        <motion.header initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="gallery-heading mb-16 max-w-3xl">
+          <p className="gallery-kicker mb-4">Archivio digitale · 2026</p>
+          <h1 className="gallery-title">UNSEEN <em>gallery</em></h1>
+          <p className="gallery-intro">Tre sguardi, un mese, una storia. Le opere che hanno definito ogni campionato sono esposte insieme.</p>
         </motion.header>
 
         {isLoading ? <p className="py-24 text-center font-body text-sm uppercase tracking-[0.3em] text-muted-foreground">Caricamento archivio...</p> : null}
@@ -79,9 +79,9 @@ const Gallery = () => {
         <div className="space-y-24">
           {months.map((month, monthIndex) => (
             <motion.section key={month.id} initial={{ opacity: 0, y: 25 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.7 }}>
-              <div className="mb-7 flex items-end justify-between gap-5 border-b border-foreground/10 pb-4">
-                <div><p className="font-body text-xs uppercase tracking-[0.3em] text-primary">{String(monthIndex + 1).padStart(2, "0")}</p><h2 className="mt-2 font-display text-3xl font-bold text-foreground md:text-4xl">{month.month_label}</h2></div>
-                <p className="hidden font-body text-xs uppercase tracking-[0.2em] text-muted-foreground md:block">Tre opere selezionate</p>
+              <div className="gallery-month-heading mb-7 flex items-end justify-between gap-5">
+                <div><p className="gallery-month-number">{String(monthIndex + 1).padStart(2, "0")}</p><h2 className="gallery-month-title">{month.month_label}</h2></div>
+                <p className="gallery-month-meta hidden md:block">Tre opere selezionate</p>
               </div>
               <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-5 scrollbar-hide">
                 {categories.map((category, categoryIndex) => {
@@ -103,15 +103,18 @@ const Gallery = () => {
 };
 
 const GalleryCard = ({ work, category, accent, featured, onOpen }: { work: GalleryWork; category: string; accent: string; featured: boolean; onOpen: () => void }) => (
-  <button type="button" onClick={onOpen} className={`group w-[min(82vw,440px)] flex-shrink-0 snap-start text-left ${featured ? "md:w-[min(48vw,560px)]" : "md:w-[min(34vw,390px)]"}`}>
-    <div className={`relative overflow-hidden border border-foreground/10 bg-foreground/[0.04] p-2 transition duration-500 group-hover:-translate-y-1 group-hover:border-primary/40 ${featured ? "aspect-[4/3]" : "aspect-[4/5]"}`}>
-      <img src={work.immagine_url} alt={work.titolo} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" loading="lazy" />
-      <div className="pointer-events-none absolute inset-2 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+  <button type="button" onClick={onOpen} className={`gallery-piece group w-[min(82vw,440px)] flex-shrink-0 snap-start text-left ${featured ? "md:w-[min(48vw,560px)]" : "md:w-[min(34vw,390px)]"}`}>
+    <span className="gallery-wire" aria-hidden="true" />
+    <div className={`gallery-frame ${featured ? "gallery-frame-featured" : ""}`}>
+      <div className="gallery-frame-inner">
+        <img src={work.immagine_url} alt={work.titolo} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" loading="lazy" />
+        <div className="gallery-frame-sheen" />
+      </div>
     </div>
-    <div className="border-b border-foreground/10 px-1 py-5">
-      <p className={`font-body text-[10px] uppercase tracking-[0.25em] ${accent}`}>{category}</p>
-      <h3 className="mt-2 font-display text-xl font-semibold text-foreground">{work.titolo}</h3>
-      <p className="mt-1 font-body text-sm text-muted-foreground">{work.autore}</p>
+    <div className="gallery-plaque">
+      <p className={`gallery-plaque-category ${accent}`}>{category}</p>
+      <h3 className="gallery-plaque-title">{work.titolo}</h3>
+      <p className="gallery-plaque-author">{work.autore}</p>
     </div>
   </button>
 );
