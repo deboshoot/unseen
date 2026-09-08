@@ -1,106 +1,91 @@
+import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
-    <div className="bg-gradient-to-b from-home-hero-bg to-background">
-      <div className="min-h-screen home-hero-bg relative overflow-hidden flex flex-col items-center justify-center px-6 text-center">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-        >
+    <div className="home-page bg-background">
+      <section className="home-minimal-hero relative flex min-h-[min(820px,100vh)] items-center justify-center overflow-hidden px-6 pb-20 pt-32 md:px-10">
+        <div className="home-gallery-wash absolute inset-0" />
+        <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex items-center gap-3 font-body text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            Digital art gallery
+          </motion.div>
           <motion.h1
-            className="font-display text-5xl md:text-7xl font-black tracking-[0.4em] text-foreground leading-none"
-            initial={{ letterSpacing: "1em", opacity: 0 }}
-            animate={{ letterSpacing: "0.4em", opacity: 1 }}
-            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-8 font-display text-[clamp(2.8rem,6vw,5.2rem)] font-medium leading-[0.9] tracking-[-0.065em] text-foreground"
           >
             UNSEEN
           </motion.h1>
-        </motion.div>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.8 }}
-          className="text-muted-foreground text-lg md:text-xl tracking-widest uppercase mt-6 font-body"
-        >
-          Galleria d'Arte Digitale
-        </motion.p>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.3, duration: 0.8 }}
-          className="text-muted-foreground/70 text-sm md:text-base max-w-lg mt-4 font-body leading-relaxed"
-        >
-          Dove le fotografie si sfidano, il pubblico decide, e solo le migliori entrano nella galleria permanente.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.6, duration: 0.8 }}
-          className="flex flex-col sm:flex-row gap-4 mt-12"
-        >
-          <Link to="/arena" className="block">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="button"
-              className="home-cta w-full sm:w-auto"
-            >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.55 }}
+            className="mt-8 h-px w-8 bg-primary/70"
+          />
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.72 }}
+            className="mt-7 max-w-sm font-body text-sm leading-7 text-muted-foreground"
+          >
+            Uno spazio per immagini che meritano di restare.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.92 }}
+            className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row"
+          >
+            <Link to="/gallery" className="home-primary-link group w-full justify-center sm:w-auto">
+              Esplora la galleria
+              <ArrowUpRight size={17} strokeWidth={2.2} />
+            </Link>
+            <Link to="/arena" className="home-secondary-link w-full justify-center sm:w-auto">
               Entra nell'Arena
-            </motion.button>
-          </Link>
-          <Link to="/gallery" className="block">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="button"
-              className="home-cta w-full sm:w-auto"
-            >
-              Visita la Galleria
-            </motion.button>
-          </Link>
-        </motion.div>
-      </div>
-
-      <div className="relative overflow-hidden py-24 px-6">
-        <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-          <div className="absolute top-0 left-10 w-96 h-96 rounded-full bg-primary/5 blur-[100px]" />
-          <div className="absolute bottom-0 right-10 w-80 h-80 rounded-full bg-primary/8 blur-[80px]" />
+              <ArrowUpRight size={17} strokeWidth={2.2} />
+            </Link>
+          </motion.div>
         </div>
+      </section>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true, margin: "-100px" }}
-          className="relative z-10 flex flex-col items-center justify-center max-w-2xl mx-auto text-center"
-        >
-          <p className="text-muted-foreground/80 text-xs tracking-[0.3em] uppercase mb-6 font-body">
-            Sei un artista?
-          </p>
-          <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-4">
-            Metti in gioco le tue opere
-          </h2>
-          <p className="text-muted-foreground max-w-md mx-auto text-sm md:text-base mb-8 font-body leading-relaxed">
-            Condividi le tue migliori creazioni e lascia che il pubblico decide quali meritano di entrare nella galleria permanente.
-          </p>
-          <Link to="/submit" className="block">
-            <motion.button
-              whileHover={{ scale: 1.04, y: -2 }}
-              whileTap={{ scale: 0.96 }}
-              type="button"
-              className="submit-cta"
-            >
-              Invia la tua opera
-            </motion.button>
-          </Link>
-        </motion.div>
-      </div>
+      <section className="relative overflow-hidden px-6 py-20 md:px-10 md:py-28">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <p className="font-body text-[10px] font-semibold uppercase tracking-[0.3em] text-primary">Il rituale Unseen</p>
+              <h2 className="mt-4 max-w-xl font-display text-2xl font-medium leading-tight tracking-[-0.04em] text-foreground md:text-4xl">
+                Guarda. Scegli. Lascia il segno.
+              </h2>
+            </div>
+            <p className="max-w-xs font-body text-sm leading-6 text-muted-foreground">La community sceglie. Le opere migliori restano.</p>
+          </div>
+          <div className="grid border-y border-border/60 md:grid-cols-3">
+            {[
+              ["01", "Arena", "Due opere. Un voto. La sfida comincia."],
+              ["02", "Galleria", "Le fotografie che hanno lasciato il segno."],
+              ["03", "Artisti", "Uno spazio per chi vede il mondo diversamente."],
+            ].map(([number, title, text]) => (
+              <Link key={title} to={title === "Arena" ? "/arena" : title === "Galleria" ? "/gallery" : "/submit"} className="group border-b border-border/60 py-7 md:border-b-0 md:border-r md:px-8 md:first:pl-0 md:last:border-r-0 md:last:pr-0">
+                <div className="flex items-start justify-between gap-5">
+                  <span className="font-body text-xs text-muted-foreground">{number}</span>
+                  <ArrowUpRight className="text-muted-foreground transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-primary" size={18} />
+                </div>
+                <h3 className="mt-8 font-display text-2xl tracking-tight text-foreground">{title}</h3>
+                <p className="mt-2 max-w-xs font-body text-sm leading-6 text-muted-foreground">{text}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
