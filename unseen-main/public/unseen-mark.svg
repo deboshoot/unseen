@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>Unseen</title>
+  <defs>
+    <linearGradient id="ring" x1="14" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff1717" />
+      <stop offset="0.52" stop-color="#ff5a0a" />
+      <stop offset="1" stop-color="#e60012" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#050505" />
+  <path fill="url(#ring)" fill-rule="evenodd" d="M32 7a25 25 0 1 1 0 50 25 25 0 0 1 0-50Zm0 7a18 18 0 1 0 0 36 18 18 0 0 0 0-36Z" />
+</svg>
