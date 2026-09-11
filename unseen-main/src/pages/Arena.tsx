@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Clock3, Sparkles, Swords, ThumbsUp, Share2 } from "lucide-react";
+import { Clock3, Share2, Sparkles, Swords, ThumbsUp, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
@@ -35,6 +35,7 @@ const Arena = () => {
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isDuelActive, setIsDuelActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
@@ -139,6 +140,9 @@ const Arena = () => {
       ];
 
       setChallengers(mapped);
+      const sharedPhotoId = searchParams.get("photoId");
+      const sharedPhoto = mapped.find((challenger) => challenger.operaId === sharedPhotoId);
+      if (sharedPhoto) setSelectedWork(sharedPhoto);
       setIsLoading(false);
 
       if (cancelled) return;
@@ -186,12 +190,12 @@ const Arena = () => {
     setVoting(true);
 
     try {
-      const { data: { user }, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !user) {
+      const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr || !session?.user) {
         toast.message("Accedi per votare", {
           description: "Devi essere loggato per partecipare al duello.",
         });
-        navigate("/auth?redirect=/arena");
+        navigate(`/auth?redirect=${encodeURIComponent(`/arena?duelId=${duelId}`)}`);
         votingRef.current = false;
         setVoting(false);
         return;
@@ -225,16 +229,21 @@ const Arena = () => {
     }
   }, [duelId, navigate]);
 
-  const handleShare = useCallback(async () => {
+  const openShareMenu = useCallback(() => {
     if (!duelId) {
       toast.error("Duello non disponibile", { description: "Impossibile condividere." });
       return;
     }
 
+    setShareOpen(true);
+  }, [duelId]);
+
+  const handleShareDuel = useCallback(async () => {
+    if (!duelId) return;
+
     const shareUrl = `${window.location.origin}/arena?duelId=${duelId}`;
     const shareText = `Vota nel duello Unseen! ${challengers[0]?.titolo} vs ${challengers[1]?.titolo}`;
 
-    // Prova Web Share API (WhatsApp, social media nativa)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -243,23 +252,52 @@ const Arena = () => {
           url: shareUrl,
         });
         toast.success("Condiviso con successo!", { description: "Duello condiviso." });
+        setShareOpen(false);
         return;
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          console.error("Share failed:", err);
-        }
+        if ((err as Error).name === "AbortError") return;
       }
     }
 
-    // Fallback: copia negli appunti
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success("Link copiato!", { description: "Puoi condividere il link su WhatsApp, social o chat." });
+      toast.success("Link del duello copiato");
+      setShareOpen(false);
     } catch (err) {
-      toast.error("Errore", { description: "Impossibile copiare il link." });
+      toast.error("Errore", { description: "Impossibile copiare il link del duello." });
       console.error("Copy failed:", err);
     }
   }, [duelId, challengers]);
+
+  const handleSharePhoto = useCallback(async (challenger: ArenaChallenger) => {
+    if (!duelId || !challenger.operaId) {
+      toast.error("Foto non disponibile", { description: "Impossibile condividere questa fotografia." });
+      return;
+    }
+
+    const shareUrl = `${window.location.origin}/arena?duelId=${encodeURIComponent(duelId)}&photoId=${encodeURIComponent(challenger.operaId)}`;
+    const shareText = `Vota questa fotografia su Unseen: ${challenger.titolo} di ${challenger.autore}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: challenger.titolo, text: shareText, url: shareUrl });
+        toast.success("Fotografia condivisa");
+        setShareOpen(false);
+        return;
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Link della fotografia copiato");
+      setShareOpen(false);
+    } catch (err) {
+      toast.error("Errore", { description: "Impossibile copiare il link della fotografia." });
+      console.error("Photo share failed:", err);
+    }
+  }, [duelId]);
 
   if (isLoading) {
     return (
@@ -311,16 +349,40 @@ const Arena = () => {
           </div>
           
           {isDuelActive && duelId && (
-            <motion.button
-              type="button"
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleShare}
-              className="mt-6 mx-auto flex items-center justify-center gap-2 rounded-lg border border-arena/35 bg-arena/10 px-6 py-2.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/18"
-            >
-              <Share2 className="h-4 w-4" strokeWidth={2} />
-              Condividi duello
-            </motion.button>
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <motion.button
+                type="button"
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={openShareMenu}
+                className="mx-auto flex items-center justify-center gap-2 rounded-lg border border-arena/35 bg-arena/10 px-6 py-2.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/18"
+              >
+                <Share2 className="h-4 w-4" strokeWidth={2} />
+                Condividi duello
+              </motion.button>
+              {shareOpen && (
+                <div className="relative grid w-full max-w-sm gap-2 rounded-xl border border-border/60 bg-background/95 p-3 text-left backdrop-blur-sm">
+                  <button
+                    type="button"
+                    onClick={() => setShareOpen(false)}
+                    aria-label="Chiudi opzioni di condivisione"
+                    className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <p className="pr-10 font-body text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Cosa vuoi condividere?</p>
+                  <button type="button" onClick={handleShareDuel} className="rounded-lg border border-border/60 px-4 py-3 text-left font-display text-sm font-semibold text-foreground transition-colors hover:border-arena/50 hover:bg-arena/10">
+                    Condividi il duello
+                  </button>
+                  <button type="button" onClick={() => handleSharePhoto(challengers[0])} className="rounded-lg border border-border/60 px-4 py-3 text-left font-display text-sm font-semibold text-foreground transition-colors hover:border-arena/50 hover:bg-arena/10">
+                    Condividi sfidante 1
+                  </button>
+                  <button type="button" onClick={() => handleSharePhoto(challengers[1])} className="rounded-lg border border-border/60 px-4 py-3 text-left font-display text-sm font-semibold text-foreground transition-colors hover:border-arena/50 hover:bg-arena/10">
+                    Condividi sfidante 2
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -411,7 +473,16 @@ const Arena = () => {
         titleId="arena-detail-title"
         footer={
           selectedWork ? (
-            <div className="space-y-1">
+            <div className="space-y-3">
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleSharePhoto(selectedWork)}
+                className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border/60 py-3 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/10"
+              >
+                <Share2 className="h-4 w-4 text-arena" strokeWidth={2} aria-hidden />
+                Condividi questa fotografia
+              </motion.button>
               <p className="text-center font-body text-[10px] tracking-[0.28em] text-muted-foreground uppercase">
                 Voto sul duello
               </p>

@@ -17,6 +17,7 @@ const navItems = [
 const Navbar = () => {
   const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -71,13 +72,33 @@ const Navbar = () => {
           ))}
           <ThemeToggle />
           {user ? (
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-2 font-body text-sm tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <LogOut size={16} />
-              <span>Esci</span>
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+                aria-label="Apri profilo"
+                aria-expanded={profileOpen}
+              >
+                <User size={18} />
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 top-12 min-w-48 rounded-xl border border-border/60 bg-background/95 p-2 shadow-xl backdrop-blur-sm">
+                  <p className="truncate px-3 py-2 text-xs text-muted-foreground">{user.email}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      void handleSignOut();
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-foreground/10"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <Link
               to="/auth"
@@ -148,9 +169,10 @@ const MobileMenu = ({ user, onSignOut }: { user: User | null; onSignOut: () => P
                 void onSignOut();
               }}
               className="flex items-center gap-2 border-t border-border/40 pt-4 text-left font-body text-sm tracking-wider uppercase text-muted-foreground hover:text-foreground"
+              aria-label="Logout"
             >
               <LogOut size={16} />
-              <span>Esci</span>
+              <span>Logout</span>
             </button>
           ) : (
             <Link
