@@ -80,6 +80,7 @@ export function ArtworkDetailModal({
                 <img
                   src={imageSrc}
                   alt={imageAlt}
+                  decoding="async"
                   className="h-auto w-full max-h-[min(52vh,520px)] object-contain md:max-h-[min(90vh,920px)] md:w-auto md:max-w-full"
                 />
               </div>

@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import { supabase } from "@/supabaseClient";
 import { getInstagramProfile } from "@/lib/instagram";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 /**
  * Schema atteso (Postgres / Supabase):
@@ -26,6 +27,7 @@ type ArenaChallenger = {
 const Arena = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const isMobile = useIsMobile();
   const [selectedWork, setSelectedWork] = useState<ArenaChallenger | null>(null);
 
   const [duelId, setDuelId] = useState<string | null>(null);
@@ -41,6 +43,7 @@ const Arena = () => {
 
   /** Duello attivo o specifico (via URL param) + opere collegate + countdown da end_at */
   useEffect(() => {
+    const controller = new AbortController();
     let cancelled = false;
 
     (async () => {
@@ -58,7 +61,8 @@ const Arena = () => {
           .from("duels")
           .select("*")
           .eq("id", urlDuelId)
-          .single();
+          .single()
+          .abortSignal(controller.signal);
         duel = result.data;
         duelErr = result.error;
       } else {
@@ -67,7 +71,8 @@ const Arena = () => {
           .from("duels")
           .select("*")
           .eq("is_active", true)
-          .maybeSingle();
+          .maybeSingle()
+          .abortSignal(controller.signal);
         duel = result.data;
         duelErr = result.error;
       }
@@ -96,7 +101,8 @@ const Arena = () => {
       const { data: opere, error: opereErr } = await supabase
         .from("opere")
         .select("id, titolo, immagine_url, autore, storia, social_link")
-        .in("id", ids);
+        .in("id", ids)
+        .abortSignal(controller.signal);
 
       console.log("Opere data:", opere);
       console.log("Opere error:", opereErr);
@@ -173,6 +179,7 @@ const Arena = () => {
 
     return () => {
       cancelled = true;
+      controller.abort();
       if (countdownRef.current) {
         clearInterval(countdownRef.current);
         countdownRef.current = null;
@@ -310,9 +317,9 @@ const Arena = () => {
   return (
     <div className="arena-page min-h-screen arena-bg pt-24 px-4">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-20 left-10 w-96 h-96 rounded-full bg-arena/5 blur-[100px]" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-arena/8 blur-[80px]" />
-        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" viewBox="0 0 1920 1080">
+        <div className="absolute top-20 left-10 hidden h-96 w-96 rounded-full bg-arena/5 blur-[100px] md:block" />
+        <div className="absolute bottom-20 right-10 hidden h-80 w-80 rounded-full bg-arena/8 blur-[80px] md:block" />
+        <svg className="absolute inset-0 hidden h-full w-full opacity-[0.04] md:block" viewBox="0 0 1920 1080">
           <line x1="960" y1="540" x2="0" y2="0" stroke="hsl(var(--arena-red))" strokeWidth="1" />
           <line x1="960" y1="540" x2="1920" y2="0" stroke="hsl(var(--arena-red))" strokeWidth="1" />
           <line x1="960" y1="540" x2="0" y2="1080" stroke="hsl(var(--arena-red))" strokeWidth="1" />
@@ -396,8 +403,8 @@ const Arena = () => {
 
             <div className="relative flex-shrink-0">
               <motion.div
-                animate={{ rotateY: [0, 360], y: [0, -4, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                animate={isMobile ? { rotateY: 0, y: 0 } : { rotateY: [0, 360], y: [0, -4, 0] }}
+                transition={isMobile ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: "linear" }}
                 className="relative"
                 style={{ perspective: "200px" }}
               >
@@ -413,14 +420,15 @@ const Arena = () => {
               </motion.div>
               <motion.div
                 className="absolute inset-0 bg-arena/30 blur-xl rounded-full"
-                animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                animate={isMobile ? { scale: 1, opacity: 0.3 } : { scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+                transition={isMobile ? { duration: 0 } : { duration: 2, repeat: Infinity }}
               />
             </div>
 
             <ChallengerCard
               challenger={challengers[1]}
               side="right"
+              reduceMotion={isMobile}
               onSelect={() => setSelectedWork(challengers[1])}
             />
           </div>
@@ -538,20 +546,22 @@ const Arena = () => {
 const ChallengerCard = memo(({ 
   challenger,
   side,
+  reduceMotion,
   onSelect,
 }: {
   challenger: ArenaChallenger;
   side: "left" | "right";
+  reduceMotion: boolean;
   onSelect: () => void;
 }) => (
   <motion.div
     initial={{ x: side === "left" ? -100 : 100, opacity: 0 }}
-    animate={{ x: 0, opacity: 1, y: [0, -8, 0], rotate: side === "left" ? [-0.6, 0.6, -0.6] : [0.6, -0.6, 0.6] }}
+    animate={reduceMotion ? { x: 0, opacity: 1 } : { x: 0, opacity: 1, y: [0, -8, 0], rotate: side === "left" ? [-0.6, 0.6, -0.6] : [0.6, -0.6, 0.6] }}
     transition={{
       x: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
       opacity: { duration: 0.8 },
-      y: { duration: 3.8, repeat: Infinity, ease: "easeInOut" },
-      rotate: { duration: 4.6, repeat: Infinity, ease: "easeInOut" },
+      y: reduceMotion ? { duration: 0 } : { duration: 3.8, repeat: Infinity, ease: "easeInOut" },
+      rotate: reduceMotion ? { duration: 0 } : { duration: 4.6, repeat: Infinity, ease: "easeInOut" },
     }}
     className="flex-1 max-w-[200px] md:max-w-[280px] cursor-pointer group"
     onClick={onSelect}
@@ -561,6 +571,9 @@ const ChallengerCard = memo(({
         <img
           src={challenger?.immagine_url}
           alt={challenger?.titolo}
+          width={800}
+          height={800}
+          decoding="async"
           className="w-full h-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-[1.035]"
           loading="lazy"
         />
