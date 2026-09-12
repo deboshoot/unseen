@@ -398,13 +398,17 @@ const Arena = () => {
             <ChallengerCard
               challenger={challengers[0]}
               side="left"
+              reduceMotion={isMobile}
               onSelect={() => setSelectedWork(challengers[0])}
             />
 
             <div className="relative flex-shrink-0">
               <motion.div
-                animate={isMobile ? { rotateY: 0, y: 0 } : { rotateY: [0, 360], y: [0, -4, 0] }}
-                transition={isMobile ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: "linear" }}
+                animate={{ rotateY: [0, 360], y: isMobile ? 0 : [0, -4, 0] }}
+                transition={{
+                  rotateY: { duration: 8, repeat: Infinity, ease: "linear" },
+                  y: isMobile ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: "easeInOut" },
+                }}
                 className="relative"
                 style={{ perspective: "200px" }}
               >
