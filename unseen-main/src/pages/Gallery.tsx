@@ -70,15 +70,31 @@ const Gallery = () => {
     <div className="luxury-gallery min-h-screen px-5 pb-24 pt-28 md:px-10">
       <div className="mx-auto max-w-7xl">
         <motion.header initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="gallery-heading mb-16 max-w-3xl">
-          <p className="gallery-kicker mb-4">Archivio digitale · 2026</p>
+          <p className="gallery-kicker mb-4">UNSEEN / COLLECTIONS</p>
           <h1 className="gallery-title">GALLERIA</h1>
-          <p className="gallery-intro">Tre sguardi, un mese, una storia. Le opere che hanno definito ogni campionato sono esposte insieme.</p>
         </motion.header>
 
         {isLoading ? <p className="py-24 text-center font-body text-sm uppercase tracking-[0.3em] text-muted-foreground">Caricamento archivio...</p> : null}
-        {!isLoading && months.length === 0 ? <p className="py-24 text-center font-display text-xl text-muted-foreground">Il primo campionato deve ancora essere proclamato.</p> : null}
+        {!isLoading && months.length === 0 ? (
+          <motion.section initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="gallery-empty-display" aria-label="Spazio espositivo in attesa della prima collezione">
+            <div className="gallery-empty-header">
+              <span className="gallery-empty-index">01 / 01</span>
+              <span className="gallery-empty-status"><i /> In allestimento</span>
+            </div>
+            <div className="gallery-empty-frames" aria-hidden="true">
+              <span className="gallery-empty-frame gallery-empty-frame-back" />
+              <span className="gallery-empty-frame gallery-empty-frame-main" />
+              <span className="gallery-empty-frame gallery-empty-frame-front" />
+            </div>
+            <div className="gallery-empty-copy">
+              <p className="gallery-empty-kicker">Prima collezione</p>
+              <h2>Il primo campionato<br /><em>sta per iniziare.</em></h2>
+              <p>Questo spazio accoglierà le opere vincitrici, esposte una accanto all’altra.</p>
+            </div>
+          </motion.section>
+        ) : null}
 
-        <div className="gallery-season-section">
+        {months.length > 0 ? <div className="gallery-season-section">
           <div className="gallery-season-heading">
             <p className="gallery-section-label">Archivio dei vincitori</p>
             <p className="gallery-season-hint">Seleziona una stagione per scoprire gli altri riconoscimenti</p>
@@ -108,7 +124,7 @@ const Gallery = () => {
               );
             })}
           </div>
-        </div>
+        </div> : null}
       </div>
 
       <ArtworkDetailModal open={!!selectedWork} onClose={() => setSelectedWork(null)} imageSrc={selectedWork?.immagine_url ?? ""} imageAlt={selectedWork?.titolo ?? ""} titleId="gallery-detail-title">
@@ -118,21 +134,34 @@ const Gallery = () => {
   );
 };
 
-const GalleryCard = ({ work, category, accent, onOpen }: { work: GalleryWork; category: string; accent: string; onOpen: () => void }) => (
-  <button type="button" onClick={onOpen} className="gallery-piece group w-[min(57vw,260px)] flex-shrink-0 snap-start text-left md:w-[min(18vw,230px)]">
-    <span className="gallery-wire" aria-hidden="true" />
-    <div className="gallery-frame">
-      <div className="gallery-frame-inner">
-        <img src={work.immagine_url} alt={work.titolo} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" loading="lazy" />
-        <div className="gallery-frame-sheen" />
+const GalleryCard = ({ work, category, accent, onOpen }: { work: GalleryWork; category: string; accent: string; onOpen: () => void }) => {
+  const [imageRatio, setImageRatio] = useState("4 / 5");
+
+  return (
+    <button type="button" onClick={onOpen} className="gallery-piece group w-[min(57vw,260px)] flex-shrink-0 snap-start text-left md:w-[min(18vw,230px)]">
+      <span className="gallery-wire" aria-hidden="true" />
+      <div className="gallery-frame">
+        <div className="gallery-frame-inner" style={{ aspectRatio: imageRatio }}>
+          <img
+            src={work.immagine_url}
+            alt={work.titolo}
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
+            loading="lazy"
+            onLoad={(event) => {
+              const image = event.currentTarget;
+              setImageRatio(`${image.naturalWidth} / ${image.naturalHeight}`);
+            }}
+          />
+          <div className="gallery-frame-sheen" />
+        </div>
       </div>
-    </div>
-    <div className="gallery-plaque">
-      <p className={`gallery-plaque-category ${accent}`}>{category}</p>
-      <h3 className="gallery-plaque-title">{work.titolo}</h3>
-      <p className="gallery-plaque-author">{work.autore}</p>
-    </div>
-  </button>
-);
+      <div className="gallery-plaque">
+        <p className={`gallery-plaque-category ${accent}`}>{category}</p>
+        <h3 className="gallery-plaque-title">{work.titolo}</h3>
+        <p className="gallery-plaque-author">{work.autore}</p>
+      </div>
+    </button>
+  );
+};
 
 export default Gallery;
