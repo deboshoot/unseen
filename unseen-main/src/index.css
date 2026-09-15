@@ -176,6 +176,43 @@
     -webkit-backdrop-filter: blur(40px) saturate(180%);
   }
 
+  .artwork-detail-shell {
+    background: hsl(0 0% 3%);
+    border: 1px solid hsl(0 0% 100% / 0.16);
+    box-shadow: 0 32px 90px -28px hsl(0 0% 0% / 0.9);
+  }
+
+  .artwork-detail-panel {
+    background: hsl(0 0% 5%);
+    border-left: 1px solid hsl(0 0% 100% / 0.12);
+    color: hsl(0 0% 97%);
+  }
+
+  .artwork-detail-panel .text-foreground { color: hsl(0 0% 98%); }
+  .artwork-detail-panel .text-muted-foreground { color: hsl(0 0% 78%); }
+  .artwork-detail-footer { background: hsl(0 0% 8%); border-top: 1px solid hsl(0 0% 100% / 0.14); }
+
+  .light-mode .artwork-detail-shell {
+    background: hsl(0 0% 100%);
+    border-color: hsl(220 16% 20% / 0.16);
+    box-shadow: 0 32px 90px -28px hsl(220 18% 30% / 0.28);
+  }
+
+  .light-mode .artwork-detail-panel {
+    background: hsl(0 0% 100%);
+    border-left-color: hsl(220 16% 20% / 0.12);
+    color: hsl(220 16% 10%);
+  }
+
+  .light-mode .artwork-detail-panel .text-foreground { color: hsl(220 16% 10%); }
+  .light-mode .artwork-detail-panel .text-muted-foreground { color: hsl(220 10% 30%); }
+  .light-mode .artwork-detail-footer { background: hsl(220 14% 96%); border-top-color: hsl(220 16% 20% / 0.14); }
+
+  @media (max-width: 767px) {
+    .artwork-detail-panel { border-left: 0; border-top: 1px solid hsl(0 0% 100% / 0.12); }
+    .light-mode .artwork-detail-panel { border-top-color: hsl(220 16% 20% / 0.12); }
+  }
+
   @media (min-width: 768px) {
     .light-mode .glass-apple {
       border-left-color: rgba(0, 0, 0, 0.08);

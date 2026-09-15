@@ -14,8 +14,8 @@ export type ArtworkDetailModalProps = {
 };
 
 /**
- * Desktop: immagine grande a sinistra, contenuto in pannello glass a destra.
- * Mobile: stesso stile, foto sopra e scroll per le info sotto (glass).
+ * Desktop: immagine grande a sinistra, contenuto in pannello ad alto contrasto a destra.
+ * Mobile: stesso stile, foto sopra e scroll per le info sotto.
  */
 export function ArtworkDetailModal({
   open,
@@ -74,7 +74,7 @@ export function ArtworkDetailModal({
               CHIUDI ✕
             </button>
 
-            <div className="flex flex-col overflow-hidden rounded-[1.35rem] border border-white/[0.1] bg-black/30 shadow-[0_32px_90px_-28px_rgba(0,0,0,0.85)] backdrop-blur-sm md:max-h-[min(90vh,920px)] md:flex-row md:items-stretch">
+            <div className="artwork-detail-shell flex flex-col overflow-hidden rounded-[1.35rem] md:max-h-[min(90vh,920px)] md:flex-row md:items-stretch">
               {/* Immagine: sopra su mobile, sinistra su desktop (più spazio) */}
               <div className="relative flex min-h-[min(38vh,360px)] w-full flex-shrink-0 items-center justify-center bg-neutral-950/95 px-3 py-5 sm:min-h-[min(42vh,400px)] md:min-h-0 md:min-w-0 md:flex-[1.2] md:self-stretch md:px-5 md:py-8">
                 <img
@@ -85,13 +85,13 @@ export function ArtworkDetailModal({
                 />
               </div>
 
-              {/* Pannello glass: contenuto scrollabile + footer fisso in basso */}
-              <div className="glass-apple flex min-h-0 w-full flex-col md:max-h-[min(90vh,920px)] md:w-[min(420px,40%)] md:flex-shrink-0 lg:w-[min(440px,38%)]">
+              {/* Pannello ad alto contrasto: contenuto scrollabile + footer fisso in basso */}
+              <div className="artwork-detail-panel flex min-h-0 w-full flex-col md:max-h-[min(90vh,920px)] md:w-[min(420px,40%)] md:flex-shrink-0 lg:w-[min(440px,38%)]">
                 <div className="min-h-0 flex-1 overflow-y-auto">
                   <div className="space-y-5 p-6 sm:p-8 md:py-9">{children}</div>
                 </div>
                 {footer ? (
-                  <div className="shrink-0 border-t border-border/40 bg-background/40 p-4 backdrop-blur-md md:rounded-br-[1.35rem]">
+                  <div className="artwork-detail-footer shrink-0 p-4 md:rounded-br-[1.35rem]">
                     {footer}
                   </div>
                 ) : null}
