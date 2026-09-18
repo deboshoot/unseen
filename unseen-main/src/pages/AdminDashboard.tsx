@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/supabaseClient";
 import { motion } from "framer-motion";
@@ -6,7 +6,7 @@ import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import GalleryMonthManager from "@/components/GalleryMonthManager";
 import { 
   Check, X, Trash2, Trophy, Users, Image as ImageIcon, 
-  Shield, Clock, Calendar, ThumbsUp, Lock, Unlock, BarChart3
+  Shield, Clock, Calendar, ThumbsUp, Lock, Unlock, BarChart3, Mail, Vote, ListChecks
 } from "lucide-react";
 
 const AnalyticsOverview = lazy(() => import("@/components/AnalyticsOverview"));
@@ -27,14 +27,28 @@ type DuelRecord = {
   id: string;
   champion_id: string;
   challenger_id: string;
+  start_at?: string | null;
   end_at: string;
   votes_champion: number;
   votes_challenger: number;
+  is_active?: boolean;
+  created_at?: string;
 };
 
 type ProfileRecord = {
+  id: string;
   email: string;
   created_at: string;
+};
+
+type VoterRecord = ProfileRecord & {
+  voteCount: number;
+  lastVoteAt: string;
+};
+
+type DuelSummary = DuelRecord & {
+  champion_title: string;
+  challenger_title: string;
 };
 
 type AdminTab = "moderation" | "gallery" | "arena" | "stats" | "analytics";
@@ -43,7 +57,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
-  const [activeTab, setActiveTab] = useState<AdminTab>("moderation");
+  const [activeTab, setActiveTab] = useState<AdminTab>("stats");
   
   // Moderation state
   const [opere, setOpere] = useState<ArtworkRecord[]>([]);
@@ -55,11 +69,25 @@ const AdminDashboard = () => {
   const [loadingDuel, setLoadingDuel] = useState(false);
   const [championOpere, setChampionOpere] = useState<ArtworkRecord | null>(null);
   const [challengerOpere, setChallengerOpere] = useState<ArtworkRecord | null>(null);
+  const [scheduledChampionId, setScheduledChampionId] = useState("");
+  const [scheduledChallengerId, setScheduledChallengerId] = useState("");
+  const [scheduleDate, setScheduleDate] = useState(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().slice(0, 10);
+  });
+  const [scheduleTime, setScheduleTime] = useState("20:00");
+  const [schedulingDuel, setSchedulingDuel] = useState(false);
   
   // Stats state
   const [stats, setStats] = useState({ users: 0, opere: 0, votes: 0 });
-  const [recentUsers, setRecentUsers] = useState<ProfileRecord[]>([]);
+  const [allUsers, setAllUsers] = useState<ProfileRecord[]>([]);
+  const [voters, setVoters] = useState<VoterRecord[]>([]);
+  const [duelHistory, setDuelHistory] = useState<DuelSummary[]>([]);
   const [loadingStats, setLoadingStats] = useState(false);
+  const [highlightedStatsSection, setHighlightedStatsSection] = useState<"users" | "voters" | null>(null);
+  const usersSectionRef = useRef<HTMLDivElement>(null);
+  const votersSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -107,6 +135,9 @@ const AdminDashboard = () => {
       .from("duels")
       .select("*")
       .eq("is_active", true)
+      .or(`start_at.is.null,start_at.lte.${new Date().toISOString()}`)
+      .order("start_at", { ascending: false, nullsFirst: true })
+      .limit(1)
       .single();
     
     if (!error && data) {
@@ -127,11 +158,14 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     setLoadingStats(true);
     
-    const [usersCount, opereCount, votesCount, usersData] = await Promise.all([
+    const [usersCount, opereCount, votesCount, usersData, votesData, duelsData, artworksData] = await Promise.all([
       supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("opere").select("*", { count: "exact", head: true }),
       supabase.from("votes").select("*", { count: "exact", head: true }),
-      supabase.from("profiles").select("email, created_at").order("created_at", { ascending: false }).limit(5)
+      supabase.from("profiles").select("id, email, created_at").order("created_at", { ascending: false }),
+      supabase.from("votes").select("user_id, created_at"),
+      supabase.from("duels").select("*").order("created_at", { ascending: false }),
+      supabase.from("opere").select("id, titolo")
     ]);
 
     setStats({
@@ -139,8 +173,38 @@ const AdminDashboard = () => {
       opere: opereCount.count || 0,
       votes: votesCount.count || 0
     });
-    setRecentUsers(usersData.data || []);
+    const users = usersData.data || [];
+    const votes = votesData.data || [];
+    const artworksById = new Map((artworksData.data || []).map((artwork) => [artwork.id, artwork.titolo]));
+    const voterStats = new Map<string, VoterRecord>();
+
+    votes.forEach((vote) => {
+      const user = users.find((profile) => profile.id === vote.user_id);
+      if (!user) return;
+
+      const existing = voterStats.get(user.id);
+      voterStats.set(user.id, {
+        ...user,
+        voteCount: (existing?.voteCount || 0) + 1,
+        lastVoteAt: existing && existing.lastVoteAt > vote.created_at ? existing.lastVoteAt : vote.created_at,
+      });
+    });
+
+    setAllUsers(users);
+    setVoters(Array.from(voterStats.values()).sort((first, second) => second.lastVoteAt.localeCompare(first.lastVoteAt)));
+    setDuelHistory((duelsData.data || []).map((duel) => ({
+      ...duel,
+      champion_title: artworksById.get(duel.champion_id) || "Opera rimossa",
+      challenger_title: artworksById.get(duel.challenger_id) || "Opera rimossa",
+    })));
     setLoadingStats(false);
+  };
+
+  const showStatsSection = (section: "users" | "voters") => {
+    const sectionRef = section === "users" ? usersSectionRef : votersSectionRef;
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setHighlightedStatsSection(section);
+    window.setTimeout(() => setHighlightedStatsSection(null), 1600);
   };
 
   const handleAcceptOpere = async (id: string) => {
@@ -228,6 +292,42 @@ const AdminDashboard = () => {
       const message = error instanceof Error ? error.message : "Errore sconosciuto";
       alert("Errore nella creazione del duello: " + message);
     }
+  };
+
+  const handleScheduleDuel = async () => {
+    if (!scheduledChampionId || !scheduledChallengerId || scheduledChampionId === scheduledChallengerId) {
+      alert("Seleziona due opere diverse per programmare il duello");
+      return;
+    }
+
+    const startAt = new Date(`${scheduleDate}T${scheduleTime}`);
+    if (Number.isNaN(startAt.getTime()) || startAt <= new Date()) {
+      alert("Scegli una data e un orario futuri");
+      return;
+    }
+
+    setSchedulingDuel(true);
+    const endAt = new Date(startAt.getTime() + 24 * 60 * 60 * 1000);
+    const { error } = await supabase.from("duels").insert({
+      champion_id: scheduledChampionId,
+      challenger_id: scheduledChallengerId,
+      start_at: startAt.toISOString(),
+      end_at: endAt.toISOString(),
+      is_active: true,
+      votes_champion: 0,
+      votes_challenger: 0,
+    });
+
+    if (error) {
+      alert("Errore nella programmazione: " + error.message);
+    } else {
+      alert("Duello programmato correttamente");
+      setScheduledChampionId("");
+      setScheduledChallengerId("");
+      fetchActiveDuel();
+      fetchStats();
+    }
+    setSchedulingDuel(false);
   };
 
   if (loading) {
@@ -384,6 +484,72 @@ const AdminDashboard = () => {
                 <Trophy size={24} />
                 Controllo Arena
               </h2>
+
+              <div className="mb-8 rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.04] p-6">
+                <div className="mb-5 flex items-start gap-3">
+                  <Calendar size={22} className="mt-1 text-cyan-300" />
+                  <div>
+                    <h3 className="font-display text-xl font-semibold text-white">Programma il prossimo duello</h3>
+                    <p className="mt-1 text-sm text-white/50">Scegli due opere, il giorno e l’orario di apertura dell’Arena.</p>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="text-sm text-white/60">
+                    Champion
+                    <select
+                      value={scheduledChampionId}
+                      onChange={(event) => setScheduledChampionId(event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
+                    >
+                      <option value="">Seleziona un’opera</option>
+                      {opere.filter((opera) => opera.status === "accepted").map((opera) => (
+                        <option key={opera.id} value={opera.id}>{opera.titolo}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-sm text-white/60">
+                    Challenger
+                    <select
+                      value={scheduledChallengerId}
+                      onChange={(event) => setScheduledChallengerId(event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
+                    >
+                      <option value="">Seleziona un’opera</option>
+                      {opere.filter((opera) => opera.status === "accepted").map((opera) => (
+                        <option key={opera.id} value={opera.id}>{opera.titolo}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-sm text-white/60">
+                    Giorno di apertura
+                    <input
+                      type="date"
+                      value={scheduleDate}
+                      min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10)}
+                      onChange={(event) => setScheduleDate(event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
+                    />
+                  </label>
+                  <label className="text-sm text-white/60">
+                    Orario di apertura
+                    <input
+                      type="time"
+                      value={scheduleTime}
+                      onChange={(event) => setScheduleTime(event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
+                    />
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleScheduleDuel}
+                  disabled={schedulingDuel}
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-300/15 px-5 py-3 font-display font-semibold text-cyan-200 transition hover:bg-cyan-300/25 disabled:cursor-wait disabled:opacity-50"
+                >
+                  <Calendar size={18} />
+                  {schedulingDuel ? "Programmazione..." : "Programma duello"}
+                </button>
+              </div>
               
               {loadingDuel ? (
                 <p className="text-white/50 text-center py-8">Caricamento duello...</p>
@@ -468,11 +634,13 @@ const AdminDashboard = () => {
           {activeTab === "stats" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <motion.div
+                <motion.button
+                  type="button"
+                  onClick={() => showStatsSection("users")}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl p-8"
+                  className="w-full rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-left backdrop-blur-2xl transition hover:border-cyan-300/40 hover:bg-cyan-300/[0.05] focus:outline-none focus:ring-2 focus:ring-cyan-300/50"
                 >
                   <div className="flex items-center gap-4 mb-4">
                     <div className="p-4 rounded-2xl bg-cyan-500/20">
@@ -481,13 +649,13 @@ const AdminDashboard = () => {
                   </div>
                   <p className="text-4xl font-display font-bold text-white">{loadingStats ? "..." : stats.users}</p>
                   <p className="text-white/50 text-sm mt-2">Utenti registrati</p>
-                </motion.div>
+                </motion.button>
                 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl p-8"
+                  className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 backdrop-blur-2xl"
                 >
                   <div className="flex items-center gap-4 mb-4">
                     <div className="p-4 rounded-2xl bg-purple-500/20">
@@ -498,11 +666,13 @@ const AdminDashboard = () => {
                   <p className="text-white/50 text-sm mt-2">Opere totali</p>
                 </motion.div>
                 
-                <motion.div
+                <motion.button
+                  type="button"
+                  onClick={() => showStatsSection("voters")}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl p-8"
+                  className="w-full rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-left backdrop-blur-2xl transition hover:border-pink-300/40 hover:bg-pink-300/[0.05] focus:outline-none focus:ring-2 focus:ring-pink-300/50"
                 >
                   <div className="flex items-center gap-4 mb-4">
                     <div className="p-4 rounded-2xl bg-pink-500/20">
@@ -511,41 +681,126 @@ const AdminDashboard = () => {
                   </div>
                   <p className="text-4xl font-display font-bold text-white">{loadingStats ? "..." : stats.votes}</p>
                   <p className="text-white/50 text-sm mt-2">Voti totali</p>
+                </motion.button>
+              </div>
+
+              <div className="grid gap-6 xl:grid-cols-2">
+                <motion.div
+                  ref={usersSectionRef}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className={`rounded-3xl border bg-white/[0.03] p-8 backdrop-blur-2xl transition-all duration-500 ${highlightedStatsSection === "users" ? "border-cyan-300/80 ring-2 ring-cyan-300/30" : "border-white/10"}`}
+                >
+                  <div className="mb-6 flex items-center justify-between gap-4">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-white flex items-center gap-3">
+                        <Users size={24} />
+                        Tutti gli iscritti
+                      </h2>
+                      <p className="mt-2 text-sm text-white/45">Elenco completo degli account registrati</p>
+                    </div>
+                    <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-sm font-semibold text-cyan-300">{allUsers.length}</span>
+                  </div>
+                  <div className="max-h-[420px] space-y-3 overflow-y-auto pr-2">
+                    {allUsers.map((user) => (
+                      <div key={user.id} className="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-400/10">
+                          <Mail size={18} className="text-cyan-300" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-display font-semibold text-white">{user.email}</p>
+                          <p className="text-xs text-white/50">Iscritto il {new Date(user.created_at).toLocaleDateString("it-IT")}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {!loadingStats && allUsers.length === 0 && <p className="py-8 text-center text-white/50">Nessun iscritto</p>}
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  ref={votersSectionRef}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className={`rounded-3xl border bg-white/[0.03] p-8 backdrop-blur-2xl transition-all duration-500 ${highlightedStatsSection === "voters" ? "border-pink-300/80 ring-2 ring-pink-300/30" : "border-white/10"}`}
+                >
+                  <div className="mb-6 flex items-center justify-between gap-4">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-white flex items-center gap-3">
+                        <Vote size={24} />
+                        Chi ha votato
+                      </h2>
+                      <p className="mt-2 text-sm text-white/45">Email degli iscritti che hanno espresso almeno un voto</p>
+                    </div>
+                    <span className="rounded-full bg-pink-400/10 px-3 py-1 text-sm font-semibold text-pink-300">{voters.length}</span>
+                  </div>
+                  <div className="max-h-[420px] space-y-3 overflow-y-auto pr-2">
+                    {voters.map((voter) => (
+                      <div key={voter.id} className="flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                        <div className="flex min-w-0 items-center gap-4">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pink-400/10">
+                            <Mail size={18} className="text-pink-300" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-display font-semibold text-white">{voter.email}</p>
+                            <p className="text-xs text-white/50">Ultimo voto il {new Date(voter.lastVoteAt).toLocaleDateString("it-IT")}</p>
+                          </div>
+                        </div>
+                        <span className="shrink-0 text-sm font-semibold text-pink-300">{voter.voteCount} {voter.voteCount === 1 ? "voto" : "voti"}</span>
+                      </div>
+                    ))}
+                    {!loadingStats && voters.length === 0 && <p className="py-8 text-center text-white/50">Nessun voto registrato</p>}
+                  </div>
                 </motion.div>
               </div>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
+                transition={{ delay: 0.6 }}
                 className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl p-8"
               >
-                <h2 className="font-display text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                  <Calendar size={24} />
-                  Utenti Recenti
-                </h2>
-                <div className="space-y-3">
-                  {recentUsers.map((user, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
-                          <Users size={18} className="text-white/50" />
-                        </div>
-                        <div>
-                          <p className="font-display font-semibold text-white">{user.email}</p>
-                          <p className="text-white/50 text-xs">
-                            Iscritto il {new Date(user.created_at).toLocaleDateString('it-IT')}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {recentUsers.length === 0 && (
-                    <p className="text-white/50 text-center py-4">Nessun utente recente</p>
-                  )}
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="font-display text-2xl font-bold text-white flex items-center gap-3">
+                      <ListChecks size={24} />
+                      Dettaglio duelli
+                    </h2>
+                    <p className="mt-2 text-sm text-white/45">Titoli sfidati e voti ottenuti in ogni duello</p>
+                  </div>
+                  <span className="rounded-full bg-amber-400/10 px-3 py-1 text-sm font-semibold text-amber-300">{duelHistory.length}</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[720px] text-left">
+                    <thead className="border-b border-white/10 text-xs uppercase tracking-[0.16em] text-white/40">
+                      <tr>
+                        <th className="pb-4 pr-6 font-medium">Duello</th>
+                        <th className="pb-4 pr-6 font-medium">Champion</th>
+                        <th className="pb-4 pr-6 font-medium">Voti</th>
+                        <th className="pb-4 pr-6 font-medium">Challenger</th>
+                        <th className="pb-4 pr-6 font-medium">Voti</th>
+                        <th className="pb-4 font-medium">Stato</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-sm">
+                      {duelHistory.map((duel, index) => (
+                        <tr key={duel.id} className="text-white/75">
+                          <td className="py-4 pr-6 text-white/45">#{duelHistory.length - index}</td>
+                          <td className="py-4 pr-6 font-medium text-white">{duel.champion_title}</td>
+                          <td className="py-4 pr-6 font-display text-lg font-bold text-cyan-300">{duel.votes_champion || 0}</td>
+                          <td className="py-4 pr-6 font-medium text-white">{duel.challenger_title}</td>
+                          <td className="py-4 pr-6 font-display text-lg font-bold text-pink-300">{duel.votes_challenger || 0}</td>
+                          <td className="py-4">
+                            <span className={`rounded-full px-3 py-1 text-xs font-medium ${duel.start_at && new Date(duel.start_at) > new Date() ? "bg-cyan-400/10 text-cyan-300" : duel.is_active ? "bg-green-400/10 text-green-300" : "bg-white/10 text-white/50"}`}>
+                              {duel.start_at && new Date(duel.start_at) > new Date() ? "Programmato" : duel.is_active ? "In corso" : "Concluso"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {!loadingStats && duelHistory.length === 0 && <p className="py-8 text-center text-white/50">Nessun duello registrato</p>}
                 </div>
               </motion.div>
             </div>

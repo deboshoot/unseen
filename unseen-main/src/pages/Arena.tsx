@@ -71,6 +71,9 @@ const Arena = () => {
           .from("duels")
           .select("*")
           .eq("is_active", true)
+          .or(`start_at.is.null,start_at.lte.${new Date().toISOString()}`)
+          .order("start_at", { ascending: false, nullsFirst: true })
+          .limit(1)
           .maybeSingle()
           .abortSignal(controller.signal);
         duel = result.data;
