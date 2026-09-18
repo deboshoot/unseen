@@ -110,6 +110,15 @@ const AdminDashboard = () => {
         .channel('opere_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'opere' }, (payload) => {
           fetchOpere();
+          fetchStats();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'duels' }, () => {
+          fetchActiveDuel();
+          fetchStats();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
+          fetchActiveDuel();
+          fetchStats();
         })
         .subscribe();
 
@@ -175,7 +184,7 @@ const AdminDashboard = () => {
     });
     const users = usersData.data || [];
     const votes = votesData.data || [];
-    const artworksById = new Map((artworksData.data || []).map((artwork) => [artwork.id, artwork.titolo]));
+    const artworksById = new Map((artworksData.data || []).map((artwork) => [artwork.id, artwork]));
     const voterStats = new Map<string, VoterRecord>();
 
     votes.forEach((vote) => {
@@ -194,8 +203,8 @@ const AdminDashboard = () => {
     setVoters(Array.from(voterStats.values()).sort((first, second) => second.lastVoteAt.localeCompare(first.lastVoteAt)));
     setDuelHistory((duelsData.data || []).map((duel) => ({
       ...duel,
-      champion_title: artworksById.get(duel.champion_id) || "Opera rimossa",
-      challenger_title: artworksById.get(duel.challenger_id) || "Opera rimossa",
+      champion_title: artworksById.get(duel.champion_id)?.titolo || "Opera rimossa",
+      challenger_title: artworksById.get(duel.challenger_id)?.titolo || "Opera rimossa",
     })));
     setLoadingStats(false);
   };
@@ -343,17 +352,17 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pt-24 pb-20 px-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#0a0a0a] px-4 pb-12 pt-20 sm:px-6 sm:pt-24 sm:pb-20">
+      <div className="mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <h1 className="font-display text-4xl md:text-5xl font-black tracking-[0.2em] text-white mb-4">
+          <h1 className="mb-3 font-display text-3xl font-black tracking-[0.12em] text-white sm:mb-4 sm:text-4xl md:text-5xl md:tracking-[0.2em]">
             ADMIN DASHBOARD
           </h1>
-          <p className="text-white/50 text-sm tracking-[0.3em] uppercase font-body">
+          <p className="font-body text-xs uppercase tracking-[0.2em] text-white/50 sm:text-sm sm:tracking-[0.3em]">
             Centro di controllo
           </p>
         </motion.div>
@@ -363,7 +372,7 @@ const AdminDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex gap-2 mb-8 border-b border-white/10 pb-4"
+          className="mb-8 flex max-w-full gap-2 overflow-x-auto border-b border-white/10 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {[
             { id: "moderation", label: "Moderazione", icon: Shield },
@@ -375,7 +384,7 @@ const AdminDashboard = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as AdminTab)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-display text-sm font-semibold tracking-wide transition-all ${
+              className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 font-display text-sm font-semibold tracking-wide transition-all sm:px-6 ${
                 activeTab === tab.id
                   ? "bg-white/10 text-white border border-white/20"
                   : "text-white/50 hover:text-white/80 hover:bg-white/5"
@@ -771,15 +780,41 @@ const AdminDashboard = () => {
                   </div>
                   <span className="rounded-full bg-amber-400/10 px-3 py-1 text-sm font-semibold text-amber-300">{duelHistory.length}</span>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[720px] text-left">
+                <div className="md:hidden">
+                  <div className="space-y-3">
+                    {duelHistory.map((duel, index) => (
+                      <div key={duel.id} className="rounded-2xl border border-white/10 bg-[#111111] p-4">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <span className="text-xs uppercase tracking-[0.16em] text-white/35">Duello #{duelHistory.length - index}</span>
+                          <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${duel.start_at && new Date(duel.start_at) > new Date() ? "bg-cyan-400/10 text-cyan-300" : duel.is_active ? "bg-green-400/10 text-green-300" : "bg-white/10 text-white/50"}`}>
+                            {duel.start_at && new Date(duel.start_at) > new Date() ? "Programmato" : duel.is_active ? "In corso" : "Concluso"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="min-w-0 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.04] p-3">
+                            <p className="truncate text-sm font-medium text-white" title={duel.champion_title}>{duel.champion_title}</p>
+                            <p className="mt-2 font-display text-2xl font-bold text-cyan-300">{duel.votes_champion || 0}</p>
+                            <p className="text-[11px] uppercase tracking-wider text-white/35">voti</p>
+                          </div>
+                          <div className="min-w-0 rounded-xl border border-pink-300/15 bg-pink-300/[0.04] p-3">
+                            <p className="truncate text-sm font-medium text-white" title={duel.challenger_title}>{duel.challenger_title}</p>
+                            <p className="mt-2 font-display text-2xl font-bold text-pink-300">{duel.votes_challenger || 0}</p>
+                            <p className="text-[11px] uppercase tracking-wider text-white/35">voti</p>
+                          </div>
+                        </div>
+                        <p className="mt-3 text-xs text-white/40">Apertura: {duel.start_at ? new Date(duel.start_at).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : "Immediata"}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full min-w-[760px] text-left">
                     <thead className="border-b border-white/10 text-xs uppercase tracking-[0.16em] text-white/40">
                       <tr>
                         <th className="pb-4 pr-6 font-medium">Duello</th>
-                        <th className="pb-4 pr-6 font-medium">Champion</th>
-                        <th className="pb-4 pr-6 font-medium">Voti</th>
-                        <th className="pb-4 pr-6 font-medium">Challenger</th>
-                        <th className="pb-4 pr-6 font-medium">Voti</th>
+                        <th className="pb-4 pr-6 font-medium">Champion / voti</th>
+                        <th className="pb-4 pr-6 font-medium">Challenger / voti</th>
+                        <th className="pb-4 pr-6 font-medium">Apertura</th>
                         <th className="pb-4 font-medium">Stato</th>
                       </tr>
                     </thead>
@@ -787,10 +822,11 @@ const AdminDashboard = () => {
                       {duelHistory.map((duel, index) => (
                         <tr key={duel.id} className="text-white/75">
                           <td className="py-4 pr-6 text-white/45">#{duelHistory.length - index}</td>
-                          <td className="py-4 pr-6 font-medium text-white">{duel.champion_title}</td>
-                          <td className="py-4 pr-6 font-display text-lg font-bold text-cyan-300">{duel.votes_champion || 0}</td>
-                          <td className="py-4 pr-6 font-medium text-white">{duel.challenger_title}</td>
-                          <td className="py-4 pr-6 font-display text-lg font-bold text-pink-300">{duel.votes_challenger || 0}</td>
+                          <td className="py-4 pr-6"><p className="max-w-[260px] truncate font-medium text-white" title={duel.champion_title}>{duel.champion_title}</p><p className="mt-1 font-display text-lg font-bold text-cyan-300">{duel.votes_champion || 0} <span className="font-body text-xs font-normal text-white/40">voti</span></p></td>
+                          <td className="py-4 pr-6"><p className="max-w-[260px] truncate font-medium text-white" title={duel.challenger_title}>{duel.challenger_title}</p><p className="mt-1 font-display text-lg font-bold text-pink-300">{duel.votes_challenger || 0} <span className="font-body text-xs font-normal text-white/40">voti</span></p></td>
+                          <td className="whitespace-nowrap py-4 pr-6 text-white/55">
+                            {duel.start_at ? new Date(duel.start_at).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : "Immediata"}
+                          </td>
                           <td className="py-4">
                             <span className={`rounded-full px-3 py-1 text-xs font-medium ${duel.start_at && new Date(duel.start_at) > new Date() ? "bg-cyan-400/10 text-cyan-300" : duel.is_active ? "bg-green-400/10 text-green-300" : "bg-white/10 text-white/50"}`}>
                               {duel.start_at && new Date(duel.start_at) > new Date() ? "Programmato" : duel.is_active ? "In corso" : "Concluso"}
