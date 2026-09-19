@@ -7,6 +7,61 @@ add column if not exists start_at timestamptz;
 create index if not exists duels_start_at_idx
 on public.duels (start_at);
 
+-- At the scheduled time, close the previous active duel and activate the
+-- earliest scheduled duel that is ready to start.
+create or replace function public.activate_scheduled_duel()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  next_duel_id uuid;
+begin
+  perform pg_advisory_xact_lock(741203);
+
+  select id
+  into next_duel_id
+  from public.duels
+  where is_active = true
+    and start_at is not null
+    and start_at <= now()
+    and (end_at is null or end_at > now())
+  order by start_at asc
+  limit 1
+  for update;
+
+  if next_duel_id is null then
+    return;
+  end if;
+
+  update public.duels
+  set is_active = false
+  where is_active = true
+    and id <> next_duel_id
+    and (start_at is null or start_at <= now());
+
+  update public.duels
+  set is_active = true
+  where id = next_duel_id;
+end;
+$$;
+
+revoke all on function public.activate_scheduled_duel() from public;
+grant execute on function public.activate_scheduled_duel() to anon, authenticated;
+
+-- Supabase Dashboard must have the pg_cron extension enabled before running
+-- the two statements below. The job checks every minute.
+create extension if not exists pg_cron with schema extensions;
+select cron.unschedule(jobid)
+from cron.job
+where jobname = 'activate-scheduled-duel';
+select cron.schedule(
+  'activate-scheduled-duel',
+  '* * * * *',
+  $$select public.activate_scheduled_duel();$$
+);
+
 -- Scheduled duels must stay hidden until their opening time.
 drop policy if exists "Public can view active duels" on public.duels;
 create policy "Public can view active duels"

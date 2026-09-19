@@ -54,6 +54,10 @@ const Arena = () => {
       
       let duel;
       let duelErr;
+
+      if (!urlDuelId) {
+        await supabase.rpc("activate_scheduled_duel");
+      }
       
       if (urlDuelId) {
         // Carica il duello specifico

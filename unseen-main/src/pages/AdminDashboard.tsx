@@ -140,6 +140,7 @@ const AdminDashboard = () => {
 
   const fetchActiveDuel = async () => {
     setLoadingDuel(true);
+    await supabase.rpc("activate_scheduled_duel");
     const { data, error } = await supabase
       .from("duels")
       .select("*")
@@ -147,7 +148,7 @@ const AdminDashboard = () => {
       .or(`start_at.is.null,start_at.lte.${new Date().toISOString()}`)
       .order("start_at", { ascending: false, nullsFirst: true })
       .limit(1)
-      .single();
+      .maybeSingle();
     
     if (!error && data) {
       setActiveDuel(data);
