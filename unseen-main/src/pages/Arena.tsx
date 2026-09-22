@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Clock3, Share2, Sparkles, Swords, ThumbsUp, X } from "lucide-react";
+import { Check, Clock3, Share2, Sparkles, Swords, ThumbsUp, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
@@ -33,6 +33,7 @@ const Arena = () => {
   const isMobile = useIsMobile();
   const { t } = useI18n();
   const [selectedWork, setSelectedWork] = useState<ArenaChallenger | null>(null);
+  const [voteConfirmed, setVoteConfirmed] = useState<ArenaChallenger | null>(null);
 
   const [duelId, setDuelId] = useState<string | null>(null);
   const [challengers, setChallengers] = useState<ArenaChallenger[]>([]);
@@ -296,6 +297,8 @@ const Arena = () => {
       toast.success("Voto registrato", {
         description: `${t("arena.voteRegistered")}: ${label}.`,
       });
+      setVoteConfirmed(challengers.find((challenger) => challenger.id === slot) ?? null);
+      setSelectedWork(null);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Errore sconosciuto";
       toast.error("Voto non registrato", { description: msg });
@@ -303,7 +306,7 @@ const Arena = () => {
       votingRef.current = false;
       setVoting(false);
     }
-  }, [duelId, navigate]);
+  }, [challengers, duelId, navigate, t]);
 
   const handleFinalVote = useCallback(async (slot: 1 | 2 | 3) => {
     if (!finalArenaId || votingRef.current) return;
@@ -328,13 +331,15 @@ const Arena = () => {
         throw error;
       }
       toast.success("Voto registrato", { description: "La tua preferenza per la finale è stata registrata." });
+      setVoteConfirmed(finalChallengers.find((challenger) => challenger.id === slot) ?? null);
+      setSelectedWork(null);
     } catch (error) {
       toast.error("Voto non registrato", { description: error instanceof Error ? error.message : "Errore sconosciuto" });
     } finally {
       votingRef.current = false;
       setVoting(false);
     }
-  }, [finalArenaId, navigate]);
+  }, [finalArenaId, finalChallengers, navigate]);
 
   const openShareMenu = useCallback(() => {
     if (!duelId) {
@@ -493,7 +498,22 @@ const Arena = () => {
           )}
         </div>
 
-        {finalArenaId && finalChallengers.length === 3 ? (
+        {voteConfirmed ? (
+          <motion.section
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="arena-vote-confirmation mx-auto max-w-3xl text-center"
+            aria-live="polite"
+          >
+            <div className="arena-vote-confirmation-mark mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-arena/40 bg-arena/10 text-arena">
+              <Check size={34} strokeWidth={1.5} />
+            </div>
+            <p className="mt-8 font-body text-[10px] font-semibold uppercase tracking-[0.3em] text-arena">UNSEEN / VOTO REGISTRATO</p>
+            <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">La tua scelta è stata registrata</h2>
+            <p className="mx-auto mt-5 max-w-lg font-body text-base leading-7 text-muted-foreground">Hai votato per <strong className="font-semibold text-foreground">{voteConfirmed.titolo}</strong>. Grazie per aver partecipato al duello.</p>
+            <button type="button" onClick={() => setVoteConfirmed(null)} className="arena-vote-again mt-9">Torna al duello</button>
+          </motion.section>
+        ) : finalArenaId && finalChallengers.length === 3 ? (
           <div className="space-y-8">
             <div className="text-center">
               <p className="arena-kicker">Finale · Tre fotografie · Una scelta</p>
@@ -629,7 +649,7 @@ const Arena = () => {
               </p>
               <motion.button
                 type="button"
-                disabled={!duelId || voting}
+                disabled={(!duelId && !finalArenaId) || voting}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectedWork && (finalArenaId ? handleFinalVote(selectedWork.id) : handleVote(selectedWork.id as 1 | 2))}
                 className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-arena/35 bg-arena/10 py-3.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/18 disabled:cursor-not-allowed disabled:opacity-50"

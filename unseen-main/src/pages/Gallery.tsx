@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Images, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import { supabase } from "@/supabaseClient";
 import { getInstagramProfile } from "@/lib/instagram";
@@ -68,36 +69,47 @@ const Gallery = () => {
   }, []);
 
   return (
-    <div className="luxury-gallery min-h-screen px-5 pb-24 pt-28 md:px-10">
+    <div className="gallery-page luxury-gallery min-h-screen px-5 pb-24 pt-28 md:px-10 md:pt-36">
       <div className="mx-auto max-w-7xl">
-        <motion.header initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="gallery-heading mb-16 max-w-3xl">
-          <p className="gallery-kicker mb-4">{t("gallery.kicker")}</p>
-          <h1 className="gallery-title">{t("gallery.title")}</h1>
+        <motion.header initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="gallery-heading gallery-hero mb-14 max-w-4xl md:mb-20">
+          <div className="gallery-hero-topline">
+            <p className="gallery-kicker">{t("gallery.kicker")}</p>
+            <span><Images size={14} /> Archivio digitale</span>
+          </div>
+          <h1 className="gallery-title mt-5">{t("gallery.title")}</h1>
+          <p className="gallery-hero-intro">Le immagini che hanno superato la sfida e trovato il loro posto nella memoria di Unseen.</p>
         </motion.header>
 
         {isLoading ? <p className="py-24 text-center font-body text-sm uppercase tracking-[0.3em] text-muted-foreground">{t("gallery.loading")}</p> : null}
         {!isLoading && months.length === 0 ? (
           <motion.section initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="gallery-empty-display" aria-label="Spazio espositivo in attesa della prima collezione">
             <div className="gallery-empty-header">
-              <span className="gallery-empty-index">01 / 01</span>
+              <span className="gallery-empty-index">ARCHIVIO · 01</span>
               <span className="gallery-empty-status"><i /> {t("gallery.emptyLabel")}</span>
             </div>
-            <div className="gallery-empty-frames" aria-hidden="true">
-              <span className="gallery-empty-frame gallery-empty-frame-back" />
-              <span className="gallery-empty-frame gallery-empty-frame-main" />
-              <span className="gallery-empty-frame gallery-empty-frame-front" />
-            </div>
-            <div className="gallery-empty-copy">
-              <p className="gallery-empty-kicker">{t("gallery.firstCollection")}</p>
-              <h2>{t("gallery.emptyTitle")}</h2>
-              <p>{t("gallery.emptyText")}</p>
+            <div className="gallery-empty-layout">
+              <div className="gallery-empty-copy">
+                <div className="gallery-empty-icon"><Sparkles size={18} /></div>
+                <p className="gallery-empty-kicker">{t("gallery.firstCollection")}</p>
+                <h2>{t("gallery.emptyTitle")}</h2>
+                <p>{t("gallery.emptyText")}</p>
+                <Link to="/submit" className="gallery-empty-cta">Invia la tua opera <ArrowUpRight size={16} /></Link>
+              </div>
+              <div className="gallery-empty-frames" aria-hidden="true">
+                <span className="gallery-empty-frame gallery-empty-frame-back" />
+                <span className="gallery-empty-frame gallery-empty-frame-main" />
+                <span className="gallery-empty-frame gallery-empty-frame-front" />
+              </div>
             </div>
           </motion.section>
         ) : null}
 
         {months.length > 0 ? <div className="gallery-season-section">
           <div className="gallery-season-heading">
-            <p className="gallery-section-label">{t("gallery.archive")}</p>
+            <div>
+              <p className="gallery-section-label">{t("gallery.archive")}</p>
+              <p className="gallery-season-count">{months.length.toString().padStart(2, "0")} {months.length === 1 ? "COLLEZIONE" : "COLLEZIONI"}</p>
+            </div>
             <p className="gallery-season-hint">{t("gallery.seasonHint")}</p>
           </div>
           <div className="gallery-winners-row">

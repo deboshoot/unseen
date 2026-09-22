@@ -728,7 +728,46 @@ const AdminDashboard = () => {
                   {finalArena && <button type="button" onClick={() => void handleSaveFinalAwards()} className="rounded-xl border border-amber-300/30 bg-amber-300/10 px-5 py-3 font-display font-semibold text-amber-200 transition hover:bg-amber-300/20">Salva riconoscimenti</button>}
                   {finalArena && <button type="button" onClick={handleCloseFinalArena} className="rounded-xl border border-red-400/30 bg-red-400/10 px-5 py-3 font-display font-semibold text-red-300 transition hover:bg-red-400/20">Chiudi finale attuale</button>}
                 </div>
-                {finalArena && <p className="mt-4 text-sm text-white/55">Finale configurata: {new Date(finalArena.start_at).toLocaleString("it-IT")} - {new Date(finalArena.end_at).toLocaleString("it-IT")}</p>}
+                {finalArena && (
+                  <div className="mt-6 border-t border-amber-300/10 pt-6">
+                    <div className="mb-4 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-display text-lg font-semibold text-white">Voti della finale</p>
+                        <p className="mt-1 text-xs text-white/45">Aggiornati automaticamente durante la gara</p>
+                      </div>
+                      <span className="rounded-full bg-amber-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-amber-200">Live</span>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      {[
+                        { id: finalArena.artwork_1_id, votes: finalArena.votes_1, color: "amber" },
+                        { id: finalArena.artwork_2_id, votes: finalArena.votes_2, color: "cyan" },
+                        { id: finalArena.artwork_3_id, votes: finalArena.votes_3, color: "pink" },
+                      ].map((entry, index, entries) => {
+                        const totalVotes = entries.reduce((total, item) => total + (item.votes || 0), 0);
+                        const percentage = totalVotes ? Math.round(((entry.votes || 0) / totalVotes) * 100) : 0;
+                        const artworkTitle = opere.find((artwork) => artwork.id === entry.id)?.titolo || `Opera ${index + 1}`;
+                        const colorClasses = {
+                          amber: "border-amber-300/20 bg-amber-300/[0.05] text-amber-200",
+                          cyan: "border-cyan-300/20 bg-cyan-300/[0.05] text-cyan-200",
+                          pink: "border-pink-300/20 bg-pink-300/[0.05] text-pink-200",
+                        }[entry.color];
+                        return (
+                          <div key={entry.id} className={`rounded-2xl border p-4 ${colorClasses}`}>
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="min-w-0 truncate text-sm font-semibold text-white" title={artworkTitle}>{index + 1}. {artworkTitle}</p>
+                              <span className="shrink-0 font-display text-2xl font-bold">{entry.votes || 0}</span>
+                            </div>
+                            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-black/25">
+                              <div className="h-full rounded-full bg-current transition-[width] duration-500" style={{ width: `${percentage}%` }} />
+                            </div>
+                            <p className="mt-2 text-right text-[11px] uppercase tracking-[0.16em] text-white/45">{percentage}% · voti</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-4 text-sm text-white/55">Finale configurata: {new Date(finalArena.start_at).toLocaleString("it-IT")} - {new Date(finalArena.end_at).toLocaleString("it-IT")}</p>
+                  </div>
+                )}
               </div>
               
               {loadingDuel ? (
