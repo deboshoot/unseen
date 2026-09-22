@@ -10,6 +10,12 @@ import {
   Shield, Clock, Calendar, ThumbsUp, Lock, Unlock, BarChart3, Mail, Vote, ListChecks
 } from "lucide-react";
 
+const parseLocalDateTime = (date: string, time: string) => {
+  const [year, month, day] = date.split("-").map(Number);
+  const [hours, minutes] = time.split(":").map(Number);
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+};
+
 const AnalyticsOverview = lazy(() => import("@/components/AnalyticsOverview"));
 
 type ArtworkRecord = {
@@ -408,7 +414,7 @@ const AdminDashboard = () => {
       return;
     }
 
-    const startAt = new Date(`${scheduleDate}T${scheduleTime}`);
+    const startAt = parseLocalDateTime(scheduleDate, scheduleTime);
     if (Number.isNaN(startAt.getTime()) || startAt <= new Date()) {
       alert("Scegli una data e un orario futuri");
       return;
@@ -423,7 +429,7 @@ const AdminDashboard = () => {
     }
     const endAt = scheduleEndMode === "duration"
       ? new Date(startAt.getTime() + durationHours * 60 * 60 * 1000)
-      : new Date(`${scheduleEndDate}T${scheduleEndTime}`);
+      : parseLocalDateTime(scheduleEndDate, scheduleEndTime);
     if (Number.isNaN(endAt.getTime()) || endAt <= startAt) {
       alert("Imposta una fine valida dopo l'inizio");
       setSchedulingDuel(false);
@@ -471,8 +477,8 @@ const AdminDashboard = () => {
       return;
     }
 
-    const startAt = new Date(`${finalStartDate}T${finalStartTime}`);
-    const endAt = new Date(`${finalEndDate}T${finalEndTime}`);
+    const startAt = parseLocalDateTime(finalStartDate, finalStartTime);
+    const endAt = parseLocalDateTime(finalEndDate, finalEndTime);
     if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime()) || startAt <= new Date() || endAt <= startAt) {
       alert("Imposta un intervallo valido nel futuro");
       return;
@@ -781,7 +787,7 @@ const AdminDashboard = () => {
                         <input type="number" min="1" step="1" value={scheduleDurationHours} onChange={(event) => setScheduleDurationHours(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60" />
                       </label>
                       {(() => {
-                        const previewStart = new Date(`${scheduleDate}T${scheduleTime}`);
+                        const previewStart = parseLocalDateTime(scheduleDate, scheduleTime);
                         const previewHours = Number(scheduleDurationHours);
                         const previewEnd = new Date(previewStart.getTime() + (Number.isFinite(previewHours) ? previewHours : 0) * 60 * 60 * 1000);
                         return Number.isNaN(previewStart.getTime()) || !Number.isFinite(previewHours) || previewHours <= 0 ? null : (
