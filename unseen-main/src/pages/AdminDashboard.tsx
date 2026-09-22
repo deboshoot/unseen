@@ -52,6 +52,11 @@ type DuelSummary = DuelRecord & {
   challenger_title: string;
 };
 
+type ScheduledDuel = DuelRecord & {
+  champion_title: string;
+  challenger_title: string;
+};
+
 type FinalArenaRecord = {
   id: string;
   artwork_1_id: string;
@@ -95,7 +100,17 @@ const AdminDashboard = () => {
     return tomorrow.toISOString().slice(0, 10);
   });
   const [scheduleTime, setScheduleTime] = useState("20:00");
+  const [scheduleEndDate, setScheduleEndDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 2);
+    return date.toISOString().slice(0, 10);
+  });
+  const [scheduleEndTime, setScheduleEndTime] = useState("20:00");
+  const [scheduleEndMode, setScheduleEndMode] = useState<"duration" | "date">("duration");
+  const [scheduleDurationHours, setScheduleDurationHours] = useState("24");
   const [schedulingDuel, setSchedulingDuel] = useState(false);
+  const [scheduledDuels, setScheduledDuels] = useState<ScheduledDuel[]>([]);
+  const [loadingScheduledDuels, setLoadingScheduledDuels] = useState(false);
   const [finalArena, setFinalArena] = useState<FinalArenaRecord | null>(null);
   const [finalArtworkIds, setFinalArtworkIds] = useState(["", "", ""]);
   const [finalStartDate, setFinalStartDate] = useState(() => {
@@ -137,6 +152,7 @@ const AdminDashboard = () => {
       // Load initial data
       fetchOpere();
       fetchActiveDuel();
+      fetchScheduledDuels();
       fetchStats();
       fetchFinalArena();
 
@@ -149,6 +165,7 @@ const AdminDashboard = () => {
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'duels' }, () => {
           fetchActiveDuel();
+          fetchScheduledDuels();
           fetchStats();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
@@ -201,6 +218,30 @@ const AdminDashboard = () => {
       if (!challengerData.error) setChallengerOpere(challengerData.data);
     }
     setLoadingDuel(false);
+  };
+
+  const fetchScheduledDuels = async () => {
+    setLoadingScheduledDuels(true);
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("duels")
+      .select("*")
+      .eq("is_active", true)
+      .not("start_at", "is", null)
+      .gt("start_at", now)
+      .order("start_at", { ascending: true });
+
+    if (!error && data) {
+      const artworkIds = [...new Set(data.flatMap((duel) => [duel.champion_id, duel.challenger_id]))];
+      const { data: artworks } = await supabase.from("opere").select("id, titolo").in("id", artworkIds);
+      const titles = new Map((artworks || []).map((artwork) => [artwork.id, artwork.titolo]));
+      setScheduledDuels(data.map((duel) => ({
+        ...duel,
+        champion_title: titles.get(duel.champion_id) || "Opera rimossa",
+        challenger_title: titles.get(duel.challenger_id) || "Opera rimossa",
+      })));
+    }
+    setLoadingScheduledDuels(false);
   };
 
   const fetchFinalArena = async () => {
@@ -374,7 +415,14 @@ const AdminDashboard = () => {
     }
 
     setSchedulingDuel(true);
-    const endAt = new Date(startAt.getTime() + 24 * 60 * 60 * 1000);
+    const endAt = scheduleEndMode === "duration"
+      ? new Date(startAt.getTime() + Number(scheduleDurationHours) * 60 * 60 * 1000)
+      : new Date(`${scheduleEndDate}T${scheduleEndTime}`);
+    if (Number.isNaN(endAt.getTime()) || endAt <= startAt) {
+      alert("Imposta una fine valida dopo l'inizio");
+      setSchedulingDuel(false);
+      return;
+    }
     const { error } = await supabase.from("duels").insert({
       champion_id: scheduledChampionId,
       challenger_id: scheduledChallengerId,
@@ -392,9 +440,23 @@ const AdminDashboard = () => {
       setScheduledChampionId("");
       setScheduledChallengerId("");
       fetchActiveDuel();
+      fetchScheduledDuels();
       fetchStats();
     }
     setSchedulingDuel(false);
+  };
+
+  const handleDeleteScheduledDuel = async (id: string) => {
+    const scheduledDuel = scheduledDuels.find((duel) => duel.id === id);
+    if (!scheduledDuel || !confirm(`Eliminare il duello programmato tra "${scheduledDuel.champion_title}" e "${scheduledDuel.challenger_title}"?`)) return;
+
+    const { error } = await supabase.from("duels").delete().eq("id", id);
+    if (error) {
+      alert("Impossibile eliminare il duello: " + error.message);
+      return;
+    }
+    await fetchScheduledDuels();
+    fetchStats();
   };
 
   const handleScheduleFinalArena = async () => {
@@ -616,12 +678,41 @@ const AdminDashboard = () => {
                 {t("admin.arenaControl")}
               </h2>
 
+              <div className="mb-8 rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.03] p-6">
+                <div className="mb-5 flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-display text-xl font-semibold text-white">Duelli programmati</h3>
+                    <p className="mt-1 text-sm text-white/50">Controlla e rimuovi le gare future prima che inizino.</p>
+                  </div>
+                  <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-sm font-semibold text-cyan-200">{scheduledDuels.length}</span>
+                </div>
+                {loadingScheduledDuels ? <p className="py-5 text-sm text-white/45">Caricamento duelli...</p> : scheduledDuels.length === 0 ? (
+                  <p className="rounded-xl border border-white/10 bg-black/10 p-4 text-sm text-white/45">Nessun duello programmato.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {scheduledDuels.map((duel) => (
+                      <div key={duel.id} className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/10 p-4 md:flex-row md:items-center md:justify-between">
+                        <div className="min-w-0">
+                          <p className="font-display font-semibold text-white">{duel.champion_title} <span className="text-cyan-300">vs</span> {duel.challenger_title}</p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.16em] text-cyan-200/70">Inizio: {duel.start_at ? new Date(duel.start_at).toLocaleString("it-IT", { dateStyle: "medium", timeStyle: "short" }) : "Immediato"}</p>
+                          <p className="mt-1 text-xs text-white/40">Fine: {duel.end_at ? new Date(duel.end_at).toLocaleString("it-IT", { dateStyle: "medium", timeStyle: "short" }) : "Non impostata"}</p>
+                        </div>
+                        <button type="button" onClick={() => void handleDeleteScheduledDuel(duel.id)} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-red-300/25 bg-red-300/10 px-4 py-2.5 text-sm font-semibold text-red-200 transition hover:bg-red-300/20">
+                          <Trash2 size={16} />
+                          Elimina duello
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="mb-8 rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.04] p-6">
                 <div className="mb-5 flex items-start gap-3">
                   <Calendar size={22} className="mt-1 text-cyan-300" />
                   <div>
                     <h3 className="font-display text-xl font-semibold text-white">{t("admin.scheduleNext")}</h3>
-                    <p className="mt-1 text-sm text-white/50">Scegli due opere, il giorno e l’orario di apertura dell’Arena.</p>
+                    <p className="mt-1 text-sm text-white/50">Scegli due opere, l’inizio e quando deve terminare il duello.</p>
                   </div>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -670,6 +761,30 @@ const AdminDashboard = () => {
                       className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
                     />
                   </label>
+                  <label className="text-sm text-white/60">
+                    Modalità fine
+                    <select value={scheduleEndMode} onChange={(event) => setScheduleEndMode(event.target.value as "duration" | "date")} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60">
+                      <option value="duration">Durata automatica</option>
+                      <option value="date">Data e ora precise</option>
+                    </select>
+                  </label>
+                  {scheduleEndMode === "duration" ? (
+                    <label className="text-sm text-white/60">
+                      Durata in ore
+                      <input type="number" min="1" step="1" value={scheduleDurationHours} onChange={(event) => setScheduleDurationHours(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60" />
+                    </label>
+                  ) : (
+                    <>
+                      <label className="text-sm text-white/60">
+                        Giorno di fine
+                        <input type="date" value={scheduleEndDate} onChange={(event) => setScheduleEndDate(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60" />
+                      </label>
+                      <label className="text-sm text-white/60">
+                        Orario di fine
+                        <input type="time" value={scheduleEndTime} onChange={(event) => setScheduleEndTime(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60" />
+                      </label>
+                    </>
+                  )}
                 </div>
                 <button
                   type="button"
