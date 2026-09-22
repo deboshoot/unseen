@@ -47,9 +47,9 @@ const Navbar = () => {
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       className="fixed top-0 left-0 right-0 z-50 glass-strong"
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-display text-2xl font-black tracking-[0.3em] text-foreground">
-          <img src="/unseen-logo-transparent.png" alt="" className="h-8 w-8 object-contain" />
+      <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+        <Link to="/" className="flex min-w-0 items-center gap-1.5 font-display text-lg font-black tracking-[0.2em] text-foreground sm:gap-2 sm:text-2xl sm:tracking-[0.3em]">
+          <img src="/unseen-logo-transparent.png" alt="" className="h-7 w-7 shrink-0 object-contain sm:h-8 sm:w-8" />
           <span>UNSEEN</span>
         </Link>
         <div className="hidden md:flex items-center gap-8">
@@ -113,7 +113,7 @@ const Navbar = () => {
             </Link>
           )}
         </div>
-        <div className="md:hidden flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3 md:hidden">
           <ThemeToggle />
           <LanguageSwitcher />
           <MobileMenu user={user} onSignOut={handleSignOut} navItems={navItems} />

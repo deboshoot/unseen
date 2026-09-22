@@ -4,7 +4,7 @@ import { supabase } from "@/supabaseClient";
 import { useI18n } from "@/i18n/I18nProvider";
 import { motion } from "framer-motion";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
-import GalleryMonthManager from "@/components/GalleryMonthManager";
+import GalleryMonthManager, { ArtworkSelect } from "@/components/GalleryMonthManager";
 import { 
   Check, X, Trash2, Trophy, Users, Image as ImageIcon, 
   Shield, Clock, Calendar, ThumbsUp, Lock, Unlock, BarChart3, Mail, Vote, ListChecks
@@ -231,7 +231,7 @@ const AdminDashboard = () => {
       supabase.from("votes").select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("id, email, created_at").order("created_at", { ascending: false }),
       supabase.from("votes").select("user_id, created_at"),
-      supabase.from("duels").select("*").order("created_at", { ascending: false }),
+      supabase.from("duels").select("*").order("start_at", { ascending: false, nullsFirst: false }),
       supabase.from("opere").select("id, titolo")
     ]);
 

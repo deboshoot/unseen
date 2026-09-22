@@ -189,7 +189,7 @@ const GalleryMonthManager = () => {
   );
 };
 
-const ArtworkSelect = ({ label, value, onChange, artworks }: { label: string; value: string; onChange: (value: string) => void; artworks: ArtworkOption[] }) => (
+export const ArtworkSelect = ({ label, value, onChange, artworks }: { label: string; value: string; onChange: (value: string) => void; artworks: ArtworkOption[] }) => (
   <label className="text-sm text-white/70">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"><option value="">Seleziona un’opera</option>{artworks.map((artwork) => <option key={artwork.id} value={artwork.id}>{artwork.titolo} — {artwork.autore}</option>)}</select></label>
 );
 

@@ -30,7 +30,7 @@ const ThemeToggle = () => {
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
       onClick={() => setIsLight(!isLight)}
-      className="w-9 h-9 rounded-full glass flex items-center justify-center text-foreground/70 hover:text-foreground transition-colors"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full glass text-foreground/70 transition-colors hover:text-foreground sm:h-9 sm:w-9"
       title={isLight ? t("theme.dark") : t("theme.light")}
     >
       {isLight ? (

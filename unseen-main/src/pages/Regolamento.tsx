@@ -92,13 +92,21 @@ const articles = [
   },
 ];
 
+type ArticleTranslation = {
+  title: string;
+  eyebrow?: string;
+  intro?: string;
+  rules?: { label: string; text: string }[];
+  winners?: { title: string; text: string }[];
+};
+
 const Regolamento = () => (
   <RegolamentoContent />
 );
 
 const RegolamentoContent = () => {
   const { t, list } = useI18n();
-  const articleTitles = list<{ title: string }>("rules.articles");
+  const articleTranslations = list<ArticleTranslation>("rules.articles");
   return <main className="min-h-screen bg-background px-4 pb-20 pt-28 sm:px-6 sm:pt-36">
     <div className="mx-auto max-w-5xl">
       <motion.header initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mb-14 max-w-3xl">
@@ -115,21 +123,22 @@ const RegolamentoContent = () => {
 
       <nav aria-label="Indice del regolamento" className="mb-16 border-y border-border/60 py-6">
         <p className="mb-4 font-body text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">{t("rules.index")}</p>
-        <div className="flex flex-wrap gap-x-5 gap-y-3">
-          {articles.map((article, index) => <a key={article.number} href={`#articolo-${article.number}`} className="font-display text-sm text-muted-foreground transition-colors hover:text-primary">{article.number} · {articleTitles[index]?.title ?? article.title}</a>)}
+        <div className="flex flex-col items-start gap-3 md:flex-row md:flex-wrap md:gap-x-5">
+          {articles.map((article, index) => <a key={article.number} href={`#articolo-${article.number}`} className="font-display text-sm text-muted-foreground transition-colors hover:text-primary">{article.number} · {articleTranslations[index]?.title ?? article.title}</a>)}
         </div>
       </nav>
 
       <div className="space-y-5">
         {articles.map((article, index) => {
           const Icon = article.icon;
+          const translation = articleTranslations[index];
           return (
             <motion.article key={article.number} id={`articolo-${article.number}`} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ delay: index * 0.03 }} className="scroll-mt-28 rounded-2xl border border-border/60 bg-card/45 p-6 shadow-sm sm:p-9">
               <div className="flex gap-5 sm:gap-8">
                 <div className="flex shrink-0 flex-col items-center gap-3"><span className="font-display text-sm font-bold text-primary">{article.number}</span><span className="h-full w-px bg-border/70" /></div>
                 <div className="min-w-0 flex-1">
-                  <div className="mb-6 flex items-start justify-between gap-4"><div><p className="mb-2 font-body text-[10px] uppercase tracking-[0.22em] text-primary/80">Articolo {article.number}{article.eyebrow ? ` · ${article.eyebrow}` : ""}</p><h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl">{articleTitles[index]?.title ?? article.title}</h2></div><Icon className="hidden h-7 w-7 shrink-0 text-primary/70 sm:block" strokeWidth={1.5} /></div>
-                  <div className="font-body text-sm leading-7 text-muted-foreground sm:text-base">{article.content}</div>
+                  <div className="mb-6 flex items-start justify-between gap-4"><div><p className="mb-2 font-body text-[10px] uppercase tracking-[0.22em] text-primary/80">{t("rules.articleLabel")} {article.number}{translation?.eyebrow ? ` · ${translation.eyebrow}` : article.eyebrow ? ` · ${article.eyebrow}` : ""}</p><h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl">{translation?.title ?? article.title}</h2></div><Icon className="hidden h-7 w-7 shrink-0 text-primary/70 sm:block" strokeWidth={1.5} /></div>
+                  <div className="font-body text-sm leading-7 text-muted-foreground sm:text-base">{translation?.intro ? <p>{translation.intro}</p> : translation?.winners ? <div className="space-y-5">{translation.winners.map((winner) => <Winner key={winner.title} number={winner.title.slice(0, 2)} title={winner.title.slice(5)}>{winner.text}</Winner>)}</div> : translation?.rules ? <div className="space-y-4">{translation.rules.map((rule) => <Rule key={rule.label} label={rule.label}>{rule.text}</Rule>)}</div> : article.content}</div>
                 </div>
               </div>
             </motion.article>
