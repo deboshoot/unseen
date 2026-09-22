@@ -415,8 +415,14 @@ const AdminDashboard = () => {
     }
 
     setSchedulingDuel(true);
+    const durationHours = Number(scheduleDurationHours);
+    if (scheduleEndMode === "duration" && (!Number.isFinite(durationHours) || durationHours <= 0)) {
+      alert("Inserisci una durata valida in ore");
+      setSchedulingDuel(false);
+      return;
+    }
     const endAt = scheduleEndMode === "duration"
-      ? new Date(startAt.getTime() + Number(scheduleDurationHours) * 60 * 60 * 1000)
+      ? new Date(startAt.getTime() + durationHours * 60 * 60 * 1000)
       : new Date(`${scheduleEndDate}T${scheduleEndTime}`);
     if (Number.isNaN(endAt.getTime()) || endAt <= startAt) {
       alert("Imposta una fine valida dopo l'inizio");
@@ -769,10 +775,20 @@ const AdminDashboard = () => {
                     </select>
                   </label>
                   {scheduleEndMode === "duration" ? (
-                    <label className="text-sm text-white/60">
-                      Durata in ore
-                      <input type="number" min="1" step="1" value={scheduleDurationHours} onChange={(event) => setScheduleDurationHours(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60" />
-                    </label>
+                    <div>
+                      <label className="text-sm text-white/60">
+                        Durata in ore
+                        <input type="number" min="1" step="1" value={scheduleDurationHours} onChange={(event) => setScheduleDurationHours(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60" />
+                      </label>
+                      {(() => {
+                        const previewStart = new Date(`${scheduleDate}T${scheduleTime}`);
+                        const previewHours = Number(scheduleDurationHours);
+                        const previewEnd = new Date(previewStart.getTime() + (Number.isFinite(previewHours) ? previewHours : 0) * 60 * 60 * 1000);
+                        return Number.isNaN(previewStart.getTime()) || !Number.isFinite(previewHours) || previewHours <= 0 ? null : (
+                          <p className="mt-2 text-xs leading-5 text-cyan-200/70">Fine calcolata: {previewEnd.toLocaleString("it-IT", { dateStyle: "medium", timeStyle: "short" })}</p>
+                        );
+                      })()}
+                    </div>
                   ) : (
                     <>
                       <label className="text-sm text-white/60">
