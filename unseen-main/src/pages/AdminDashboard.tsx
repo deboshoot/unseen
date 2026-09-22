@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/supabaseClient";
+import { useI18n } from "@/i18n/I18nProvider";
 import { motion } from "framer-motion";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import GalleryMonthManager from "@/components/GalleryMonthManager";
@@ -51,10 +52,27 @@ type DuelSummary = DuelRecord & {
   challenger_title: string;
 };
 
+type FinalArenaRecord = {
+  id: string;
+  artwork_1_id: string;
+  artwork_2_id: string;
+  artwork_3_id: string;
+  start_at: string;
+  end_at: string;
+  is_active: boolean;
+  votes_1: number;
+  votes_2: number;
+  votes_3: number;
+  unseen_choice_id: string | null;
+  most_wins_id: string | null;
+  last_duel_winner_id: string | null;
+};
+
 type AdminTab = "moderation" | "gallery" | "arena" | "stats" | "analytics";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>("stats");
@@ -78,6 +96,22 @@ const AdminDashboard = () => {
   });
   const [scheduleTime, setScheduleTime] = useState("20:00");
   const [schedulingDuel, setSchedulingDuel] = useState(false);
+  const [finalArena, setFinalArena] = useState<FinalArenaRecord | null>(null);
+  const [finalArtworkIds, setFinalArtworkIds] = useState(["", "", ""]);
+  const [finalStartDate, setFinalStartDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10);
+  });
+  const [finalStartTime, setFinalStartTime] = useState("20:00");
+  const [finalEndDate, setFinalEndDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 4);
+    return date.toISOString().slice(0, 10);
+  });
+  const [finalEndTime, setFinalEndTime] = useState("20:00");
+  const [schedulingFinal, setSchedulingFinal] = useState(false);
+  const [finalAwards, setFinalAwards] = useState({ unseen: "", mostWins: "", lastDuel: "" });
   
   // Stats state
   const [stats, setStats] = useState({ users: 0, opere: 0, votes: 0 });
@@ -104,6 +138,7 @@ const AdminDashboard = () => {
       fetchOpere();
       fetchActiveDuel();
       fetchStats();
+      fetchFinalArena();
 
       // Real-time subscription for opere updates
       const channel = supabase
@@ -119,6 +154,9 @@ const AdminDashboard = () => {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
           fetchActiveDuel();
           fetchStats();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'final_arenas' }, () => {
+          fetchFinalArena();
         })
         .subscribe();
 
@@ -163,6 +201,25 @@ const AdminDashboard = () => {
       if (!challengerData.error) setChallengerOpere(challengerData.data);
     }
     setLoadingDuel(false);
+  };
+
+  const fetchFinalArena = async () => {
+    const { data, error } = await supabase
+      .from("final_arenas")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!error) {
+      setFinalArena(data);
+      if (data) {
+        setFinalAwards({
+          unseen: data.unseen_choice_id || "",
+          mostWins: data.most_wins_id || "",
+          lastDuel: data.last_duel_winner_id || "",
+        });
+      }
+    }
   };
 
   const fetchStats = async () => {
@@ -340,6 +397,70 @@ const AdminDashboard = () => {
     setSchedulingDuel(false);
   };
 
+  const handleScheduleFinalArena = async () => {
+    if (finalArtworkIds.some((id) => !id) || new Set(finalArtworkIds).size !== 3) {
+      alert("Seleziona tre opere accettate e tutte diverse");
+      return;
+    }
+
+    const startAt = new Date(`${finalStartDate}T${finalStartTime}`);
+    const endAt = new Date(`${finalEndDate}T${finalEndTime}`);
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime()) || startAt <= new Date() || endAt <= startAt) {
+      alert("Imposta un intervallo valido nel futuro");
+      return;
+    }
+
+    setSchedulingFinal(true);
+    const { error } = await supabase.from("final_arenas").insert({
+      artwork_1_id: finalArtworkIds[0],
+      artwork_2_id: finalArtworkIds[1],
+      artwork_3_id: finalArtworkIds[2],
+      start_at: startAt.toISOString(),
+      end_at: endAt.toISOString(),
+      is_active: true,
+      votes_1: 0,
+      votes_2: 0,
+      votes_3: 0,
+      unseen_choice_id: finalAwards.unseen || null,
+      most_wins_id: finalAwards.mostWins || null,
+      last_duel_winner_id: finalAwards.lastDuel || null,
+    });
+
+    if (error) {
+      alert("Errore nella programmazione della finale: " + error.message);
+    } else {
+      alert(t("admin.finalArena") + " programmata correttamente");
+      setFinalArtworkIds(["", "", ""]);
+      setFinalAwards({ unseen: "", mostWins: "", lastDuel: "" });
+      fetchFinalArena();
+    }
+    setSchedulingFinal(false);
+  };
+
+  const handleSaveFinalAwards = async () => {
+    const finalArtworkIdsForAwards = [finalArena?.artwork_1_id, finalArena?.artwork_2_id, finalArena?.artwork_3_id];
+    if (!finalArena || new Set(Object.values(finalAwards).filter(Boolean)).size !== 3 || Object.values(finalAwards).some((id) => !finalArtworkIdsForAwards.includes(id))) {
+      alert("Seleziona tre vincitori diversi");
+      return;
+    }
+    const { error } = await supabase.from("final_arenas").update({
+      unseen_choice_id: finalAwards.unseen,
+      most_wins_id: finalAwards.mostWins,
+      last_duel_winner_id: finalAwards.lastDuel,
+    }).eq("id", finalArena.id);
+    if (error) alert(error.message);
+    else fetchFinalArena();
+  };
+
+  const handleCloseFinalArena = async () => {
+    if (!finalArena || !confirm(t("admin.finalArena") + "?")) return;
+    const { error } = await supabase
+      .from("final_arenas")
+      .update({ is_active: false })
+      .eq("id", finalArena.id);
+    if (!error) fetchFinalArena();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
@@ -364,7 +485,7 @@ const AdminDashboard = () => {
             ADMIN DASHBOARD
           </h1>
           <p className="font-body text-xs uppercase tracking-[0.2em] text-white/50 sm:text-sm sm:tracking-[0.3em]">
-            Centro di controllo
+            {t("admin.controlCenter")}
           </p>
         </motion.div>
 
@@ -376,11 +497,11 @@ const AdminDashboard = () => {
           className="mb-8 flex max-w-full gap-2 overflow-x-auto border-b border-white/10 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {[
-            { id: "moderation", label: "Moderazione", icon: Shield },
-            { id: "gallery", label: "Galleria", icon: ImageIcon },
-            { id: "arena", label: "Arena", icon: Trophy },
-            { id: "stats", label: "Community", icon: Users },
-            { id: "analytics", label: "Analytics", icon: BarChart3 },
+            { id: "moderation", label: t("admin.moderation"), icon: Shield },
+            { id: "gallery", label: t("admin.gallery"), icon: ImageIcon },
+            { id: "arena", label: t("admin.arena"), icon: Trophy },
+            { id: "stats", label: t("admin.community"), icon: Users },
+            { id: "analytics", label: t("admin.analytics"), icon: BarChart3 },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -407,7 +528,7 @@ const AdminDashboard = () => {
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl p-8">
               <h2 className="font-display text-2xl font-bold text-white mb-6 flex items-center gap-3">
                 <Shield size={24} />
-                Moderazione Opere
+                {t("admin.moderationWorks")}
               </h2>
               
               {loadingOpere ? (
@@ -492,14 +613,14 @@ const AdminDashboard = () => {
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl p-8">
               <h2 className="font-display text-2xl font-bold text-white mb-6 flex items-center gap-3">
                 <Trophy size={24} />
-                Controllo Arena
+                {t("admin.arenaControl")}
               </h2>
 
               <div className="mb-8 rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.04] p-6">
                 <div className="mb-5 flex items-start gap-3">
                   <Calendar size={22} className="mt-1 text-cyan-300" />
                   <div>
-                    <h3 className="font-display text-xl font-semibold text-white">Programma il prossimo duello</h3>
+                    <h3 className="font-display text-xl font-semibold text-white">{t("admin.scheduleNext")}</h3>
                     <p className="mt-1 text-sm text-white/50">Scegli due opere, il giorno e l’orario di apertura dell’Arena.</p>
                   </div>
                 </div>
@@ -559,6 +680,55 @@ const AdminDashboard = () => {
                   <Calendar size={18} />
                   {schedulingDuel ? "Programmazione..." : "Programma duello"}
                 </button>
+              </div>
+
+              <div className="mb-8 rounded-2xl border border-amber-300/15 bg-amber-300/[0.04] p-6">
+                <div className="mb-5 flex items-start gap-3">
+                  <Trophy size={22} className="mt-1 text-amber-300" />
+                  <div>
+                    <h3 className="font-display text-xl font-semibold text-white">{t("admin.finalArena")}</h3>
+                    <p className="mt-1 text-sm text-white/50">Seleziona le tre finaliste e imposta liberamente inizio e fine. Un voto per persona.</p>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  {finalArtworkIds.map((artworkId, index) => (
+                    <label key={index} className="text-sm text-white/60">
+                      Fotografia {index + 1}
+                      <select
+                        value={artworkId}
+                        onChange={(event) => setFinalArtworkIds((current) => current.map((id, itemIndex) => itemIndex === index ? event.target.value : id))}
+                        className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-amber-300/60"
+                      >
+                        <option value="">Seleziona un’opera</option>
+                        {opere.filter((opera) => opera.status === "accepted").map((opera) => (
+                          <option key={opera.id} value={opera.id}>{opera.titolo}</option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
+                  <label className="text-sm text-white/60">
+                    Inizio
+                    <input type="datetime-local" value={`${finalStartDate}T${finalStartTime}`} onChange={(event) => { const [date, time] = event.target.value.split("T"); setFinalStartDate(date); setFinalStartTime(time); }} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none focus:border-amber-300/60" />
+                  </label>
+                  <label className="text-sm text-white/60">
+                    Fine
+                    <input type="datetime-local" value={`${finalEndDate}T${finalEndTime}`} onChange={(event) => { const [date, time] = event.target.value.split("T"); setFinalEndDate(date); setFinalEndTime(time); }} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none focus:border-amber-300/60" />
+                  </label>
+                </div>
+                <div className="mt-5 grid gap-4 md:grid-cols-3">
+                  <ArtworkSelect label="Scelto da Unseen" value={finalAwards.unseen} onChange={(value) => setFinalAwards((current) => ({ ...current, unseen: value }))} artworks={opere.filter((opera) => opera.status === "accepted")} />
+                  <ArtworkSelect label="Più vittorie" value={finalAwards.mostWins} onChange={(value) => setFinalAwards((current) => ({ ...current, mostWins: value }))} artworks={opere.filter((opera) => opera.status === "accepted")} />
+                  <ArtworkSelect label="Vincitore ultimo duello" value={finalAwards.lastDuel} onChange={(value) => setFinalAwards((current) => ({ ...current, lastDuel: value }))} artworks={opere.filter((opera) => opera.status === "accepted")} />
+                </div>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <button type="button" onClick={handleScheduleFinalArena} disabled={schedulingFinal} className="inline-flex items-center gap-2 rounded-xl border border-amber-300/30 bg-amber-300/15 px-5 py-3 font-display font-semibold text-amber-200 transition hover:bg-amber-300/25 disabled:cursor-wait disabled:opacity-50">
+                    <Trophy size={18} />
+                    {schedulingFinal ? t("common.loading") : t("admin.finalArena")}
+                  </button>
+                  {finalArena && <button type="button" onClick={() => void handleSaveFinalAwards()} className="rounded-xl border border-amber-300/30 bg-amber-300/10 px-5 py-3 font-display font-semibold text-amber-200 transition hover:bg-amber-300/20">Salva riconoscimenti</button>}
+                  {finalArena && <button type="button" onClick={handleCloseFinalArena} className="rounded-xl border border-red-400/30 bg-red-400/10 px-5 py-3 font-display font-semibold text-red-300 transition hover:bg-red-400/20">Chiudi finale attuale</button>}
+                </div>
+                {finalArena && <p className="mt-4 text-sm text-white/55">Finale configurata: {new Date(finalArena.start_at).toLocaleString("it-IT")} - {new Date(finalArena.end_at).toLocaleString("it-IT")}</p>}
               </div>
               
               {loadingDuel ? (
@@ -658,7 +828,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <p className="text-4xl font-display font-bold text-white">{loadingStats ? "..." : stats.users}</p>
-                  <p className="text-white/50 text-sm mt-2">Utenti registrati</p>
+                  <p className="text-white/50 text-sm mt-2">{t("admin.registeredUsers")}</p>
                 </motion.button>
                 
                 <motion.div
@@ -673,7 +843,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <p className="text-4xl font-display font-bold text-white">{loadingStats ? "..." : stats.opere}</p>
-                  <p className="text-white/50 text-sm mt-2">Opere totali</p>
+                  <p className="text-white/50 text-sm mt-2">{t("admin.totalWorks")}</p>
                 </motion.div>
                 
                 <motion.button
@@ -690,7 +860,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <p className="text-4xl font-display font-bold text-white">{loadingStats ? "..." : stats.votes}</p>
-                  <p className="text-white/50 text-sm mt-2">Voti totali</p>
+                  <p className="text-white/50 text-sm mt-2">{t("admin.totalVotes")}</p>
                 </motion.button>
               </div>
 
@@ -706,7 +876,7 @@ const AdminDashboard = () => {
                     <div>
                       <h2 className="font-display text-2xl font-bold text-white flex items-center gap-3">
                         <Users size={24} />
-                        Tutti gli iscritti
+                        {t("admin.allUsers")}
                       </h2>
                       <p className="mt-2 text-sm text-white/45">Elenco completo degli account registrati</p>
                     </div>
@@ -739,7 +909,7 @@ const AdminDashboard = () => {
                     <div>
                       <h2 className="font-display text-2xl font-bold text-white flex items-center gap-3">
                         <Vote size={24} />
-                        Chi ha votato
+                        {t("admin.whoVoted")}
                       </h2>
                       <p className="mt-2 text-sm text-white/45">Email degli iscritti che hanno espresso almeno un voto</p>
                     </div>
@@ -775,7 +945,7 @@ const AdminDashboard = () => {
                   <div>
                     <h2 className="font-display text-2xl font-bold text-white flex items-center gap-3">
                       <ListChecks size={24} />
-                      Dettaglio duelli
+                      {t("admin.duelDetails")}
                     </h2>
                     <p className="mt-2 text-sm text-white/45">Titoli sfidati e voti ottenuti in ogni duello</p>
                   </div>

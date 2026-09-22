@@ -5,19 +5,22 @@ import { motion } from "framer-motion";
 import { User, LogOut } from "lucide-react";
 import { supabase } from "@/supabaseClient";
 import ThemeToggle from "./ThemeToggle";
-
-const navItems = [
-  { label: "Home", path: "/" },
-  { label: "Arena", path: "/arena" },
-  { label: "Galleria", path: "/gallery" },
-  { label: "Come Funziona", path: "/how-it-works" },
-  { label: "Invia Opera", path: "/submit" },
-];
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const Navbar = () => {
   const location = useLocation();
+  const { t } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  const navItems = [
+    { label: t("nav.home"), path: "/" },
+    { label: t("nav.arena"), path: "/arena" },
+    { label: t("nav.gallery"), path: "/gallery" },
+    { label: t("nav.rules"), path: "/regolamento" },
+    { label: t("nav.submit"), path: "/submit" },
+  ];
 
   useEffect(() => {
     (async () => {
@@ -71,13 +74,14 @@ const Navbar = () => {
             </Link>
           ))}
           <ThemeToggle />
+          <LanguageSwitcher />
           {user ? (
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
-                aria-label="Apri profilo"
+                aria-label={t("nav.profile")}
                 aria-expanded={profileOpen}
               >
                 <User size={18} />
@@ -94,7 +98,7 @@ const Navbar = () => {
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-foreground/10"
                   >
                     <LogOut size={16} />
-                    Logout
+                    {t("nav.logout")}
                   </button>
                 </div>
               )}
@@ -105,21 +109,23 @@ const Navbar = () => {
               className="flex items-center gap-2 font-body text-sm tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors"
             >
               <User size={16} />
-              <span>Accedi</span>
+              <span>{t("nav.login")}</span>
             </Link>
           )}
         </div>
         <div className="md:hidden flex items-center gap-3">
           <ThemeToggle />
-          <MobileMenu user={user} onSignOut={handleSignOut} />
+          <LanguageSwitcher />
+          <MobileMenu user={user} onSignOut={handleSignOut} navItems={navItems} />
         </div>
       </div>
     </motion.nav>
   );
 };
 
-const MobileMenu = ({ user, onSignOut }: { user: User | null; onSignOut: () => Promise<void> }) => {
+const MobileMenu = ({ user, onSignOut, navItems }: { user: User | null; onSignOut: () => Promise<void>; navItems: { label: string; path: string }[] }) => {
   const location = useLocation();
+  const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -183,7 +189,7 @@ const MobileMenu = ({ user, onSignOut }: { user: User | null; onSignOut: () => P
               }`}
             >
               <User size={16} />
-              <span>Accedi / Iscriviti</span>
+              <span>{t("nav.loginOrRegister")}</span>
             </Link>
           )}
         </div>

@@ -4,8 +4,10 @@ import { toast } from 'sonner';
 import { supabase } from '../supabaseClient'; 
 import { LoaderCircle, UploadCloud, X } from 'lucide-react';
 import { getInstagramProfile } from '@/lib/instagram';
+import { useI18n } from '@/i18n/I18nProvider';
 
 export default function InviaOpera() {
+  const { t } = useI18n();
   const [titolo, setTitolo] = useState('');
   const [autore, setAutore] = useState('');
   const [storia, setStoria] = useState('');
@@ -20,8 +22,8 @@ export default function InviaOpera() {
 
     // File validation: max 5MB
     if (selectedFile.size > 5 * 1024 * 1024) {
-      toast.error('File troppo grande', {
-        description: 'Il file non deve superare 5MB.',
+      toast.error(t('submit.fileTooLarge'), {
+        description: t('submit.fileTooLargeDescription'),
       });
       return;
     }
@@ -29,8 +31,8 @@ export default function InviaOpera() {
     // File validation: only JPG, PNG, WEBP
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(selectedFile.type)) {
-      toast.error('Formato non supportato', {
-        description: 'Accettati solo JPG, PNG o WEBP.',
+      toast.error(t('submit.unsupported'), {
+        description: t('submit.unsupportedDescription'),
       });
       return;
     }
@@ -42,8 +44,8 @@ export default function InviaOpera() {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      toast.error('File mancante', {
-        description: 'Seleziona un\'immagine da caricare.',
+      toast.error(t('submit.missingFile'), {
+        description: t('submit.missingFileDescription'),
       });
       return;
     }
@@ -77,13 +79,13 @@ export default function InviaOpera() {
 
       if (insertError) throw insertError;
 
-      toast.success('Opera inviata!', {
-        description: 'La tua visione è stata condivisa con successo.',
+      toast.success(t('submit.success'), {
+        description: t('submit.successDescription'),
       });
       setTitolo(''); setAutore(''); setStoria(''); setSocial(''); setFile(null); setPreviewUrl(null);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Si è verificato un errore imprevisto.';
-      toast.error('Errore durante l\'invio', {
+      const message = err instanceof Error ? err.message : t('submit.unexpectedError');
+      toast.error(t('submit.uploadError'), {
         description: message,
       });
     } finally {
@@ -108,7 +110,7 @@ export default function InviaOpera() {
         <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-2xl p-6 flex-1 min-h-[400px] flex flex-col relative overflow-hidden shadow-2xl">
           {previewUrl ? (
             <div className="relative w-full h-full flex flex-col">
-              <img src={previewUrl} className="w-full h-full object-cover rounded-xl" alt="Preview" />
+              <img src={previewUrl} className="w-full h-full object-cover rounded-xl" alt={t('submit.preview')} />
               <button 
                 onClick={() => {setFile(null); setPreviewUrl(null);}} 
                 className="absolute top-4 right-4 bg-black/60 backdrop-blur-md p-2.5 rounded-full hover:bg-white/20 transition-all border border-white/10"
@@ -121,8 +123,8 @@ export default function InviaOpera() {
               <div className="bg-primary/15 p-6 rounded-full mb-4">
                 <UploadCloud className="text-primary" size={32} />
               </div>
-              <span className="text-foreground font-medium">Carica la tua opera</span>
-              <p className="text-muted-foreground text-sm mt-2">JPG, PNG o WEBP</p>
+              <span className="text-foreground font-medium">{t('submit.upload')}</span>
+              <p className="text-muted-foreground text-sm mt-2">{t('submit.formats')}</p>
               <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
             </label>
           )}
@@ -138,49 +140,49 @@ export default function InviaOpera() {
         <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-2xl p-8 flex-1 flex flex-col justify-center space-y-6 shadow-2xl">
           
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">Titolo</label>
+            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">{t('submit.titleLabel')}</label>
             <input 
               type="text" 
               className="w-full bg-background/60 border border-border rounded-xl px-5 py-4 outline-none focus:border-primary/60 focus:bg-background transition-all placeholder:text-muted-foreground text-foreground" 
               value={titolo} 
               onChange={e => setTitolo(e.target.value)} 
-              placeholder="Nome dell'opera"
+              placeholder={t('submit.titlePlaceholder')}
               required 
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">Autore</label>
+            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">{t('submit.author')}</label>
             <input 
               type="text" 
               className="w-full bg-background/60 border border-border rounded-xl px-5 py-4 outline-none focus:border-primary/60 focus:bg-background transition-all placeholder:text-muted-foreground text-foreground" 
               value={autore} 
               onChange={e => setAutore(e.target.value)} 
-              placeholder="Il tuo nome"
+              placeholder={t('submit.authorPlaceholder')}
               required 
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">Storia</label>
+            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">{t('submit.story')}</label>
             <textarea 
               className="w-full bg-background/60 border border-border rounded-xl px-5 py-4 outline-none focus:border-primary/60 focus:bg-background transition-all h-32 resize-none placeholder:text-muted-foreground text-foreground" 
               value={storia} 
               onChange={e => setStoria(e.target.value)} 
-              placeholder="Descrivi il concetto dell'opera"
+              placeholder={t('submit.storyPlaceholder')}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">Username Instagram</label>
+            <label className="text-xs uppercase tracking-[0.2em] text-primary font-bold">{t('submit.instagram')}</label>
             <input 
               type="text" 
               className="w-full bg-background/60 border border-border rounded-xl px-5 py-4 outline-none focus:border-primary/60 focus:bg-background transition-all placeholder:text-muted-foreground text-foreground" 
               value={social} 
               onChange={e => setSocial(e.target.value)} 
-              placeholder="@username"
+              placeholder={t('submit.instagramPlaceholder')}
               pattern="@?[A-Za-z0-9._]{1,30}"
-              title="Inserisci solo il tuo username Instagram, ad esempio @nomeutente"
+              title={t('submit.instagramPlaceholder')}
             />
           </div>
 
@@ -194,10 +196,10 @@ export default function InviaOpera() {
             {loading ? (
               <div className="flex items-center justify-center gap-2">
                 <LoaderCircle className="animate-spin" size={20} />
-                <span>Invio in corso...</span>
+                <span>{t('submit.sending')}</span>
               </div>
             ) : (
-              "Invia opera"
+              t('submit.send')
             )}
           </motion.button>
         </div>

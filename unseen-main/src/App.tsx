@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
 import Arena from "./pages/Arena";
 import Gallery from "./pages/Gallery";
-import HowItWorks from "./pages/HowItWorks";
+import Regolamento from "./pages/Regolamento";
 import Submit from "./pages/Submit";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -27,7 +27,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/arena" element={<Arena />} />
           <Route path="/gallery" element={<Gallery />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/regolamento" element={<Regolamento />} />
           <Route path="/submit" element={<Submit />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<AdminDashboard />} />

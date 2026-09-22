@@ -18,6 +18,12 @@ type GalleryMonth = {
   jury_choice_id: string;
 };
 
+type FinalArena = {
+  most_wins_id: string | null;
+  last_duel_winner_id: string | null;
+  unseen_choice_id: string | null;
+};
+
 const emptyForm = {
   monthKey: "",
   monthLabel: "",
@@ -33,13 +39,15 @@ const GalleryMonthManager = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [finalArena, setFinalArena] = useState<FinalArena | null>(null);
 
   const loadData = async () => {
     setLoading(true);
     setMessage("");
-    const [artworksResult, monthsResult] = await Promise.all([
+    const [artworksResult, monthsResult, finalResult] = await Promise.all([
       supabase.from("opere").select("id, titolo, autore, status").eq("status", "accepted").order("created_at", { ascending: false }),
       supabase.from("gallery_months").select("id, month_key, month_label, winner_id, people_choice_id, jury_choice_id").order("month_key", { ascending: false }),
+      supabase.from("final_arenas").select("most_wins_id, last_duel_winner_id, unseen_choice_id").order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
 
     if (artworksResult.error) {
@@ -50,6 +58,7 @@ const GalleryMonthManager = () => {
 
     setArtworks((artworksResult.data ?? []) as ArtworkOption[]);
     setMonths((monthsResult.data ?? []) as GalleryMonth[]);
+    setFinalArena(finalResult.data ?? null);
     setLoading(false);
   };
 
@@ -62,6 +71,20 @@ const GalleryMonthManager = () => {
   };
 
   const resetForm = () => setForm(emptyForm);
+
+  const importFinalOrder = () => {
+    if (!finalArena?.most_wins_id || !finalArena.last_duel_winner_id || !finalArena.unseen_choice_id) {
+      setMessage("Completa prima i tre riconoscimenti nell’Arena Finale.");
+      return;
+    }
+    setForm((current) => ({
+      ...current,
+      winnerId: finalArena.most_wins_id as string,
+      peopleChoiceId: finalArena.last_duel_winner_id as string,
+      juryChoiceId: finalArena.unseen_choice_id as string,
+    }));
+    setMessage("Ordine importato: più vittorie, ultimo duello, scelto da Unseen.");
+  };
 
   const handleSave = async () => {
     if (!form.monthKey || !form.monthLabel || !form.winnerId || !form.peopleChoiceId || !form.juryChoiceId) {
@@ -138,12 +161,15 @@ const GalleryMonthManager = () => {
         <div className="grid gap-4 md:grid-cols-2">
           <label className="text-sm text-white/70">Mese<input type="month" value={form.monthKey} onChange={(event) => updateField("monthKey", event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white" /></label>
           <label className="text-sm text-white/70">Titolo del mese<input value={form.monthLabel} onChange={(event) => updateField("monthLabel", event.target.value)} placeholder="Campionato Marzo 2026" className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white placeholder:text-white/30" /></label>
-          <ArtworkSelect label="Vincitore del mese" value={form.winnerId} onChange={(value) => updateField("winnerId", value)} artworks={artworks} />
-          <ArtworkSelect label="Vincitore del popolo" value={form.peopleChoiceId} onChange={(value) => updateField("peopleChoiceId", value)} artworks={artworks} />
-          <ArtworkSelect label="Vincitore scelto dalla giuria" value={form.juryChoiceId} onChange={(value) => updateField("juryChoiceId", value)} artworks={artworks} />
+          <ArtworkSelect label="1ª posizione · foto principale" value={form.winnerId} onChange={(value) => updateField("winnerId", value)} artworks={artworks} />
+          <ArtworkSelect label="2ª posizione" value={form.peopleChoiceId} onChange={(value) => updateField("peopleChoiceId", value)} artworks={artworks} />
+          <ArtworkSelect label="3ª posizione" value={form.juryChoiceId} onChange={(value) => updateField("juryChoiceId", value)} artworks={artworks} />
         </div>
         {message ? <p className="mt-4 text-sm text-cyan-200">{message}</p> : null}
-        <button type="button" onClick={() => void handleSave()} disabled={saving || loading} className="mt-6 inline-flex items-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-5 py-3 font-display text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-50"><Save size={17} />{saving ? "Salvataggio..." : "Salva mese"}</button>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button type="button" onClick={() => void handleSave()} disabled={saving || loading} className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-5 py-3 font-display text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-50"><Save size={17} />{saving ? "Salvataggio..." : "Salva ordine galleria"}</button>
+          <button type="button" onClick={importFinalOrder} disabled={!finalArena} className="rounded-xl border border-amber-300/30 bg-amber-300/10 px-5 py-3 font-display text-sm font-semibold text-amber-100 transition hover:bg-amber-300/20 disabled:opacity-50">Importa ordine Arena Finale</button>
+        </div>
       </div>
 
       <div className="space-y-3">

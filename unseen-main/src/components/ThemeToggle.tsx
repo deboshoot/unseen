@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const ThemeToggle = () => {
   const [isLight, setIsLight] = useState(() => {
     return localStorage.getItem("unseen-theme") === "light";
   });
+  const { t } = useI18n();
 
   useEffect(() => {
     if (isLight) {
@@ -29,7 +31,7 @@ const ThemeToggle = () => {
       whileTap={{ scale: 0.9 }}
       onClick={() => setIsLight(!isLight)}
       className="w-9 h-9 rounded-full glass flex items-center justify-center text-foreground/70 hover:text-foreground transition-colors"
-      title={isLight ? "Passa al tema scuro" : "Passa al tema chiaro"}
+      title={isLight ? t("theme.dark") : t("theme.light")}
     >
       {isLight ? (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

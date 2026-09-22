@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import { supabase } from "@/supabaseClient";
 import { getInstagramProfile } from "@/lib/instagram";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type GalleryWork = {
   id: string;
@@ -23,13 +24,13 @@ type GalleryMonth = {
   jury_choice_id: string;
 };
 
-const categories = [
-  { key: "winner_id", label: "Vincitore del mese", accent: "text-amber-200" },
-  { key: "people_choice_id", label: "Vincitore del popolo", accent: "text-cyan-200" },
-  { key: "jury_choice_id", label: "Scelto dalla giuria", accent: "text-rose-200" },
-] as const;
-
 const Gallery = () => {
+  const { t } = useI18n();
+  const categories = [
+    { key: "winner_id", label: t("gallery.winner"), accent: "text-amber-200" },
+    { key: "people_choice_id", label: t("gallery.peopleChoice"), accent: "text-cyan-200" },
+    { key: "jury_choice_id", label: t("gallery.juryChoice"), accent: "text-rose-200" },
+  ] as const;
   const [months, setMonths] = useState<GalleryMonth[]>([]);
   const [artworks, setArtworks] = useState<Record<string, GalleryWork>>({});
   const [selectedWork, setSelectedWork] = useState<GalleryWork | null>(null);
@@ -70,16 +71,16 @@ const Gallery = () => {
     <div className="luxury-gallery min-h-screen px-5 pb-24 pt-28 md:px-10">
       <div className="mx-auto max-w-7xl">
         <motion.header initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="gallery-heading mb-16 max-w-3xl">
-          <p className="gallery-kicker mb-4">UNSEEN / COLLECTIONS</p>
-          <h1 className="gallery-title">GALLERIA</h1>
+          <p className="gallery-kicker mb-4">{t("gallery.kicker")}</p>
+          <h1 className="gallery-title">{t("gallery.title")}</h1>
         </motion.header>
 
-        {isLoading ? <p className="py-24 text-center font-body text-sm uppercase tracking-[0.3em] text-muted-foreground">Caricamento archivio...</p> : null}
+        {isLoading ? <p className="py-24 text-center font-body text-sm uppercase tracking-[0.3em] text-muted-foreground">{t("gallery.loading")}</p> : null}
         {!isLoading && months.length === 0 ? (
           <motion.section initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="gallery-empty-display" aria-label="Spazio espositivo in attesa della prima collezione">
             <div className="gallery-empty-header">
               <span className="gallery-empty-index">01 / 01</span>
-              <span className="gallery-empty-status"><i /> In allestimento</span>
+              <span className="gallery-empty-status"><i /> {t("gallery.emptyLabel")}</span>
             </div>
             <div className="gallery-empty-frames" aria-hidden="true">
               <span className="gallery-empty-frame gallery-empty-frame-back" />
@@ -87,17 +88,17 @@ const Gallery = () => {
               <span className="gallery-empty-frame gallery-empty-frame-front" />
             </div>
             <div className="gallery-empty-copy">
-              <p className="gallery-empty-kicker">Prima collezione</p>
-              <h2>Il primo campionato<br /><em>sta per iniziare.</em></h2>
-              <p>Questo spazio accoglierà le opere vincitrici, esposte una accanto all’altra.</p>
+              <p className="gallery-empty-kicker">{t("gallery.firstCollection")}</p>
+              <h2>{t("gallery.emptyTitle")}</h2>
+              <p>{t("gallery.emptyText")}</p>
             </div>
           </motion.section>
         ) : null}
 
         {months.length > 0 ? <div className="gallery-season-section">
           <div className="gallery-season-heading">
-            <p className="gallery-section-label">Archivio dei vincitori</p>
-            <p className="gallery-season-hint">Seleziona una stagione per scoprire gli altri riconoscimenti</p>
+            <p className="gallery-section-label">{t("gallery.archive")}</p>
+            <p className="gallery-season-hint">{t("gallery.seasonHint")}</p>
           </div>
           <div className="gallery-winners-row">
             {months.map((month, monthIndex) => {
@@ -106,9 +107,9 @@ const Gallery = () => {
               const isExpanded = expandedMonth === month.id;
               return (
                 <motion.section key={month.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.55, delay: monthIndex * 0.04 }} className="gallery-season-item">
-                  <GalleryCard work={winner} category="Vincitore del mese" accent="text-white" onOpen={() => setSelectedWork(winner)} />
+                  <GalleryCard work={winner} category={t("gallery.firstPosition")} accent="text-white" onOpen={() => setSelectedWork(winner)} />
                   <button type="button" className={`gallery-season-toggle ${isExpanded ? "is-open" : ""}`} aria-expanded={isExpanded} onClick={() => setExpandedMonth(isExpanded ? null : month.id)}>
-                    <span><strong>{month.month_label}</strong><small>{isExpanded ? "Nascondi riconoscimenti" : "Mostra gli altri vincitori"}</small></span>
+                    <span><strong>{month.month_label}</strong><small>{isExpanded ? t("gallery.hideAwards") : t("gallery.showAwards")}</small></span>
                     <ChevronDown size={17} aria-hidden="true" />
                   </button>
                   {isExpanded ? (
@@ -116,7 +117,8 @@ const Gallery = () => {
                       {categories.slice(1).map((category) => {
                         const work = artworks[month[category.key]];
                         if (!work) return null;
-                        return <GalleryCard key={category.key} work={work} category={category.label} accent="text-white" onOpen={() => setSelectedWork(work)} />;
+                        const positionLabel = category.key === "people_choice_id" ? t("gallery.secondPosition") : t("gallery.thirdPosition");
+                        return <GalleryCard key={category.key} work={work} category={positionLabel} accent="text-white" onOpen={() => setSelectedWork(work)} />;
                       })}
                     </motion.div>
                   ) : null}
@@ -128,7 +130,7 @@ const Gallery = () => {
       </div>
 
       <ArtworkDetailModal open={!!selectedWork} onClose={() => setSelectedWork(null)} imageSrc={selectedWork?.immagine_url ?? ""} imageAlt={selectedWork?.titolo ?? ""} titleId="gallery-detail-title">
-        {selectedWork ? <><p className="font-body text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Archivio Unseen</p><h2 id="gallery-detail-title" className="mt-2 font-display text-2xl font-bold text-foreground md:text-3xl">{selectedWork.titolo}</h2><div className="flex flex-wrap items-center gap-2 font-body text-sm text-foreground"><span>{selectedWork.autore}</span>{getInstagramProfile(selectedWork.social_link) ? <a href={getInstagramProfile(selectedWork.social_link)?.href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@{getInstagramProfile(selectedWork.social_link)?.username}</a> : null}</div><p className="font-body text-base leading-relaxed text-muted-foreground md:text-lg">{selectedWork.storia || "Nessuna descrizione disponibile."}</p></> : null}
+        {selectedWork ? <><p className="font-body text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{t("gallery.archiveLabel")}</p><h2 id="gallery-detail-title" className="mt-2 font-display text-2xl font-bold text-foreground md:text-3xl">{selectedWork.titolo}</h2><div className="flex flex-wrap items-center gap-2 font-body text-sm text-foreground"><span>{selectedWork.autore}</span>{getInstagramProfile(selectedWork.social_link) ? <a href={getInstagramProfile(selectedWork.social_link)?.href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@{getInstagramProfile(selectedWork.social_link)?.username}</a> : null}</div><p className="font-body text-base leading-relaxed text-muted-foreground md:text-lg">{selectedWork.storia || t("gallery.noDescription")}</p></> : null}
       </ArtworkDetailModal>
     </div>
   );

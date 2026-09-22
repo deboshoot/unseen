@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import InviaOpera from "@/components/InviaOpera";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const Submit = () => {
+  const { t } = useI18n();
   return (
     <div className="min-h-screen gallery-bg pt-24 pb-20 px-6 relative">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -24,10 +26,10 @@ const Submit = () => {
           className="text-center mb-12"
         >
           <h1 className="font-display text-4xl md:text-6xl font-black tracking-[0.2em] text-foreground">
-            INVIA L'OPERA
+            {t("submit.title")}
           </h1>
           <p className="text-muted-foreground text-sm tracking-[0.3em] uppercase mt-3 font-body">
-            Condividi la tua visione con il mondo
+            {t("submit.subtitle")}
           </p>
         </motion.div>
 

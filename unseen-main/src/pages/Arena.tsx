@@ -7,6 +7,7 @@ import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import { supabase } from "@/supabaseClient";
 import { getInstagramProfile } from "@/lib/instagram";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useI18n } from "@/i18n/I18nProvider";
 
 /**
  * Schema atteso (Postgres / Supabase):
@@ -14,7 +15,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
  * - opere: id, titolo, immagine_url, autore, storia, social_link
  */
 type ArenaChallenger = {
-  id: 1 | 2;
+  id: 1 | 2 | 3;
   operaId?: string;
   titolo: string;
   autore: string;
@@ -23,15 +24,20 @@ type ArenaChallenger = {
   social_link: string;
 };
 
+type FinalChallenger = Omit<ArenaChallenger, "id"> & { id: 1 | 2 | 3 };
+
 
 const Arena = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
+  const { t } = useI18n();
   const [selectedWork, setSelectedWork] = useState<ArenaChallenger | null>(null);
 
   const [duelId, setDuelId] = useState<string | null>(null);
   const [challengers, setChallengers] = useState<ArenaChallenger[]>([]);
+  const [finalArenaId, setFinalArenaId] = useState<string | null>(null);
+  const [finalChallengers, setFinalChallengers] = useState<FinalChallenger[]>([]);
   const [voting, setVoting] = useState(false);
   const votingRef = useRef(false);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -56,6 +62,53 @@ const Arena = () => {
       let duelErr;
 
       if (!urlDuelId) {
+        const { data: finalArena } = await supabase
+          .from("final_arenas")
+          .select("*")
+          .eq("is_active", true)
+          .lte("start_at", new Date().toISOString())
+          .gt("end_at", new Date().toISOString())
+          .order("start_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (finalArena) {
+          const finalIds = [finalArena.artwork_1_id, finalArena.artwork_2_id, finalArena.artwork_3_id];
+          const { data: finalWorks, error: finalWorksError } = await supabase
+            .from("opere")
+            .select("id, titolo, immagine_url, autore, storia, social_link")
+            .in("id", finalIds)
+            .abortSignal(controller.signal);
+
+          if (!cancelled && !finalWorksError && finalWorks?.length === 3) {
+            const mappedFinal = finalIds.map((artworkId, index) => {
+              const artwork = finalWorks.find((item) => item.id === artworkId);
+              return {
+                id: (index + 1) as 1 | 2 | 3,
+                operaId: artworkId,
+                titolo: artwork?.titolo ?? "",
+                autore: artwork?.autore ?? "",
+                immagine_url: artwork?.immagine_url ?? "",
+                storia: artwork?.storia ?? "",
+                social_link: artwork?.social_link ?? "",
+              };
+            });
+            setFinalArenaId(finalArena.id);
+            setFinalChallengers(mappedFinal);
+            setTimeLeft(getTimeLeft(finalArena.end_at));
+            countdownRef.current = setInterval(() => {
+              const remaining = getTimeLeft(finalArena.end_at);
+              setTimeLeft(remaining);
+              if (remaining.hours === 0 && remaining.minutes === 0 && remaining.seconds === 0) {
+                setFinalArenaId(null);
+                if (countdownRef.current) clearInterval(countdownRef.current);
+              }
+            }, 1000);
+            setIsDuelActive(false);
+            setIsLoading(false);
+            return;
+          }
+        }
         await supabase.rpc("activate_scheduled_duel");
       }
       
@@ -194,9 +247,18 @@ const Arena = () => {
     };
   }, [searchParams]);
 
+  const getTimeLeft = (endAt: string) => {
+    const diff = Math.max(0, new Date(endAt).getTime() - Date.now());
+    return {
+      hours: Math.floor(diff / 3600000),
+      minutes: Math.floor((diff % 3600000) / 60000),
+      seconds: Math.floor((diff % 60000) / 1000),
+    };
+  };
+
   const handleVote = useCallback(async (slot: 1 | 2) => {
     if (!duelId) {
-      toast.message("Attendi il caricamento del duello");
+      toast.message(t("common.loading"));
       return;
     }
     if (votingRef.current) return;
@@ -232,7 +294,7 @@ const Arena = () => {
 
       const label = slot === 1 ? "I" : "II";
       toast.success("Voto registrato", {
-        description: `Preferenza registrata per lo sfidante ${label}. Grazie per aver partecipato al duello.`,
+        description: `${t("arena.voteRegistered")}: ${label}.`,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Errore sconosciuto";
@@ -242,6 +304,37 @@ const Arena = () => {
       setVoting(false);
     }
   }, [duelId, navigate]);
+
+  const handleFinalVote = useCallback(async (slot: 1 | 2 | 3) => {
+    if (!finalArenaId || votingRef.current) return;
+    votingRef.current = true;
+    setVoting(true);
+    try {
+      const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr || !session?.user) {
+        toast.message("Accedi per votare", { description: "Devi essere loggato per partecipare alla finale." });
+        navigate(`/auth?redirect=${encodeURIComponent("/arena")}`);
+        return;
+      }
+      const { error } = await supabase.rpc("cast_final_arena_vote", {
+        p_final_arena_id: finalArenaId,
+        p_artwork_slot: slot,
+      });
+      if (error) {
+        if (error.message.toLowerCase().includes("already voted")) {
+          toast.error("Hai già votato!", { description: "Puoi votare solo una volta nella finale." });
+          return;
+        }
+        throw error;
+      }
+      toast.success("Voto registrato", { description: "La tua preferenza per la finale è stata registrata." });
+    } catch (error) {
+      toast.error("Voto non registrato", { description: error instanceof Error ? error.message : "Errore sconosciuto" });
+    } finally {
+      votingRef.current = false;
+      setVoting(false);
+    }
+  }, [finalArenaId, navigate]);
 
   const openShareMenu = useCallback(() => {
     if (!duelId) {
@@ -316,7 +409,7 @@ const Arena = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen arena-bg flex items-center justify-center">
-        <p className="text-muted-foreground text-sm tracking-[0.3em] uppercase font-body">Caricamento...</p>
+        <p className="text-muted-foreground text-sm tracking-[0.3em] uppercase font-body">{t("common.loading")}</p>
       </div>
     );
   }
@@ -341,11 +434,11 @@ const Arena = () => {
         className="relative z-10 max-w-5xl mx-auto"
       >
         <div className="arena-heading mb-8 text-center">
-          <p className="arena-kicker">Unseen · Competizione fotografica</p>
+          <p className="arena-kicker">{t("arena.competition")}</p>
           <h1 className="arena-title">ARENA</h1>
           <p className="arena-subtitle">Due opere. Una scelta. Il pubblico decide.</p>
           <p className="text-muted-foreground text-xs tracking-[0.4em] uppercase font-body mb-3 mt-8">
-            {isDuelActive ? "Tempo rimanente" : "Stato del campionato"}
+            {finalArenaId ? `${t("arena.timeRemaining")} · Arena Finale` : isDuelActive ? t("arena.timeRemaining") : t("arena.championshipStatus")}
           </p>
           <div className="flex justify-center gap-3">
             {[
@@ -372,7 +465,7 @@ const Arena = () => {
                 className="mx-auto flex items-center justify-center gap-2 rounded-lg border border-arena/35 bg-arena/10 px-6 py-2.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/18"
               >
                 <Share2 className="h-4 w-4" strokeWidth={2} />
-                Condividi duello
+                {t("arena.share")}
               </motion.button>
               {shareOpen && (
                 <div className="relative grid w-full max-w-sm gap-2 rounded-xl border border-border/60 bg-background/95 p-3 text-left backdrop-blur-sm">
@@ -384,15 +477,15 @@ const Arena = () => {
                   >
                     <X className="h-4 w-4" />
                   </button>
-                  <p className="pr-10 font-body text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Cosa vuoi condividere?</p>
+                  <p className="pr-10 font-body text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{t("arena.shareWhat")}</p>
                   <button type="button" onClick={handleShareDuel} className="rounded-lg border border-border/60 px-4 py-3 text-left font-display text-sm font-semibold text-foreground transition-colors hover:border-arena/50 hover:bg-arena/10">
-                    Condividi il duello
+                    {t("arena.shareDuel")}
                   </button>
                   <button type="button" onClick={() => handleSharePhoto(challengers[0])} className="rounded-lg border border-border/60 px-4 py-3 text-left font-display text-sm font-semibold text-foreground transition-colors hover:border-arena/50 hover:bg-arena/10">
-                    Condividi sfidante 1
+                    {t("arena.shareFirst")}
                   </button>
                   <button type="button" onClick={() => handleSharePhoto(challengers[1])} className="rounded-lg border border-border/60 px-4 py-3 text-left font-display text-sm font-semibold text-foreground transition-colors hover:border-arena/50 hover:bg-arena/10">
-                    Condividi sfidante 2
+                    {t("arena.shareSecond")}
                   </button>
                 </div>
               )}
@@ -400,7 +493,36 @@ const Arena = () => {
           )}
         </div>
 
-        {isDuelActive ? (
+        {finalArenaId && finalChallengers.length === 3 ? (
+          <div className="space-y-8">
+            <div className="text-center">
+              <p className="arena-kicker">Finale · Tre fotografie · Una scelta</p>
+              <h2 className="arena-title text-3xl md:text-5xl">ARENA FINALE</h2>
+              <p className="arena-subtitle">I tre finalisti. Il pubblico decide il vincitore.</p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {finalChallengers.map((challenger) => (
+                <div key={challenger.id} className="space-y-3">
+                  <ChallengerCard
+                    challenger={challenger as ArenaChallenger}
+                    side="left"
+                    reduceMotion={isMobile}
+                    onSelect={() => setSelectedWork(challenger as ArenaChallenger)}
+                  />
+                  <button
+                    type="button"
+                    disabled={voting}
+                    onClick={() => handleFinalVote(challenger.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-arena/35 bg-arena/10 px-4 py-3 font-display text-sm font-semibold text-foreground transition hover:bg-arena/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ThumbsUp className="h-4 w-4 text-arena" />
+                    Vota questa fotografia
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : isDuelActive ? (
           <div className="flex items-center justify-center gap-3 md:gap-8">
             <ChallengerCard
               challenger={challengers[0]}
@@ -452,7 +574,7 @@ const Arena = () => {
         {isDuelActive && (
           <div className="mx-auto mt-12 max-w-2xl">
             <p className="mb-4 text-center font-body text-[10px] tracking-[0.35em] text-muted-foreground uppercase">
-              Esprimi la tua preferenza
+              {t("arena.votePrompt")}
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               {challengers.map((c) => (
@@ -462,7 +584,7 @@ const Arena = () => {
                   disabled={!duelId || voting}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => handleVote(c.id)}
+                  onClick={() => handleVote(c.id as 1 | 2)}
                   className="group flex w-full items-center gap-4 rounded-2xl border border-border/60 bg-gradient-to-b from-white/[0.05] to-transparent px-5 py-4 text-left shadow-sm transition-colors hover:border-arena/45 hover:from-arena/[0.07] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-arena/25 bg-arena/10 text-arena transition-colors group-hover:border-arena/40 group-hover:bg-arena/15">
@@ -470,7 +592,7 @@ const Arena = () => {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-body text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
-                      Sfidante {c.id === 1 ? "I" : "II"}
+                      {t("arena.challenger")} {c.id === 1 ? "I" : "II"}
                     </span>
                     <span className="mt-0.5 block truncate font-display text-sm font-semibold tracking-tight text-foreground sm:text-base">
                       {c?.titolo}
@@ -509,11 +631,11 @@ const Arena = () => {
                 type="button"
                 disabled={!duelId || voting}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => selectedWork && handleVote(selectedWork.id)}
+                onClick={() => selectedWork && (finalArenaId ? handleFinalVote(selectedWork.id) : handleVote(selectedWork.id as 1 | 2))}
                 className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-arena/35 bg-arena/10 py-3.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/18 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ThumbsUp className="h-4 w-4 text-arena" strokeWidth={2} aria-hidden />
-                Vota questa opera
+                {t("arena.voteWork")}
               </motion.button>
             </div>
           ) : null
