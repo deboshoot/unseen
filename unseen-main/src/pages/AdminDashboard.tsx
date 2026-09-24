@@ -112,7 +112,7 @@ const AdminDashboard = () => {
     return date.toISOString().slice(0, 10);
   });
   const [scheduleEndTime, setScheduleEndTime] = useState("20:00");
-  const [scheduleEndMode, setScheduleEndMode] = useState<"duration" | "date">("duration");
+  const [scheduleEndMode, setScheduleEndMode] = useState<"duration" | "date">("date");
   const [scheduleDurationHours, setScheduleDurationHours] = useState("24");
   const [schedulingDuel, setSchedulingDuel] = useState(false);
   const [scheduledDuels, setScheduledDuels] = useState<ScheduledDuel[]>([]);
@@ -776,8 +776,8 @@ const AdminDashboard = () => {
                   <label className="text-sm text-white/60">
                     Modalità fine
                     <select value={scheduleEndMode} onChange={(event) => setScheduleEndMode(event.target.value as "duration" | "date")} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60">
-                      <option value="duration">Durata automatica</option>
                       <option value="date">Data e ora precise</option>
+                      <option value="duration">Durata automatica</option>
                     </select>
                   </label>
                   {scheduleEndMode === "duration" ? (
