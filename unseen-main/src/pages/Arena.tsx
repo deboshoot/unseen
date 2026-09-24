@@ -354,15 +354,10 @@ const Arena = () => {
     if (!duelId) return;
 
     const shareUrl = `${window.location.origin}/arena?duelId=${duelId}`;
-    const shareText = `Vota nel duello Unseen! ${challengers[0]?.titolo} vs ${challengers[1]?.titolo}`;
 
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: "Unseen Arena",
-          text: shareText,
-          url: shareUrl,
-        });
+        await navigator.share({ url: shareUrl });
         toast.success("Condiviso con successo!", { description: "Duello condiviso." });
         setShareOpen(false);
         return;
@@ -379,7 +374,7 @@ const Arena = () => {
       toast.error("Errore", { description: "Impossibile copiare il link del duello." });
       console.error("Copy failed:", err);
     }
-  }, [duelId, challengers]);
+  }, [duelId]);
 
   const handleSharePhoto = useCallback(async (challenger: ArenaChallenger) => {
     if (!duelId || !challenger.operaId) {
@@ -388,11 +383,10 @@ const Arena = () => {
     }
 
     const shareUrl = `${window.location.origin}/arena?duelId=${encodeURIComponent(duelId)}&photoId=${encodeURIComponent(challenger.operaId)}`;
-    const shareText = `Vota questa fotografia su Unseen: ${challenger.titolo} di ${challenger.autore}`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: challenger.titolo, text: shareText, url: shareUrl });
+        await navigator.share({ url: shareUrl });
         toast.success("Fotografia condivisa");
         setShareOpen(false);
         return;
