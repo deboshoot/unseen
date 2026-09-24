@@ -543,7 +543,7 @@ const Arena = () => {
             </div>
           </div>
         ) : isDuelActive ? (
-          <div className="flex items-center justify-center gap-3 md:gap-8">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 md:gap-8">
             <ChallengerCard
               challenger={challengers[0]}
               side="left"
@@ -632,6 +632,7 @@ const Arena = () => {
         imageSrc={selectedWork?.immagine_url ?? ""}
         imageAlt={selectedWork?.titolo ?? ""}
         titleId="arena-detail-title"
+        immersive
         footer={
           selectedWork ? (
             <div className="space-y-3">
@@ -716,7 +717,7 @@ const ChallengerCard = memo(({
       y: reduceMotion ? { duration: 0 } : { duration: 3.8, repeat: Infinity, ease: "easeInOut" },
       rotate: reduceMotion ? { duration: 0 } : { duration: 4.6, repeat: Infinity, ease: "easeInOut" },
     }}
-    className="flex-1 max-w-[200px] md:max-w-[280px] cursor-pointer group"
+    className="w-full max-w-[280px] justify-self-center cursor-pointer group"
     onClick={onSelect}
   >
     <div className="relative aspect-square rounded-2xl border border-foreground/15 bg-black/20 p-1.5 md:p-2 transition-all duration-300 group-hover:border-arena/60 group-hover:shadow-[0_22px_50px_-28px_hsl(var(--arena-red)_/_0.55)]">
