@@ -718,7 +718,7 @@ const ChallengerCard = memo(({
     className="arena-challenger-card w-full max-w-[280px] justify-self-center cursor-pointer group"
     onClick={onSelect}
   >
-    <div className="arena-challenger-media relative aspect-square p-1.5 md:p-2">
+    <div className="arena-challenger-media relative aspect-square">
       {challenger?.immagine_url ? (
         <img
           src={challenger?.immagine_url}
@@ -726,7 +726,7 @@ const ChallengerCard = memo(({
           width={800}
           height={800}
           decoding="async"
-          className="h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+          className="h-full w-full rounded-[inherit] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
           loading="lazy"
         />
       ) : (
