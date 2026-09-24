@@ -45,19 +45,19 @@ const Navbar = () => {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed top-0 left-0 right-0 z-50 glass-strong"
+      className="site-navbar fixed top-0 left-0 right-0 z-50 glass-strong"
     >
-      <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-        <Link to="/" className="flex min-w-0 items-center gap-1.5 font-display text-lg font-black tracking-[0.2em] text-foreground sm:gap-2 sm:text-2xl sm:tracking-[0.3em]">
+      <div className="site-navbar-inner mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+        <Link to="/" className="site-brand flex min-w-0 items-center gap-1.5 font-display text-lg font-black tracking-[0.2em] text-foreground sm:gap-2 sm:text-2xl sm:tracking-[0.3em]">
           <img src="/unseen-logo-transparent.png" alt="" className="h-7 w-7 shrink-0 object-contain sm:h-8 sm:w-8" />
           <span>UNSEEN</span>
         </Link>
-        <div className="hidden md:flex items-center gap-8">
+        <div className="site-nav-links hidden items-center gap-8 md:flex">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`relative font-body text-sm tracking-wider uppercase transition-colors duration-300 ${
+              className={`site-nav-link relative font-body text-sm tracking-wider uppercase transition-colors duration-300 ${
                 location.pathname === item.path
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
@@ -113,7 +113,7 @@ const Navbar = () => {
             </Link>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3 md:hidden">
+        <div className="site-mobile-actions flex shrink-0 items-center gap-1.5 sm:gap-3 md:hidden">
           <ThemeToggle />
           <LanguageSwitcher />
           <MobileMenu user={user} onSignOut={handleSignOut} navItems={navItems} />
@@ -132,7 +132,7 @@ const MobileMenu = ({ user, onSignOut, navItems }: { user: User | null; onSignOu
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className="text-foreground p-2"
+        className="site-menu-trigger p-2 text-foreground"
       >
         <div className="space-y-1.5">
           <motion.span
@@ -152,7 +152,7 @@ const MobileMenu = ({ user, onSignOut, navItems }: { user: User | null; onSignOu
       <motion.div
         initial={false}
         animate={open ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
-        className="absolute top-full left-0 right-0 bg-[#0a0a0a] border-b border-border/40 overflow-hidden"
+        className="site-mobile-panel absolute left-0 right-0 top-full overflow-hidden"
       >
         <div className="p-6 flex flex-col gap-4">
           {navItems.map((item) => (

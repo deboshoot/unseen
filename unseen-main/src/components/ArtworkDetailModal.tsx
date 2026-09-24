@@ -86,7 +86,7 @@ export function ArtworkDetailModal({
                     className="max-h-[calc(100dvh-8rem)] max-w-full object-contain"
                   />
                 </div>
-                <div className="w-full px-5 pb-8 sm:px-8 sm:pb-10">
+                <div className="w-full bg-[#080d16] px-5 pb-8 pt-5 sm:px-8 sm:pb-10 sm:pt-6">
                   <div className="mx-auto max-w-2xl space-y-4">{children}{footer}</div>
                 </div>
               </div>

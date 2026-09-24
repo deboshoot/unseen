@@ -455,35 +455,35 @@ const Arena = () => {
           </div>
           
           {isDuelActive && duelId && (
-            <div className="mt-6 flex flex-col items-center gap-3">
+            <div className="arena-share-control mt-6 flex flex-col items-center gap-3">
               <motion.button
                 type="button"
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={openShareMenu}
-                className="mx-auto flex items-center justify-center gap-2 rounded-lg border border-arena/35 bg-arena/10 px-6 py-2.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/18"
+                className="arena-share-trigger mx-auto flex items-center justify-center gap-2 font-display text-sm font-semibold tracking-wide text-foreground"
               >
                 <Share2 className="h-4 w-4" strokeWidth={2} />
                 {t("arena.share")}
               </motion.button>
               {shareOpen && (
-                <div className="relative grid w-full max-w-sm gap-2 rounded-xl border border-border/60 bg-background/95 p-3 text-left backdrop-blur-sm">
+                <div className="arena-share-panel relative grid w-full max-w-sm gap-2 text-left">
                   <button
                     type="button"
                     onClick={() => setShareOpen(false)}
                     aria-label="Chiudi opzioni di condivisione"
-                    className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+                    className="arena-share-close absolute right-2 top-2 flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
                   </button>
                   <p className="pr-10 font-body text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{t("arena.shareWhat")}</p>
-                  <button type="button" onClick={handleShareDuel} className="rounded-lg border border-border/60 px-4 py-3 text-left font-display text-sm font-semibold text-foreground transition-colors hover:border-arena/50 hover:bg-arena/10">
+                  <button type="button" onClick={handleShareDuel} className="arena-share-option text-left font-display text-sm font-semibold text-foreground">
                     {t("arena.shareDuel")}
                   </button>
-                  <button type="button" onClick={() => handleSharePhoto(challengers[0])} className="rounded-lg border border-border/60 px-4 py-3 text-left font-display text-sm font-semibold text-foreground transition-colors hover:border-arena/50 hover:bg-arena/10">
+                  <button type="button" onClick={() => handleSharePhoto(challengers[0])} className="arena-share-option text-left font-display text-sm font-semibold text-foreground">
                     {t("arena.shareFirst")}
                   </button>
-                  <button type="button" onClick={() => handleSharePhoto(challengers[1])} className="rounded-lg border border-border/60 px-4 py-3 text-left font-display text-sm font-semibold text-foreground transition-colors hover:border-arena/50 hover:bg-arena/10">
+                  <button type="button" onClick={() => handleSharePhoto(challengers[1])} className="arena-share-option text-left font-display text-sm font-semibold text-foreground">
                     {t("arena.shareSecond")}
                   </button>
                 </div>
@@ -605,8 +605,8 @@ const Arena = () => {
                   onClick={() => handleVote(c.id as 1 | 2)}
                   className="arena-quick-vote group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-50 sm:gap-4 sm:px-5 sm:py-4"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-arena/25 bg-arena/10 text-arena transition-colors group-hover:border-arena/40 group-hover:bg-arena/15 sm:h-12 sm:w-12 sm:rounded-2xl">
-                    <ThumbsUp className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} aria-hidden />
+                  <span className="arena-vote-icon shrink-0 text-arena">
+                    <ThumbsUp className="arena-vote-glyph h-5 w-5 sm:h-[1.35rem] sm:w-[1.35rem]" strokeWidth={1.55} aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-body text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
