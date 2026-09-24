@@ -32,8 +32,8 @@
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Softer arena accent */
-    --arena-red: 12 85% 54%;
+    /* Cool blue arena accent, shared with the submission flow */
+    --arena-red: 202 88% 58%;
     --arena-red-foreground: 0 0% 100%;
 
     --border: 220 14% 20%;
@@ -86,7 +86,7 @@
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --arena-red: 217 92% 30%;
+    --arena-red: 211 82% 44%;
     --arena-red-foreground: 0 0% 100%;
 
     --border: 214 18% 82%;
@@ -370,15 +370,30 @@
 
   .arena-bg {
     background: 
-      radial-gradient(ellipse at 20% 20%, hsl(8 90% 35% / 0.16) 0%, transparent 45%),
-      radial-gradient(ellipse at 80% 75%, hsl(355 75% 30% / 0.14) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 90%, hsl(220 30% 8% / 0.8) 0%, transparent 40%),
-      linear-gradient(145deg, hsl(225 35% 6%) 0%, hsl(220 34% 7%) 45%, hsl(228 30% 9%) 100%),
+      radial-gradient(ellipse at 12% 8%, hsl(197 90% 52% / 0.16) 0%, transparent 42%),
+      radial-gradient(ellipse at 88% 78%, hsl(218 85% 62% / 0.12) 0%, transparent 48%),
+      radial-gradient(ellipse at 50% 90%, hsl(220 30% 8% / 0.82) 0%, transparent 40%),
+      linear-gradient(145deg, hsl(225 35% 6%) 0%, hsl(220 34% 7%) 45%, hsl(219 34% 10%) 100%),
       hsl(var(--background));
   }
 
   .arena-page {
     position: relative;
+  }
+
+  .arena-page .glass {
+    background: linear-gradient(145deg, hsl(0 0% 100% / 0.09), hsl(0 0% 100% / 0.025));
+    border-color: hsl(var(--arena-red) / 0.22);
+    box-shadow: 0 14px 34px hsl(220 50% 2% / 0.22), inset 0 1px 0 hsl(0 0% 100% / 0.1);
+    backdrop-filter: blur(18px);
+  }
+
+  .arena-page button {
+    transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .arena-page button:not(:disabled):hover {
+    box-shadow: 0 12px 28px hsl(var(--arena-red) / 0.13);
   }
 
   .arena-heading {
@@ -413,10 +428,10 @@
   }
 
   .arena-empty-state {
-    background: linear-gradient(145deg, hsl(0 0% 100% / 0.065), hsl(0 0% 100% / 0.018));
-    border: 1px solid hsl(0 0% 100% / 0.13);
-    border-radius: 1.5rem;
-    box-shadow: 0 28px 80px hsl(0 0% 0% / 0.28), inset 0 1px 0 hsl(0 0% 100% / 0.08);
+    background: linear-gradient(145deg, hsl(202 82% 58% / 0.1), hsl(0 0% 100% / 0.018));
+    border: 1px solid hsl(var(--arena-red) / 0.2);
+    border-radius: 1.75rem;
+    box-shadow: 0 28px 80px hsl(220 50% 2% / 0.28), inset 0 1px 0 hsl(0 0% 100% / 0.1);
     margin: 0 auto;
     max-width: 720px;
     padding: clamp(2.5rem, 8vw, 5rem) 1.5rem;
@@ -540,9 +555,178 @@
     transform: translateY(-2px);
   }
 
+  .arena-page .arena-kicker,
+  .arena-page .arena-empty-label,
+  .arena-page .text-arena {
+    text-shadow: 0 0 22px hsl(var(--arena-red) / 0.2);
+  }
+
+  .arena-page .arena-heading > div:last-child > div {
+    border-radius: 1rem;
+  }
+
+  .arena-page .arena-heading button,
+  .arena-page .arena-vote-again {
+    border-radius: 0.9rem;
+    box-shadow: 0 10px 24px hsl(220 50% 2% / 0.18);
+  }
+
+  .arena-page .arena-heading button:hover,
+  .arena-page .arena-vote-again:hover {
+    box-shadow: 0 14px 32px hsl(var(--arena-red) / 0.18);
+  }
+
+  .arena-timer-block {
+    position: relative;
+    display: flex;
+    min-width: 4.5rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    border: 1px solid hsl(var(--arena-red) / 0.2);
+    border-radius: 1rem;
+    padding: 0.7rem 0.85rem 0.6rem;
+    background: linear-gradient(145deg, hsl(var(--arena-red) / 0.1), hsl(0 0% 100% / 0.035));
+    box-shadow: 0 10px 24px hsl(220 50% 2% / 0.16), inset 0 1px 0 hsl(0 0% 100% / 0.1);
+  }
+
+  .arena-timer-block + .arena-timer-block::before {
+    position: absolute;
+    left: -0.65rem;
+    color: hsl(var(--arena-red) / 0.48);
+    content: ":";
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+  }
+
+  .arena-timer-value {
+    letter-spacing: -0.04em;
+    line-height: 1;
+    text-shadow: 0 0 24px hsl(var(--arena-red) / 0.16);
+  }
+
+  .arena-timer-label {
+    font-family: var(--font-body);
+    font-size: 0.56rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    line-height: 1;
+  }
+
+  @media (max-width: 640px) {
+    .arena-timer-block {
+      min-width: 3.9rem;
+      padding: 0.65rem 0.6rem 0.55rem;
+    }
+
+    .arena-timer-block + .arena-timer-block::before {
+      left: -0.5rem;
+      font-size: 1.1rem;
+    }
+  }
+
+  .arena-page .group > div:first-child {
+    background: linear-gradient(145deg, hsl(var(--arena-red) / 0.12), hsl(0 0% 100% / 0.025));
+    border-color: hsl(var(--arena-red) / 0.24);
+    box-shadow: 0 20px 42px hsl(220 50% 2% / 0.22), inset 0 1px 0 hsl(0 0% 100% / 0.1);
+  }
+
+  .arena-page .group > div:first-child:hover {
+    border-color: hsl(var(--arena-red) / 0.72);
+    box-shadow: 0 24px 48px hsl(var(--arena-red) / 0.16), inset 0 1px 0 hsl(0 0% 100% / 0.12);
+  }
+
+  .arena-vote-button,
+  .arena-quick-vote {
+    border: 1px solid hsl(var(--arena-red) / 0.28);
+    background: hsl(var(--arena-red) / 0.08);
+    box-shadow: 0 8px 22px hsl(220 50% 2% / 0.14), inset 0 1px 0 hsl(0 0% 100% / 0.08);
+    backdrop-filter: blur(16px);
+  }
+
+  .arena-vote-button {
+    margin-top: 0.4rem;
+    min-height: 3.25rem;
+  }
+
+  .arena-vote-button:hover,
+  .arena-quick-vote:hover {
+    border-color: hsl(var(--arena-red) / 0.68);
+    background: hsl(var(--arena-red) / 0.14);
+    box-shadow: 0 12px 26px hsl(var(--arena-red) / 0.13), inset 0 1px 0 hsl(0 0% 100% / 0.1);
+    transform: translateY(-2px);
+  }
+
+  .arena-vote-button svg,
+  .arena-quick-vote svg {
+    filter: drop-shadow(0 0 8px hsl(var(--arena-red) / 0.55));
+  }
+
+  .arena-quick-vote {
+    margin-top: 0.75rem;
+    min-height: 4.5rem;
+    border-radius: 1.15rem;
+  }
+
+  @media (max-width: 640px) {
+    .arena-quick-vote {
+      margin-top: 0.5rem;
+      min-height: 4rem;
+    }
+  }
+
+  .arena-challenger-card {
+    min-width: 0;
+    transition: transform 180ms ease;
+  }
+
+  .arena-challenger-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .arena-page .arena-challenger-media {
+    overflow: hidden;
+    border: 1px solid hsl(0 0% 100% / 0.14);
+    border-radius: 1rem;
+    background: hsl(220 20% 6% / 0.45);
+    box-shadow: 0 12px 26px hsl(220 50% 2% / 0.16), inset 0 1px 0 hsl(0 0% 100% / 0.08);
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .arena-challenger-card:hover .arena-challenger-media {
+    border-color: hsl(var(--arena-red) / 0.55);
+    box-shadow: 0 16px 30px hsl(var(--arena-red) / 0.12), inset 0 1px 0 hsl(0 0% 100% / 0.1);
+  }
+
+  .arena-challenger-meta {
+    min-width: 0;
+  }
+
+  .arena-challenger-label {
+    color: hsl(var(--arena-red) / 0.85);
+    font-family: var(--font-body);
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .light-mode .arena-challenger-card {
+    background: transparent;
+  }
+
+  .light-mode .arena-page .arena-challenger-media { background: hsl(210 26% 93%); }
+
+  .arena-page .arena-vote-confirmation {
+    margin-bottom: 3rem;
+  }
+
   .light-mode .arena-bg {
     background:
-      linear-gradient(145deg, hsl(220 30% 94%) 0%, hsl(215 25% 95%) 100%),
+      radial-gradient(ellipse at 12% 0%, hsl(199 85% 82% / 0.44) 0%, transparent 42%),
+      linear-gradient(145deg, hsl(220 30% 96%) 0%, hsl(215 32% 97%) 100%),
       hsl(var(--background));
   }
 
@@ -551,15 +735,15 @@
   }
 
   .luxury-gallery {
-    --gallery-ink: 0 0% 95%;
-    --gallery-muted: 0 0% 58%;
+    --gallery-ink: 210 24% 96%;
+    --gallery-muted: 214 16% 68%;
     --gallery-line: 0 0% 100%;
     position: relative;
     isolation: isolate;
     background:
-      radial-gradient(ellipse at 50% -15%, hsl(0 0% 20% / 0.7) 0%, transparent 54%),
-      radial-gradient(ellipse at 50% 55%, hsl(0 0% 14% / 0.35) 0%, transparent 62%),
-      linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 5%) 100%);
+      radial-gradient(ellipse at 50% -15%, hsl(202 82% 52% / 0.2) 0%, transparent 54%),
+      radial-gradient(ellipse at 12% 52%, hsl(216 72% 48% / 0.1) 0%, transparent 46%),
+      linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(222 28% 5%) 100%);
     color: hsl(var(--gallery-ink));
   }
 
@@ -570,18 +754,24 @@
     z-index: -1;
     pointer-events: none;
     opacity: 0.22;
-    background-image: linear-gradient(90deg, transparent 49.8%, hsl(0 0% 100% / 0.05) 50%, transparent 50.2%);
-    background-size: 280px 100%;
+    background-image: linear-gradient(90deg, transparent 49.8%, hsl(201 85% 70% / 0.045) 50%, transparent 50.2%);
+    background-size: 320px 100%;
   }
 
   .gallery-heading {
     position: relative;
   }
 
+  .gallery-hero {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+
   .gallery-page {
     background:
-      radial-gradient(ellipse at 50% -12%, hsl(210 35% 20% / 0.72) 0%, transparent 48%),
-      linear-gradient(180deg, hsl(220 18% 8%) 0%, hsl(220 14% 6%) 100%);
+      radial-gradient(ellipse at 50% -12%, hsl(201 80% 48% / 0.16) 0%, transparent 48%),
+      linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(222 28% 6%) 100%);
   }
 
   .gallery-hero-topline {
@@ -610,7 +800,10 @@
     font-size: 0.95rem;
     line-height: 1.75;
     margin-top: 1.35rem;
+    margin-left: auto;
+    margin-right: auto;
     max-width: 34rem;
+    text-align: center;
   }
 
   .gallery-kicker,
@@ -642,7 +835,7 @@
   }
 
   .gallery-season-section {
-    border-top: 1px solid hsl(0 0% 100% / 0.16);
+    border-top: 1px solid hsl(202 70% 70% / 0.2);
     padding-top: 1.35rem;
   }
 
@@ -795,8 +988,9 @@
 
   .gallery-season-toggle {
     align-items: center;
-    background: linear-gradient(135deg, hsl(0 0% 26%), hsl(0 0% 13%));
-    border: 1px solid hsl(0 0% 100% / 0.22);
+    background: linear-gradient(135deg, hsl(202 42% 17% / 0.9), hsl(220 28% 11% / 0.92));
+    border: 1px solid hsl(202 70% 70% / 0.22);
+    border-radius: 0.85rem;
     color: hsl(var(--gallery-ink));
     display: flex;
     font-family: 'DM Sans', sans-serif;
@@ -810,8 +1004,9 @@
 
   .gallery-season-toggle:hover,
   .gallery-season-toggle.is-open {
-    background: linear-gradient(135deg, hsl(0 0% 34%), hsl(0 0% 17%));
-    border-color: hsl(0 0% 100% / 0.48);
+    background: linear-gradient(135deg, hsl(202 48% 22% / 0.95), hsl(220 32% 14% / 0.95));
+    border-color: hsl(202 80% 72% / 0.48);
+    box-shadow: 0 10px 24px hsl(202 70% 45% / 0.1);
   }
 
   .gallery-season-toggle svg {
@@ -856,6 +1051,8 @@
     font-weight: 600;
     letter-spacing: 0.045em;
     line-height: 1;
+    text-align: center;
+    text-shadow: 0 0 34px hsl(202 88% 62% / 0.14);
   }
 
   .gallery-month-heading {

@@ -445,11 +445,11 @@ const Arena = () => {
               { val: timeLeft.minutes, label: "MIN" },
               { val: timeLeft.seconds, label: "SEC" },
             ].map((t, i) => (
-              <div key={i} className="glass rounded-lg px-4 py-3 min-w-[70px] border border-border/80">
-                <span className="font-display text-2xl md:text-3xl font-bold text-foreground">
+              <div key={i} className="arena-timer-block glass">
+                <span className="arena-timer-value font-display text-2xl font-bold text-foreground md:text-3xl">
                   {String(t.val).padStart(2, "0")}
                 </span>
-                <p className="text-[10px] tracking-[0.2em] text-muted-foreground mt-1">{t.label}</p>
+                <p className="arena-timer-label text-[10px] tracking-[0.2em] text-muted-foreground">{t.label}</p>
               </div>
             ))}
           </div>
@@ -514,25 +514,29 @@ const Arena = () => {
               <h2 className="arena-title text-3xl md:text-5xl">ARENA FINALE</h2>
               <p className="arena-subtitle">I tre finalisti. Il pubblico decide il vincitore.</p>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
               {finalChallengers.map((challenger) => (
-                <div key={challenger.id} className="space-y-3">
-                  <ChallengerCard
-                    challenger={challenger as ArenaChallenger}
-                    side="left"
-                    reduceMotion={isMobile}
-                    onSelect={() => setSelectedWork(challenger as ArenaChallenger)}
-                  />
-                  <button
-                    type="button"
-                    disabled={voting}
-                    onClick={() => handleFinalVote(challenger.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-arena/35 bg-arena/10 px-4 py-3 font-display text-sm font-semibold text-foreground transition hover:bg-arena/20 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <ThumbsUp className="h-4 w-4 text-arena" />
-                    Vota questa fotografia
-                  </button>
-                </div>
+                <ChallengerCard
+                  key={challenger.id}
+                  challenger={challenger as ArenaChallenger}
+                  side="left"
+                  reduceMotion={isMobile}
+                  onSelect={() => setSelectedWork(challenger as ArenaChallenger)}
+                />
+              ))}
+            </div>
+            <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-4">
+              {finalChallengers.map((challenger) => (
+                <button
+                  key={challenger.id}
+                  type="button"
+                  disabled={voting}
+                  onClick={() => handleFinalVote(challenger.id)}
+                  className="arena-vote-button flex w-full items-center justify-center gap-1.5 rounded-xl px-2 py-3 font-display text-[10px] font-semibold text-foreground sm:gap-2 sm:px-4 sm:text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <ThumbsUp className="h-3.5 w-3.5 text-arena sm:h-4 sm:w-4" />
+                  <span>Vota</span>
+                </button>
               ))}
             </div>
           </div>
@@ -586,11 +590,11 @@ const Arena = () => {
         )}
 
         {isDuelActive && (
-          <div className="mx-auto mt-12 max-w-2xl">
+          <div className="mx-auto mt-6 max-w-2xl pb-8 sm:mt-10 sm:pb-4">
             <p className="mb-4 text-center font-body text-[10px] tracking-[0.35em] text-muted-foreground uppercase">
               {t("arena.votePrompt")}
             </p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
               {challengers.map((c) => (
                 <motion.button
                   key={c.id}
@@ -599,10 +603,10 @@ const Arena = () => {
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleVote(c.id as 1 | 2)}
-                  className="group flex w-full items-center gap-4 rounded-2xl border border-border/60 bg-gradient-to-b from-white/[0.05] to-transparent px-5 py-4 text-left shadow-sm transition-colors hover:border-arena/45 hover:from-arena/[0.07] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="arena-quick-vote group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-50 sm:gap-4 sm:px-5 sm:py-4"
                 >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-arena/25 bg-arena/10 text-arena transition-colors group-hover:border-arena/40 group-hover:bg-arena/15">
-                    <ThumbsUp className="h-5 w-5" strokeWidth={2} aria-hidden />
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-arena/25 bg-arena/10 text-arena transition-colors group-hover:border-arena/40 group-hover:bg-arena/15 sm:h-12 sm:w-12 sm:rounded-2xl">
+                    <ThumbsUp className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2} aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-body text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
@@ -711,10 +715,10 @@ const ChallengerCard = memo(({
       y: reduceMotion ? { duration: 0 } : { duration: 3.8, repeat: Infinity, ease: "easeInOut" },
       rotate: reduceMotion ? { duration: 0 } : { duration: 4.6, repeat: Infinity, ease: "easeInOut" },
     }}
-    className="w-full max-w-[280px] justify-self-center cursor-pointer group"
+    className="arena-challenger-card w-full max-w-[280px] justify-self-center cursor-pointer group"
     onClick={onSelect}
   >
-    <div className="relative aspect-square rounded-2xl border border-foreground/15 bg-black/20 p-1.5 md:p-2 transition-all duration-300 group-hover:border-arena/60 group-hover:shadow-[0_22px_50px_-28px_hsl(var(--arena-red)_/_0.55)]">
+    <div className="arena-challenger-media relative aspect-square p-1.5 md:p-2">
       {challenger?.immagine_url ? (
         <img
           src={challenger?.immagine_url}
@@ -722,17 +726,18 @@ const ChallengerCard = memo(({
           width={800}
           height={800}
           decoding="async"
-          className="w-full h-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-[1.035]"
+          className="h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-[1.02]"
           loading="lazy"
         />
       ) : (
         <div className="w-full h-full rounded-xl bg-black/40" />
       )}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-background/65 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </div>
-    <div className="mt-3 text-center">
-      <p className="font-display text-sm md:text-base font-semibold text-foreground truncate">{challenger?.titolo}</p>
-      <p className="text-muted-foreground text-xs tracking-wider">{challenger?.autore}</p>
+    <div className="arena-challenger-meta px-3 pb-4 pt-3 text-center md:px-4">
+      <p className="arena-challenger-label">Sfidante {challenger.id === 1 ? "I" : challenger.id === 2 ? "II" : "III"}</p>
+      <p className="mt-1 truncate font-display text-xs font-semibold text-foreground sm:text-sm">{challenger?.titolo}</p>
+      <p className="mt-1 truncate text-[10px] tracking-wide text-muted-foreground sm:text-xs">{challenger?.autore}</p>
     </div>
   </motion.div>
 ), (previous, next) => (
