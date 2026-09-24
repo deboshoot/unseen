@@ -58,7 +58,7 @@ export function ArtworkDetailModal({
           className={`fixed inset-0 z-[80] flex min-h-full flex-col items-stretch justify-start overflow-y-auto overscroll-contain ${immersive ? "p-0" : "p-3 pb-10 pt-14 sm:p-4 sm:pt-16 md:items-center md:justify-center md:p-6 md:py-10"}`}
           onClick={onClose}
         >
-          <div className="absolute inset-0 bg-black/82 backdrop-blur-2xl" aria-hidden />
+          <div className="artwork-detail-backdrop absolute inset-0 backdrop-blur-2xl" aria-hidden />
 
           <motion.div
             initial={{ opacity: 0, y: 12, scale: 0.985 }}
@@ -71,22 +71,22 @@ export function ArtworkDetailModal({
             <button
               type="button"
               onClick={onClose}
-              className={immersive ? "absolute right-4 top-4 z-30 rounded-full bg-black/55 px-3 py-1.5 font-body text-xs tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/75 sm:right-6 sm:top-6 sm:text-sm" : "absolute -top-10 right-1 z-30 rounded-full border border-border/80 bg-background/85 px-3 py-1.5 font-body text-xs tracking-wider text-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-background sm:-top-11 sm:right-0 sm:text-sm"}
+              className={immersive ? "artwork-detail-close absolute right-4 top-4 z-30 rounded-full px-3 py-1.5 font-body text-xs tracking-wider backdrop-blur-md transition-colors sm:right-6 sm:top-6 sm:text-sm" : "absolute -top-10 right-1 z-30 rounded-full border border-border/80 bg-background/85 px-3 py-1.5 font-body text-xs tracking-wider text-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-background sm:-top-11 sm:right-0 sm:text-sm"}
             >
               CHIUDI ✕
             </button>
 
             {immersive ? (
-              <div className="flex min-h-full w-full flex-col bg-black/90 text-white">
-                <div className="flex w-full items-center justify-center px-3 pb-4 pt-16 sm:px-8 sm:pb-5">
+              <div className="artwork-immersive-content flex min-h-full w-full flex-col">
+                <div className="artwork-immersive-media flex w-full items-center justify-center px-3 pb-4 pt-16 sm:px-8 sm:pb-5">
                   <img
                     src={imageSrc}
                     alt={imageAlt}
                     decoding="async"
-                    className="max-h-[calc(100dvh-8rem)] max-w-full object-contain"
+                    className="artwork-immersive-image max-h-[68dvh] max-w-full object-contain"
                   />
                 </div>
-                <div className="w-full bg-[#080d16] px-5 pb-8 pt-5 sm:px-8 sm:pb-10 sm:pt-6">
+                <div className="artwork-immersive-copy w-full px-5 pb-8 pt-5 sm:px-8 sm:pb-10 sm:pt-6">
                   <div className="mx-auto max-w-2xl space-y-4">{children}{footer}</div>
                 </div>
               </div>

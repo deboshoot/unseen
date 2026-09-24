@@ -16,6 +16,11 @@ const parseLocalDateTime = (date: string, time: string) => {
   return new Date(year, month - 1, day, hours, minutes, 0, 0);
 };
 
+const formatLocalDateTime = (value: Date) => ({
+  date: `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`,
+  time: `${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`,
+});
+
 const AnalyticsOverview = lazy(() => import("@/components/AnalyticsOverview"));
 
 type ArtworkRecord = {
@@ -133,6 +138,15 @@ const AdminDashboard = () => {
   const [finalEndTime, setFinalEndTime] = useState("20:00");
   const [schedulingFinal, setSchedulingFinal] = useState(false);
   const [finalAwards, setFinalAwards] = useState({ unseen: "", mostWins: "", lastDuel: "" });
+
+  useEffect(() => {
+    if (scheduleEndMode !== "date") return;
+    const startAt = parseLocalDateTime(scheduleDate, scheduleTime);
+    if (Number.isNaN(startAt.getTime())) return;
+    const nextEnd = formatLocalDateTime(new Date(startAt.getTime() + 24 * 60 * 60 * 1000));
+    setScheduleEndDate(nextEnd.date);
+    setScheduleEndTime(nextEnd.time);
+  }, [scheduleDate, scheduleTime, scheduleEndMode]);
   
   // Stats state
   const [stats, setStats] = useState({ users: 0, opere: 0, votes: 0 });
@@ -383,8 +397,8 @@ const AdminDashboard = () => {
       }
 
       // Create new duel
-      const endAt = new Date();
-      endAt.setHours(endAt.getHours() + 24); // 24 hours from now
+      const createdAt = new Date();
+      const endAt = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000);
 
       const { error: insertError } = await supabase
         .from("duels")
