@@ -7,6 +7,7 @@ import { cloudflare as env, cfRequest } from './cloudflare-api.mjs';
 
 // Static assets are served by Cloudflare's asset service, before this script.
 // The frontend receives only the public Supabase configuration from its build.
+if(!process.argv.includes('--standalone')) throw new Error('Il sito principale è su Vercel. Usare deploy-cloudflare-alias.mjs per il link Cloudflare; --standalone serve solo per pubblicare una copia indipendente di emergenza.');
 const worker = 'unseen';
 const subdomain = (await cfRequest('workers/subdomain')).subdomain;
 if (subdomain !== 'unseen-deboshoot') throw new Error('Account Cloudflare diverso da quello configurato per UNSEEN');

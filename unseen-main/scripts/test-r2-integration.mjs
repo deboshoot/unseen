@@ -10,7 +10,17 @@ const testOrigin=process.env.MEDIA_TEST_ORIGIN || 'https://unseen-virid.vercel.a
 if(!env.MEDIA_ALLOWED_ORIGINS.split(',').includes(testOrigin)) throw new Error('Origine di prova non autorizzata');
 const base='https://mpqphroecgfwonclmkyb.supabase.co';
 const keys=await supabaseRequest('api-keys');
-const anon=keys.find(key=>key.name==='anon')?.api_key;
+let anon=keys.find(key=>key.name==='anon')?.api_key;
+if(process.argv.includes('--production-key')) {
+  const primary='https://unseen-virid.vercel.app';
+  const html=await(await fetch(primary,{signal:AbortSignal.timeout(20000)})).text();
+  const script=html.match(/src="([^\"]+\.js)"/)?.[1];
+  if(!script) throw new Error('Bundle pubblico non disponibile');
+  const code=await(await fetch(new URL(script,primary),{signal:AbortSignal.timeout(20000)})).text();
+  const publicKey=code.match(/\bsb_publishable_[A-Za-z0-9_-]+/)?.[0];
+  if(publicKey) anon=publicKey;
+  else if(!code.includes(anon)) throw new Error('Chiave della build pubblica non riconosciuta');
+}
 const service=keys.find(key=>key.name==='service_role')?.api_key;
 if(!anon||!service) throw new Error('Chiavi Supabase non disponibili');
 const options={auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}};

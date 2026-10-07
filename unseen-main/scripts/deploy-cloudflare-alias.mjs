@@ -1,0 +1,15 @@
+import { cfRequest } from './cloudflare-api.mjs';
+const origin='https://unseen-virid.vercel.app';
+const response=await fetch(origin,{signal:AbortSignal.timeout(20000)});
+if(!response.ok) throw new Error('Il sito principale non è disponibile');
+const html=await response.text();
+const script=html.match(/src="([^\"]+\.js)"/)?.[1];
+if(!script) throw new Error('Bundle del sito principale assente');
+const code=await (await fetch(new URL(script,origin),{signal:AbortSignal.timeout(20000)})).text();
+if(!code.includes('r2-media')||!code.includes('/arena/musicale')||!code.includes('mpqphroecgfwonclmkyb.supabase.co')) throw new Error('Il sito principale non include la versione aggiornata');
+const form=new FormData();
+form.append('metadata',new Blob([JSON.stringify({main_module:'alias.mjs',compatibility_date:'2026-10-07',bindings:[],annotations:{'workers/message':'UNSEEN public alias to the updated original domain'}})],{type:'application/json'}));
+form.append('alias.mjs',new Blob([`export default { fetch(request) { const url=new URL(request.url); url.protocol='https:'; url.host='unseen-virid.vercel.app'; return Response.redirect(url.toString(),308); } };`],{type:'application/javascript+module'}),'alias.mjs');
+await cfRequest('workers/scripts/unseen','PUT',form);
+await cfRequest('workers/scripts/unseen/subdomain','POST',{enabled:true,previews_enabled:false});
+console.log('Il link Cloudflare ora porta al sito originale aggiornato, preservando pagina e parametri. Il Worker unseen-media e lo storage R2 restano attivi.');

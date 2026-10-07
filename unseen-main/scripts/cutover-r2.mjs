@@ -27,7 +27,7 @@ if (process.argv.includes('--rehearse')) {
   await fs.writeFile(path.join(folder, 'cutover-rehearsal.json'), JSON.stringify({ passed: true, at: new Date().toISOString() }));
   console.log('Passaggio a R2 verificato in transazione annullata; letture precedenti e gestione admin preservate.');
 } else if (process.argv.includes('--apply')) {
-  if(!(await checkLegacyRedirect()).passed) throw new Error('Il vecchio indirizzo serve ancora il frontend precedente: non disabilitare i suoi caricamenti prima del redirect verificato');
+  if(!(await checkLegacyRedirect()).passed) throw new Error('Verificare prima il frontend R2 sul dominio originale e il redirect del link Cloudflare: non interrompere i vecchi invii');
   const deployment = JSON.parse(await fs.readFile(path.join(folder, 'production-verified.json'), 'utf8'));
   if (!deployment.passed || !['https://unseen-virid.vercel.app','https://unseen.unseen-deboshoot.workers.dev'].includes(deployment.url) || Date.now() - Date.parse(deployment.at) > 3600000) throw new Error('Verificare prima il frontend R2 in produzione');
   await supabaseRequest('database/query', 'POST', { query: `begin;\n${sql}\n${checks}\ncommit;`, read_only: false });
@@ -35,7 +35,7 @@ if (process.argv.includes('--rehearse')) {
   if (!history.some(entry => entry.name === 'unseen_r2_cutover_after_redirect')) {
     await supabaseRequest('database/migrations', 'PUT', { name: 'unseen_r2_cutover_after_redirect', query: sql });
     const entry = (await supabaseRequest('database/migrations')).find(entry => entry.name === 'unseen_r2_cutover_after_redirect');
-    if (entry) await fs.writeFile(path.join(app, 'supabase/migrations', `${entry.version}_unseen_r2_cutover.sql`), sql);
+    if (entry) await fs.writeFile(path.join(app, 'supabase/migrations', `${entry.version}_unseen_r2_cutover_after_redirect.sql`), sql);
   }
   console.log('Nuovi caricamenti Supabase Storage disabilitati; file precedenti conservati e leggibili.');
 } else throw new Error('Usare --rehearse o --apply dopo la verifica del deploy');

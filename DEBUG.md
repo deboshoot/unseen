@@ -10,4 +10,4 @@ Su questo computer `unseen-main/.env.development.local` è collegato al progetto
 
 Su un nuovo computer usa `unseen-main/.env.example` come riferimento e riavvia il server dopo aver inserito URL e chiave pubblica in `.env.development.local`. Non inserire chiavi `service_role` o segreti R2 nelle variabili `VITE_*`.
 
-La versione aggiornata online è su https://unseen.unseen-deboshoot.workers.dev. Il vecchio indirizzo Vercel non ha ricevuto il nuovo deploy: usare Cloudflare per i nuovi invii.
+La versione aggiornata online è su https://unseen-virid.vercel.app, aggiornata dal repository GitHub. Anche il link Cloudflare porta automaticamente a questo sito, mantenendo la pagina richiesta. I nuovi invii usano R2 su entrambi i percorsi di accesso.
