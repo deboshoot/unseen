@@ -1,20 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/supabaseClient';
 import { type ChampionshipData, type ChampionshipKind } from '@/lib/championship';
 
 export function useChampionship(kind: ChampionshipKind, id?: string | null) {
+  const queryClient = useQueryClient();
   const [userId, setUserId] = useState<string | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
   const [clock, setClock] = useState(Date.now());
   const refreshedBoundary = useRef('');
   useEffect(() => {
-    let mounted = true;
-    void supabase.auth.getSession().then(({ data }) => { if (mounted) setUserId(data.session?.user.id ?? null); });
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => setUserId(session?.user.id ?? null));
+    let mounted = true, authEventSeen = false;
+    let previousUserId: string | null | undefined;
+    void supabase.auth.getSession().then(({ data }) => { if (mounted && !authEventSeen) { previousUserId = data.session?.user.id ?? null; setUserId(previousUserId); setSessionReady(true); } });
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      authEventSeen = true;
+      const nextUserId = session?.user.id ?? null;
+      if (event === 'SIGNED_OUT' || (event === 'SIGNED_IN' && nextUserId !== previousUserId)) queryClient.removeQueries({ queryKey: ['championship'] });
+      previousUserId = nextUserId;
+      if (mounted) { setUserId(nextUserId); setSessionReady(true); }
+    });
     return () => { mounted = false; data.subscription.unsubscribe(); };
-  }, []);
+  }, [queryClient]);
   const query = useQuery({
     queryKey: ['championship', kind, id ?? null, userId],
+    enabled: sessionReady,
     queryFn: async ({ signal }) => {
       const { data, error } = await supabase.rpc('get_championship', { p_kind: kind, p_id: id || null }).abortSignal(signal);
       if (error) throw new Error(error.message);

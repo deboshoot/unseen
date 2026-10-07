@@ -36,9 +36,9 @@ export default function AdminDashboard() {
     };
     void check();
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) { setAuthorized(false); queryClient.removeQueries({ queryKey: ['admin'] }); navigate('/auth?redirect=%2Fadmin', { replace: true }); }
+      if (event === 'SIGNED_OUT' || !session) { setAuthorized(false); queryClient.removeQueries({ queryKey: ['admin'] }); queryClient.removeQueries({ queryKey: ['championship'] }); navigate('/auth?redirect=%2Fadmin', { replace: true }); }
       // Recheck a different account; never carry over the former admin's data.
-      if (event === 'SIGNED_IN') { setAuthorized(false); queryClient.removeQueries({ queryKey: ['admin'] }); setRetry(value => value + 1); }
+      if (event === 'SIGNED_IN') { setAuthorized(false); queryClient.removeQueries({ queryKey: ['admin'] }); queryClient.removeQueries({ queryKey: ['championship'] }); setRetry(value => value + 1); }
     });
     return () => { alive = false; data.subscription.unsubscribe(); };
   }, [navigate, queryClient, retry]);
