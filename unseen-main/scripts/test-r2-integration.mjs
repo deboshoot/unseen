@@ -37,7 +37,7 @@ async function call(body,token,expected=200,origin=testOrigin) {
   assert.equal(response.status,expected,`Media action ${body.action}: HTTP ${response.status}, ${data.error||''}`);
   return data;
 }
-async function submit(kind,metadata,files,token) {
+async function submit(kind,metadata,files,token,expected=200) {
   const ticket=await call({action:'prepare',kind,metadata,files:files.map(file=>({kind:file.kind,mime:file.mime,bytes:file.bytes.length}))},token);
   fixture.submissions.push({id:ticket.id,kind}); await save();
   for(const item of ticket.files) {
@@ -49,10 +49,18 @@ async function submit(kind,metadata,files,token) {
     const upload=await fetch(item.url,{method:'PUT',headers:{'Content-Type':item.contentType},body:file.bytes,signal:AbortSignal.timeout(30000)});
     assert.equal(upload.status,200,'Signed R2 upload failed');
   }
-  const result=await call({action:'complete',id:ticket.id},token);
+  const result=await call({action:'complete',id:ticket.id},token,expected);
+  if(expected!==200) return ticket.id;
   assert.equal(result.id,ticket.id);
   assert.deepEqual(await call({action:'complete',id:ticket.id},token),result);
   return ticket.id;
+}
+function clipFixture(source,seconds) {
+  // Resample the existing mono 22050 Hz demo into the canonical browser WAV.
+  const frames=44100*seconds, data=Buffer.alloc(frames*2), header=Buffer.alloc(44);
+  for(let frame=0;frame<frames;frame++) data.writeInt16LE(source.readInt16LE(44+(Math.floor(frame/2)%((source.length-44)/2))*2),frame*2);
+  header.write('RIFF');header.writeUInt32LE(data.length+36,4);header.write('WAVEfmt ',8);header.writeUInt32LE(16,16);header.writeUInt16LE(1,20);header.writeUInt16LE(1,22);header.writeUInt32LE(44100,24);header.writeUInt32LE(88200,28);header.writeUInt16LE(2,32);header.writeUInt16LE(16,34);header.write('data',36);header.writeUInt32LE(data.length,40);
+  return Buffer.concat([header,data]);
 }
 async function main() {
   await call({action:'prepare'},anon,401);
@@ -79,7 +87,8 @@ async function main() {
   assert.ok(!roleError&&isAdmin,'Confirmed administrator denied');
   checks.onlyConfirmedAdmin=true;
   const cover=await fs.readFile(path.join(app,'public/music/demo-nova.png'));
-  const audio=await fs.readFile(path.join(app,'public/music/afterhours.wav'));
+  const source=await fs.readFile(path.join(app,'public/music/afterhours.wav'));
+  const audio=clipFixture(source,40);
   const photo=await submit('photo',{titolo:'UNSEEN R2 test',autore:'UNSEEN TEST',storia:'Temporary integration fixture',social_link:''},[{kind:'image',mime:'image/png',bytes:cover}],token);
   const {data:photoRow,error:photoError}=await db.from('opere').select('*').eq('id',photo).single();
   assert.ok(!photoError&&photoRow.status==='pending'&&photoRow.owner_id===fixture.userId&&photoRow.media_asset_id);
@@ -102,10 +111,16 @@ async function main() {
   checks.photoModeration=true;
   const tracks=[];
   for(let i=0;i<2;i++) {
-    const id=await submit('music',{title:`UNSEEN R2 test ${i}`,artist:'UNSEEN TEST',story:'Temporary integration fixture'},[{kind:'cover',mime:'image/png',bytes:cover},{kind:'audio',mime:'audio/wav',bytes:audio}],token);
+    const id=await submit('music',{title:`UNSEEN R2 test ${i}`,artist:'UNSEEN TEST',story:'Must be ignored',audio_duration_seconds:'1',instagram_username:'@unseen_test',youtube_url:'https://youtu.be/abcdefghijk?t=1',instagram_reel_url:'https://www.instagram.com/reel/Unseen_test/',spotify_url:'https://open.spotify.com/track/1234567890123456789012'},[{kind:'cover',mime:'image/png',bytes:cover},{kind:'audio',mime:'audio/wav',bytes:audio}],token);
     await call({action:'moderate',kind:'music',id,status:'accepted'},adminToken);
     const {data:track,error}=await db.from('music_tracks').select('*').eq('id',id).single();
     assert.ok(!error&&track.cover_asset_id&&track.audio_asset_id&&track.audio_url.startsWith(env.R2_PUBLIC_URL));
+    assert.equal(track.audio_duration_seconds,40);
+    assert.equal(track.story,'');
+    assert.equal(track.instagram_username,'unseen_test');
+    assert.equal(track.youtube_url,'https://www.youtube.com/watch?v=abcdefghijk');
+    assert.equal(track.instagram_reel_url,'https://www.instagram.com/reel/Unseen_test/');
+    assert.equal(track.spotify_url,'https://open.spotify.com/track/1234567890123456789012');
     tracks.push(track);
   }
   const range=await fetch(tracks[0].audio_url,{headers:{Range:'bytes=0-63',Origin:testOrigin},signal:AbortSignal.timeout(15000)});
@@ -113,6 +128,13 @@ async function main() {
   assert.equal((await range.arrayBuffer()).byteLength,64);
   assert.equal(range.headers.get('content-range'),`bytes 0-63/${audio.length}`);
   checks.musicRangeCors=true;
+  const rejected=await submit('music',{title:'UNSEEN invalid clip',artist:'UNSEEN TEST',audio_duration_seconds:'1'},[{kind:'cover',mime:'image/png',bytes:cover},{kind:'audio',mime:'audio/wav',bytes:clipFixture(source,41)}],token,400);
+  const {count:invalidTracks,error:invalidError}=await db.from('music_tracks').select('id',{count:'exact',head:true}).eq('id',rejected);
+  assert.ok(!invalidError&&invalidTracks===0,'Overlong clip must not become a submission');
+  // Expire failed test uploads so the normal R2 cleanup removes incoming bytes.
+  const {error:expiryError}=await db.from('r2_uploads').update({expires_at:new Date(Date.now()-60000).toISOString()}).eq('id',rejected);
+  assert.ok(!expiryError);await call({action:'cleanup'},env.MEDIA_CRON_SECRET);
+  checks.clipDurationAndSocials=true;
   fixture.duel=randomUUID(); await save();
   const {error:duelError}=await adminClient.from('music_duels').insert({id:fixture.duel,track_1_id:tracks[0].id,track_2_id:tracks[1].id,start_at:new Date(Date.now()-60000).toISOString(),end_at:new Date(Date.now()+3600000).toISOString(),is_active:true});
   assert.ok(!duelError,'Admin music duel creation failed');

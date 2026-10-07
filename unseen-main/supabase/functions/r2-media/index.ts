@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.103.0';
 import { AwsClient } from 'npm:aws4fetch@1.0.20';
-import { hasExpectedSignature, InputError, validateSubmission, type FileSpec } from './validation.ts';
+import { hasExpectedSignature, InputError, validateSubmission, verifiedClipDuration, type FileSpec } from './validation.ts';
 
 const setting = (name: string) => {
   const value = Deno.env.get(name);
@@ -53,18 +53,26 @@ async function complete(id: string, userId: string) {
     if (upload.state === 'complete') return { id };
     if (new Date(upload.expires_at).getTime() < Date.now()) throw new InputError('Il caricamento è scaduto. Invia nuovamente i file.');
     const etags: Record<string, string> = {};
+    let audioDuration: number | null = null;
     for (const file of upload.files as FileSpec[]) {
       const head = await storage(privateBucket, file.uploadKey, { method: 'HEAD' });
       const etag = head.headers.get('etag');
       if (!etag || Number(head.headers.get('content-length')) !== file.bytes || head.headers.get('content-type')?.split(';')[0] !== file.mime) throw new InputError('Dimensione o formato del file non valido.');
       const sample = await storage(privateBucket, file.uploadKey, { headers: { Range: 'bytes=0-63', 'If-Match': etag } });
-      if (sample.status !== 206 || !hasExpectedSignature(new Uint8Array(await sample.arrayBuffer()), file.mime)) throw new InputError('Il contenuto del file non corrisponde al formato dichiarato.');
+      const sampleBytes = new Uint8Array(await sample.arrayBuffer());
+      if (sample.status !== 206 || !hasExpectedSignature(sampleBytes, file.mime)) throw new InputError('Il contenuto del file non corrisponde al formato dichiarato.');
+      if (file.kind === 'audio') audioDuration = verifiedClipDuration(sampleBytes, file.bytes, file.mime);
       // Freeze into a key never handed out in a signed PUT. Reusing an upload URL
       // cannot replace submitted/approved content after verification.
       await copy(privateBucket, file.uploadKey, privateBucket, file.key, file.mime, etag);
       const frozen = await storage(privateBucket, file.key, { method: 'HEAD' });
       if (Number(frozen.headers.get('content-length')) !== file.bytes || !frozen.headers.get('etag')) throw new Error('Frozen asset verification failed');
       etags[file.id] = frozen.headers.get('etag')!;
+    }
+    if (upload.kind === 'music') {
+      if (audioDuration === null) throw new InputError('Estratto audio mancante.');
+      const { error: durationError } = await db.from('r2_uploads').update({ metadata: { ...upload.metadata, audio_duration_seconds: String(audioDuration) } }).eq('id', id).eq('user_id', userId).eq('state', 'prepared');
+      if (durationError) throw new Error('Audio verification persistence failed');
     }
     await rpc('r2_complete_upload', { p_id: id, p_user_id: userId, p_bucket: privateBucket, p_etags: etags, p_public_url: publicUrl });
     // A failed cleanup never turns a successful submission into an error.

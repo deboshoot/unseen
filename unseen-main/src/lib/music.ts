@@ -1,9 +1,12 @@
-export type MusicTrack = {
+import type { MusicSocials } from './music-links';
+
+export type MusicTrack = MusicSocials & {
   id: string;
   title: string;
   artist: string;
   cover_url: string;
   audio_url: string;
+  audio_duration_seconds?: number | null;
 };
 
 export const demoTracks: MusicTrack[] = [

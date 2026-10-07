@@ -1,5 +1,6 @@
+import type { MusicSocials } from './music-links';
 export type ChampionshipKind = 'photo' | 'music';
-export type ChampionshipEntry = { id: string; championship_id: string; seed: number; title: string; artist: string; image_url: string; audio_url: string | null; artwork_id: string | null; track_id: string | null };
+export type ChampionshipEntry = MusicSocials & { id: string; championship_id: string; seed: number; title: string; artist: string; image_url: string; audio_url: string | null; artwork_id: string | null; track_id: string | null };
 export type ChampionshipMatch = { id: string; championship_id: string; number: number; round: number; position: number; entry_1_id: string | null; entry_2_id: string | null; winner_id: string | null; votes_1: number; votes_2: number; start_at: string; end_at: string; resolved_at: string | null; tie_break: 'seed' | null };
 export type Championship = { id: string; kind: ChampionshipKind; name: string; start_at: string; end_at: string; status: 'scheduled' | 'running' | 'completed' | 'cancelled'; winner_id: string | null };
 export type ChampionshipData = { championship: Championship | null; entries: ChampionshipEntry[]; matches: ChampionshipMatch[]; my_votes: { match_id: string; vote_slot: number }[]; server_now: string };

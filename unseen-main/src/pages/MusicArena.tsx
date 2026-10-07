@@ -41,7 +41,7 @@ export default function MusicArena() {
         else query = query.lte("start_at", new Date().toISOString()).gt("end_at", new Date().toISOString());
         const { data, error } = await query.order("start_at", { ascending: false }).limit(1).abortSignal(controller.signal).maybeSingle();
         if (error || !data) return;
-        const { data: works, error: worksError } = await supabase.from("music_tracks").select("id, title, artist, cover_url, audio_url").in("id", [data.track_1_id, data.track_2_id]).abortSignal(controller.signal);
+        const { data: works, error: worksError } = await supabase.from("music_tracks").select("id, title, artist, cover_url, audio_url, instagram_username, youtube_url, instagram_reel_url, spotify_url").in("id", [data.track_1_id, data.track_2_id]).abortSignal(controller.signal);
         if (controller.signal.aborted || worksError || works?.length !== 2) return;
         const ordered = [data.track_1_id, data.track_2_id].map((id: string) => works.find((track) => track.id === id));
         if (ordered.some((track) => !track)) return;

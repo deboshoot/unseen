@@ -5,14 +5,17 @@ import InviaOpera from "@/components/InviaOpera";
 import InviaBrano from "@/components/InviaBrano";
 import { useI18n } from "@/i18n/I18nProvider";
 import { musicCopy } from "@/i18n/music-copy";
+import { musicSubmitCopy } from '@/i18n/music-submit-copy';
+import '@/music-submit.css';
 
 const Submit = () => {
   const { t, locale } = useI18n();
   const copy = musicCopy[locale];
+  const studioCopy = musicSubmitCopy[locale];
   const [params, setParams] = useSearchParams();
   const isMusic = params.get("tipo") === "musica";
   return (
-    <div className="submit-page min-h-screen bg-background px-5 pb-24 pt-28 sm:px-8 md:pt-36">
+    <div className={`submit-page ${isMusic ? 'music-studio-page' : ''} min-h-screen bg-background px-5 pb-24 pt-28 sm:px-8 md:pt-36`}>
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {[10, 25, 45, 65, 80, 95].map((pos, i) => (
           <motion.div
@@ -30,17 +33,18 @@ const Submit = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="submit-heading mb-12 text-center md:mb-16"
+          className={`submit-heading mb-12 text-center md:mb-16 ${isMusic ? 'music-studio-hero' : ''}`}
         >
+          {isMusic && <p className="music-studio-badge"><span />UNSEEN / {studioCopy.badge}</p>}
           <h1 className="font-display text-4xl font-black tracking-tight text-foreground sm:text-6xl md:text-7xl">
-            {isMusic ? copy.submit : t("submit.title")}
+            {isMusic ? studioCopy.heading : t("submit.title")}
           </h1>
           <p className="mx-auto mt-5 max-w-xl font-body text-sm leading-7 text-muted-foreground sm:text-base">
-            {isMusic ? copy.submitIntro : t("submit.subtitle")}
+            {isMusic ? studioCopy.intro : t("submit.subtitle")}
           </p>
           <div className="mt-8 flex items-center justify-center gap-2 text-muted-foreground/70">
             <ArrowDown size={15} />
-            <span className="font-body text-[10px] uppercase tracking-[0.25em]">{isMusic ? copy.cover : "La tua fotografia, al centro"}</span>
+            <span className="font-body text-[10px] uppercase tracking-[0.25em]">{isMusic ? studioCopy.maxClip : "La tua fotografia, al centro"}</span>
           </div>
         </motion.div>
 

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/i18n/I18nProvider";
 import { musicCopy } from "@/i18n/music-copy";
 import { formatAudioTime, type MusicTrack } from "@/lib/music";
+import MusicSocialLinks from './MusicSocialLinks';
 
 type Props = { track: MusicTrack; activeId: string | null; onActiveChange: (id: string | null) => void; slot?: number; onPrepareAudio?: (audio: HTMLAudioElement) => void };
 
@@ -102,6 +103,7 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
         <span className="music-cover-status">{playing ? copy.playing : copy.listen}</span>
       </div>
       <div className="music-track-info"><div><h2>{track.title}</h2><p>{track.artist}</p></div><button type="button" onClick={() => void toggle()} aria-label={playLabel} aria-pressed={playing} disabled={loading || !track.audio_url} className="music-small-play">{playing ? <Pause size={18} /> : <Play size={18} />}</button></div>
+      <MusicSocialLinks track={track} />
       <audio ref={audioRef} crossOrigin="anonymous" src={track.audio_url || undefined} preload="metadata"
         onLoadedMetadata={(event) => setDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : 0)}
         onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
