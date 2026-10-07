@@ -8,8 +8,9 @@ const mocks = vi.hoisted(() => ({ rpc: vi.fn(), getSession: vi.fn(), refetch: vi
 let state: ReturnType<typeof championshipFixture>;
 let userId: string | null;
 let now: number;
+let empty: boolean;
 vi.mock('@/supabaseClient', () => ({ supabase: { rpc: mocks.rpc, auth: { getSession: mocks.getSession } } }));
-vi.mock('@/hooks/useChampionship', () => ({ useChampionship: () => ({ data: state, now, userId, isLoading: false, error: null, refetch: mocks.refetch }) }));
+vi.mock('@/hooks/useChampionship', () => ({ useChampionship: () => ({ data: empty ? { ...state, championship: null, matches: [], entries: [], my_votes: [] } : state, now, userId, isLoading: false, error: null, refetch: mocks.refetch }) }));
 vi.mock('@/i18n/I18nProvider', () => ({ useI18n: () => ({ locale: 'it' }) }));
 vi.mock('@/hooks/useMusicAnalyser', () => ({ useMusicAnalyser: () => ({ signal: null, prepareAudio: vi.fn() }) }));
 vi.mock('@/components/MusicRecord', () => ({ default: ({ track }: { track: { title: string } }) => <div>{track.title}</div> }));
@@ -17,9 +18,18 @@ vi.mock('@/components/MusicWaveform', () => ({ default: () => <div /> }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 function Location() { return <p data-testid="location">{useLocation().pathname}{useLocation().search}</p>; }
 function mount(url = '/arena/fotografica') { return render(<MemoryRouter initialEntries={[url]}><ChampionshipArena kind="photo" /><Location /></MemoryRouter>); }
-beforeEach(() => { vi.clearAllMocks(); state = championshipFixture(); userId = 'user'; now = fixtureNow; mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'user' } } } }); mocks.rpc.mockResolvedValue({ error: null }); mocks.refetch.mockResolvedValue({}); });
+beforeEach(() => { vi.clearAllMocks(); empty = false; state = championshipFixture(); userId = 'user'; now = fixtureNow; mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'user' } } } }); mocks.rpc.mockResolvedValue({ error: null }); mocks.refetch.mockResolvedValue({}); });
 afterEach(cleanup);
 describe('championship arena voting', () => {
+  it('renders the music opening page without a championship and links to song submissions', () => {
+    empty = true;
+    const { container } = render(<MemoryRouter initialEntries={['/arena/musicale']}><ChampionshipArena kind="music" /><Location /></MemoryRouter>);
+    expect(screen.getByText('Arena musicale in arrivo')).toBeInTheDocument();
+    expect(container.querySelector('audio')).toBeNull();
+    fireEvent.click(screen.getByRole('link', { name: 'Invia il tuo brano' }));
+    expect(screen.getByTestId('location').textContent).toBe('/submit?tipo=musica');
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
   it('requires login and preserves the selected match in the auth return URL', async () => {
     userId = null; mocks.getSession.mockResolvedValue({ data: { session: null } }); mount();
     fireEvent.click(screen.getAllByRole('button', { name: 'Accedi per votare' })[0]);

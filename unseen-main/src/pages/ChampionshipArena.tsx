@@ -8,6 +8,7 @@ import { arenaPath, countdown, currentMatch, isMatchOpen, type ChampionshipKind 
 import { useI18n } from '@/i18n/I18nProvider';
 import { championshipCopy } from '@/i18n/championship-copy';
 import MusicRecord from '@/components/MusicRecord';
+import MusicComingSoon from '@/components/MusicComingSoon';
 import MusicWaveform from '@/components/MusicWaveform';
 import { useMusicAnalyser } from '@/hooks/useMusicAnalyser';
 import '@/championship.css';
@@ -28,7 +29,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
   const requested = params.get('match');
   const match = requested ? data?.matches.find(item => item.id === requested) : live;
   const canVote = Boolean(championship && match && isMatchOpen(match, championship, now));
-  const chosen = data?.my_votes.find(vote => vote.match_id === match?.id)?.vote_slot ?? (localVote?.matchId === match?.id && localVote.userId === userId ? localVote.slot : null);
+  const chosen = data?.my_votes.find(vote => vote.match_id === match?.id)?.vote_slot ?? (localVote && localVote.matchId === match?.id && localVote.userId === userId ? localVote.slot : null);
   const bracketUrl = `/campionato?tipo=${kind === 'music' ? 'musica' : 'foto'}${championship ? `&id=${championship.id}` : ''}`;
   const matchUrl = championship && match ? `${arenaPath(kind)}?campionato=${championship.id}&match=${match.id}` : arenaPath(kind);
   const vote = async (slot: number) => {
@@ -51,6 +52,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) toast.error(copy.error); }
   };
   if (params.get('duelId')) return <Navigate replace to={`/archivio${arenaPath(kind)}?${params.toString()}`} />;
+  if (kind === 'music' && !isLoading && !error && !requested && (!championship || championship.status === 'scheduled')) return <MusicComingSoon startsAt={championship?.start_at} />;
   return <main className={`champ-page ${kind === 'music' ? 'music-arena' : ''}`}><div className="champ-container champ-arena-container">
     <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
     <header className="champ-hero"><p className="champ-eyebrow">UNSEEN · {kind === 'music' ? copy.music : copy.photo} · {copy.title}</p><h1>ARENA<span>.</span></h1><p>{championship?.name ?? copy.intro}</p>

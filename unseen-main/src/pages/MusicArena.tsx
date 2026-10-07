@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import MusicRecord from "@/components/MusicRecord";
 import MusicWaveform from "@/components/MusicWaveform";
 import { useMusicAnalyser } from "@/hooks/useMusicAnalyser";
-import { demoTracks, type MusicTrack } from "@/lib/music";
+import { type MusicTrack } from "@/lib/music";
+import MusicComingSoon from "@/components/MusicComingSoon";
 import { musicCopy } from "@/i18n/music-copy";
 import { useI18n } from "@/i18n/I18nProvider";
 import { supabase } from "@/supabaseClient";
@@ -18,7 +19,7 @@ export default function MusicArena() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const requestedDuel = params.get("duelId");
-  const [tracks, setTracks] = useState<MusicTrack[]>(demoTracks);
+  const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [duel, setDuel] = useState<MusicDuel | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const { signal, prepareAudio } = useMusicAnalyser();
@@ -31,7 +32,7 @@ export default function MusicArena() {
 
   useEffect(() => {
     const controller = new AbortController();
-    setActiveId(null); setSelectedVote(null); setDuel(null); setTracks(demoTracks); setLoading(true);
+    setActiveId(null); setSelectedVote(null); setDuel(null); setTracks([]); setLoading(true);
     const load = async () => {
       try {
         if (import.meta.env.VITE_SUPABASE_URL?.startsWith("http://127.0.0.1")) return;
@@ -78,7 +79,7 @@ export default function MusicArena() {
 
   const vote = async (track: MusicTrack, slot: number) => {
     if (votingRef.current || selectedVote || ended) return;
-    if (!duel) { setSelectedVote(track.id); toast.success(copy.demoVoted); return; }
+    if (!duel) return;
     votingRef.current = true; setVoting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -90,6 +91,7 @@ export default function MusicArena() {
     finally { votingRef.current = false; setVoting(false); }
   };
 
+  if (!loading && !duel) return <MusicComingSoon />;
   return (
     <main className="music-arena min-h-screen px-4 pb-16 pt-28 sm:px-8 sm:pt-32">
       <div className="music-arena-inner mx-auto max-w-5xl">
@@ -103,7 +105,6 @@ export default function MusicArena() {
           <button type="button" className="music-share" disabled={sharing || loading} onClick={() => void share()}><Share2 size={15} />{copy.share}</button>
         </header>
         {loading ? <p role="status" className="py-20 text-center text-slate-300">{copy.loading}</p> : <>
-          {!duel && <p className="music-demo-badge"><span />{copy.demo}</p>}
           <section className="music-duel" aria-label={copy.competition}>
             {tracks.map((track, i) => <div key={track.id} className={`music-challenger music-challenger-${i + 1}`}>
               <MusicRecord track={track} slot={i + 1} activeId={activeId} onPrepareAudio={prepareAudio} onActiveChange={(id) => setActiveId((previous) => id ?? (previous === track.id ? null : previous))} />
@@ -111,7 +112,6 @@ export default function MusicArena() {
             </div>)}
             <span className="music-vs" aria-hidden="true">VS</span>
           </section>
-          {!duel && <p className="music-demo-note">{copy.demoNote}</p>}
         </>}
         <footer className="music-footer"><Headphones size={18} /><p>{copy.submitIntro}</p><Link to="/submit?tipo=musica"><Plus size={16} />{copy.submit}</Link></footer>
       </div>
