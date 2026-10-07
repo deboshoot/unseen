@@ -5,6 +5,9 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { motion } from "framer-motion";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import GalleryMonthManager, { ArtworkSelect } from "@/components/GalleryMonthManager";
+import { mediaRequest, resolveMediaPreviews } from '@/lib/media-upload';
+import MusicAdminManager from '@/components/MusicAdminManager';
+import { toast } from 'sonner';
 import { 
   Check, X, Trash2, Trophy, Users, Image as ImageIcon, 
   Shield, Clock, Calendar, ThumbsUp, Lock, Unlock, BarChart3, Mail, Vote, ListChecks
@@ -28,6 +31,7 @@ type ArtworkRecord = {
   titolo: string;
   autore: string;
   immagine_url: string;
+  media_asset_id?: string | null;
   storia: string;
   social_link: string;
   created_at?: string;
@@ -84,7 +88,7 @@ type FinalArenaRecord = {
   last_duel_winner_id: string | null;
 };
 
-type AdminTab = "moderation" | "gallery" | "arena" | "stats" | "analytics";
+type AdminTab = "moderation" | "music" | "gallery" | "arena" | "stats" | "analytics";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -162,7 +166,13 @@ const AdminDashboard = () => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user || user.email !== "deboshoot@gmail.com") {
+      if (!user) {
+        navigate("/");
+        return;
+      }
+
+      const { data: isAdmin, error: adminError } = await supabase.rpc("is_unseen_admin");
+      if (adminError || !isAdmin) {
         navigate("/");
         return;
       }
@@ -209,7 +219,10 @@ const AdminDashboard = () => {
       .from("opere")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!error) setOpere(data || []);
+    if (!error) {
+      try { setOpere(await resolveMediaPreviews(data || [])); }
+      catch (error) { toast.error(error instanceof Error ? error.message : 'Anteprime non disponibili'); }
+    }
     setLoadingOpere(false);
   };
 
@@ -336,28 +349,36 @@ const AdminDashboard = () => {
   };
 
   const handleAcceptOpere = async (id: string) => {
-    const { error } = await supabase
-      .from("opere")
-      .update({ status: "accepted" })
-      .eq("id", id);
-    if (!error) fetchOpere();
+    try {
+      if (opere.find(opera => opera.id === id)?.media_asset_id) await mediaRequest({ action: 'moderate', kind: 'photo', id, status: 'accepted' });
+      else { const { error } = await supabase.from('opere').update({ status: 'accepted' }).eq('id', id); if (error) throw error; }
+      await fetchOpere();
+    } catch (error) { toast.error(error instanceof Error ? error.message : 'Approvazione non riuscita'); }
   };
 
   const handleRejectOpere = async (id: string) => {
-    const { error } = await supabase
-      .from("opere")
-      .update({ status: "rejected" })
-      .eq("id", id);
-    if (!error) fetchOpere();
+    try {
+      if (opere.find(opera => opera.id === id)?.media_asset_id) await mediaRequest({ action: 'moderate', kind: 'photo', id, status: 'rejected' });
+      else { const { error } = await supabase.from('opere').update({ status: 'rejected' }).eq('id', id); if (error) throw error; }
+      await fetchOpere();
+    } catch (error) { toast.error(error instanceof Error ? error.message : 'Rifiuto non riuscito'); }
   };
 
   const handleDeleteOpere = async (id: string) => {
     if (!confirm("Sei sicuro di voler eliminare questa opera?")) return;
-    const { error } = await supabase.from("opere").delete().eq("id", id);
-    if (!error) fetchOpere();
+    try {
+      if (opere.find(opera => opera.id === id)?.media_asset_id) await mediaRequest({ action: 'delete', kind: 'photo', id });
+      else { const { error } = await supabase.from('opere').delete().eq('id', id); if (error) throw error; }
+      await fetchOpere();
+    } catch (error) { toast.error(error instanceof Error ? error.message : 'Eliminazione non riuscita'); }
   };
 
   const toggleGalleryStatus = async (id: string, currentStatus: boolean) => {
+    const opera = opere.find(opera => opera.id === id);
+    if (!currentStatus && opera?.media_asset_id && opera.status !== 'accepted') {
+      toast.info('Approva prima la fotografia per pubblicarla in galleria.');
+      return;
+    }
     const { error } = await supabase
       .from("opere")
       .update({ is_in_gallery: !currentStatus })
@@ -586,6 +607,7 @@ const AdminDashboard = () => {
         >
           {[
             { id: "moderation", label: t("admin.moderation"), icon: Shield },
+            { id: "music", label: "Musica", icon: ThumbsUp },
             { id: "gallery", label: t("admin.gallery"), icon: ImageIcon },
             { id: "arena", label: t("admin.arena"), icon: Trophy },
             { id: "stats", label: t("admin.community"), icon: Users },
@@ -994,6 +1016,7 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "gallery" && <GalleryMonthManager />}
+          {activeTab === "music" && <MusicAdminManager />}
 
           {activeTab === "analytics" && (
             <Suspense fallback={<p className="py-16 text-center text-sm uppercase tracking-[0.3em] text-white/45">Caricamento analytics...</p>}>

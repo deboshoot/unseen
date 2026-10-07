@@ -1,0 +1,8 @@
+Use case: product-mockup.
+Asset type: reusable hyperrealistic studio photograph of a blank paper vinyl album jacket surface for compositing arbitrary album artwork in a web app.
+Primary request: one real 12 inch vinyl record outer jacket made from premium matte printed cardboard, square, top opening. The front panel is blank neutral medium gray, fine organic paper grain, subtle soft studio gradients and tiny realistic manufacturing creases. Full front nearly fills the square image canvas. A narrow dark slit along the TOP edge clearly shows the pocket opening, with the inner rear lip a few millimetres behind the front. A thin 3mm layered charcoal paper side edge and bottom fold show real thickness. The top lip has a tiny natural bow, not a big curve.
+Camera: straight-on front-facing product macro photograph, extremely subtle visible top depth and right-side thickness; preserve a perfectly rectangular front surface for overlaying a square album image. No dramatic tilt, no tilted trapezoid.
+Lighting: broad soft studio light from upper left, realistic paper microtexture, delicate front surface falloff, gentle shadow in the open top mouth and thin paper folds. Premium new album packaging; no plastic frame, no wood, no metal, no bevelled decorative border, no glass, no rounded UI-card corners.
+Composition: isolated single jacket, tightly cropped, actual transparent alpha only outside the jacket. No record inside or outside, no backdrop, no props, no human, no illustration, no text or logo, no watermark. The blank gray face is intended as a material-and-lighting layer over many different cover photographs.
+
+Generated with the built-in ImageGen tool. Shared photographic cardstock lighting layer for top-open vinyl sleeves.

@@ -1,50 +1,18 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient'; 
 import { Check, FileImage, LoaderCircle, UploadCloud, X } from 'lucide-react';
 import { getInstagramProfile } from '@/lib/instagram';
 import { useI18n } from '@/i18n/I18nProvider';
-
-const MAX_IMAGE_DIMENSION = 2400;
-const WEBP_QUALITY = 0.88;
-
-const optimizeImage = async (sourceFile: File) => {
-  try {
-    const bitmap = await createImageBitmap(sourceFile, { imageOrientation: 'from-image' });
-    const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-    const context = canvas.getContext('2d');
-
-    if (!context) {
-      bitmap.close();
-      return { file: sourceFile, extension: sourceFile.name.split('.').pop() || 'jpg' };
-    }
-
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close();
-
-    const compressedBlob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, 'image/webp', WEBP_QUALITY);
-    });
-
-    if (!compressedBlob || compressedBlob.size >= sourceFile.size) {
-      return { file: sourceFile, extension: sourceFile.name.split('.').pop() || 'jpg' };
-    }
-
-    return {
-      file: new File([compressedBlob], `${sourceFile.name.replace(/\.[^.]+$/, '')}.webp`, { type: 'image/webp' }),
-      extension: 'webp',
-    };
-  } catch {
-    return { file: sourceFile, extension: sourceFile.name.split('.').pop() || 'jpg' };
-  }
-};
+import { optimizeImage } from '@/lib/optimize-image';
+import { uploadSubmission } from '@/lib/media-upload';
 
 export default function InviaOpera() {
   const { t } = useI18n();
+  const navigate = useNavigate();
+  const submitting = useRef(false);
   const [titolo, setTitolo] = useState('');
   const [autore, setAutore] = useState('');
   const [storia, setStoria] = useState('');
@@ -88,41 +56,27 @@ export default function InviaOpera() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current) return;
     if (!file) {
       toast.error(t('submit.missingFile'), {
         description: t('submit.missingFileDescription'),
       });
       return;
     }
+    submitting.current = true;
     setLoading(true);
 
     try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      if (!session) {
+        toast.info('Accedi per inviare la tua fotografia.');
+        navigate(`/auth?redirect=${encodeURIComponent('/submit')}`);
+        return;
+      }
       const instagramProfile = getInstagramProfile(social);
       const optimizedImage = await optimizeImage(file);
-      const fileName = `${Date.now()}.${optimizedImage.extension}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('galleria')
-        .upload(fileName, optimizedImage.file, { contentType: optimizedImage.file.type, upsert: false });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('galleria')
-        .getPublicUrl(fileName);
-
-      const { error: insertError } = await supabase
-        .from('opere')
-        .insert([{ 
-          titolo, 
-          autore, 
-          storia, 
-          social_link: instagramProfile?.username ?? '', 
-          immagine_url: urlData.publicUrl, 
-          status: 'pending' 
-        }]);
-
-      if (insertError) throw insertError;
+      await uploadSubmission('photo', { titolo, autore, storia, social_link: instagramProfile?.username ?? '' }, [{ kind: 'image', file: optimizedImage }]);
 
       toast.success(t('submit.success'), {
         description: t('submit.successDescription'),
@@ -134,6 +88,7 @@ export default function InviaOpera() {
         description: message,
       });
     } finally {
+      submitting.current = false;
       setLoading(false);
     }
   };
@@ -224,6 +179,7 @@ export default function InviaOpera() {
               onChange={e => setTitolo(e.target.value)} 
               placeholder={t('submit.titlePlaceholder')}
               required 
+              maxLength={120}
             />
           </div>
 
@@ -236,6 +192,7 @@ export default function InviaOpera() {
               onChange={e => setAutore(e.target.value)} 
               placeholder={t('submit.authorPlaceholder')}
               required 
+              maxLength={120}
             />
           </div>
 
@@ -244,6 +201,7 @@ export default function InviaOpera() {
             <textarea 
               className="submit-field h-32 w-full resize-none rounded-xl border border-border bg-background/60 px-5 py-4 text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:bg-background" 
               value={storia} 
+              maxLength={1500}
               onChange={e => setStoria(e.target.value)} 
               placeholder={t('submit.storyPlaceholder')}
             />

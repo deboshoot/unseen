@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import type { User } from "@supabase/supabase-js";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User, LogOut } from "lucide-react";
@@ -11,7 +11,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 const Navbar = () => {
   const location = useLocation();
   const { t } = useI18n();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const navItems = [
@@ -58,13 +58,13 @@ const Navbar = () => {
               key={item.path}
               to={item.path}
               className={`site-nav-link relative font-body text-sm tracking-wider uppercase transition-colors duration-300 ${
-                location.pathname === item.path
+                (location.pathname === item.path || (item.path === "/arena" && location.pathname.startsWith("/arena/")))
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {item.label}
-              {location.pathname === item.path && (
+              {(location.pathname === item.path || (item.path === "/arena" && location.pathname.startsWith("/arena/"))) && (
                 <motion.div
                   layoutId="nav-indicator"
                   className="absolute -bottom-1 left-0 right-0 h-[2px] bg-primary"
@@ -123,7 +123,7 @@ const Navbar = () => {
   );
 };
 
-const MobileMenu = ({ user, onSignOut, navItems }: { user: User | null; onSignOut: () => Promise<void>; navItems: { label: string; path: string }[] }) => {
+const MobileMenu = ({ user, onSignOut, navItems }: { user: SupabaseUser | null; onSignOut: () => Promise<void>; navItems: { label: string; path: string }[] }) => {
   const location = useLocation();
   const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
@@ -161,7 +161,7 @@ const MobileMenu = ({ user, onSignOut, navItems }: { user: User | null; onSignOu
               to={item.path}
               onClick={() => setOpen(false)}
               className={`font-body text-sm tracking-wider uppercase ${
-                location.pathname === item.path ? "text-primary" : "text-muted-foreground"
+                (location.pathname === item.path || (item.path === "/arena" && location.pathname.startsWith("/arena/"))) ? "text-primary" : "text-muted-foreground"
               }`}
             >
               {item.label}

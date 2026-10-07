@@ -32,7 +32,7 @@ export const I18nProvider = ({ initialLocale, initialDictionary, children }: { i
     t: (path, variables) => {
       const raw = getTranslation(dictionary, path);
       if (typeof raw !== "string") return path;
-      return Object.entries(variables ?? {}).reduce((text, [key, replacement]) => text.replaceAll(`{{${key}}}`, String(replacement)), raw);
+      return Object.entries(variables ?? {}).reduce((text, [key, replacement]) => text.split(`{{${key}}}`).join(String(replacement)), raw);
     },
     list: <T,>(path: string) => {
       const raw = getTranslation(dictionary, path);

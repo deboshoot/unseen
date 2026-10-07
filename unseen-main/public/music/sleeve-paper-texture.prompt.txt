@@ -1,0 +1,9 @@
+Use case: product-mockup.
+Asset type: reusable photographic paper material texture for a vinyl record jacket, to be blended over arbitrary uploaded album cover photographs in a web UI.
+Primary request: hyperrealistic extreme macro studio photograph of the flat surface of matte coated cardboard used for a high-quality printed 12-inch record sleeve.
+Composition: square, edge-to-edge uniform material swatch; straight-on orthographic view. Entire image is a neutral middle-grey paper surface. No record, no sleeve shape or outline, no objects, text or graphics.
+Material: very fine subtle real paper fibres, tiny natural grain and minute variations in matte coating, a few barely visible fine handling hairlines; new premium record jacket, not distressed, not crumpled. Detail is fine and organic, not repetitive noise. Very low contrast: texture must gently blend over an album photograph without obscuring it.
+Lighting: broad even softbox light, flat neutral mid-grey tones, no vignette, no strong shadows, no folds, no color cast, no shiny plastic texture.
+Constraints: photographic raster surface, no illustration, no decorative patterns, no visible writing, logos or watermarks. Opaque background.
+
+Generated with the built-in ImageGen tool. Shared paper material for all uploaded record covers.

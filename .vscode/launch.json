@@ -1,15 +1,22 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "chrome",
+            "type": "msedge",
             "request": "launch",
-            "name": "Launch Chrome against localhost",
-            "url": "http://localhost:8080",
-            "webRoot": "${workspaceFolder}"
+            "name": "UNSEEN: avvia e debug",
+            "url": "http://127.0.0.1:8080",
+            "webRoot": "${workspaceFolder}/unseen-main",
+            "preLaunchTask": "UNSEEN: server di sviluppo",
+            "sourceMaps": true
+        },
+        {
+            "type": "msedge",
+            "request": "launch",
+            "name": "UNSEEN: debug server attivo",
+            "url": "http://127.0.0.1:8080",
+            "webRoot": "${workspaceFolder}/unseen-main",
+            "sourceMaps": true
         }
     ]
 }

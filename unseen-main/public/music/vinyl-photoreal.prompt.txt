@@ -1,0 +1,10 @@
+Use case: product-mockup.
+Asset type: isolated photographic vinyl texture for an interactive website record, square high resolution.
+Primary request: a hyperrealistic studio product photograph of ONE real black 12-inch vinyl LP record, perfectly circular, perfectly centered, viewed straight down orthographically, no perspective tilt.
+Composition: the circular outer edge exactly touches the four midpoints of the square image canvas; no padding. The background outside the circle is genuinely transparent alpha. Within the circle, the record is fully opaque dense deep black PVC.
+Materials: microscopic fine concentric grooves in naturally grouped track bands, subtle fine hairlines from real pressed vinyl, realistic smooth inner runout area and raised thin rolled edge. Restrained soft silver-grey reflections across two broad arcs, photographic black plastic specular highlights, no colored glow. Smoothly sampled grooves, no moire, no decorative geometric patterns.
+Center label: flat matte dark charcoal circular paper label diameter 31 percent of the record, completely blank, no lettering or logo. Tiny centered round spindle hole.
+Lighting: professional softbox studio product photography, soft convincing asymmetric reflections, natural tonal detail on dense black opaque material.
+Constraints: only the record; real photograph appearance, not vector art or illustration, not a render-like stylized icon. No turntable, hands, props, sleeve, background scenery, text, watermark, drop shadow outside disc. True transparent outside, opaque black inside.
+
+Generated with the built-in ImageGen tool. Transparent outside the record; opaque PVC surface.

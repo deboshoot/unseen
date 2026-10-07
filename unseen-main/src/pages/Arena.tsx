@@ -110,7 +110,6 @@ const Arena = () => {
             return;
           }
         }
-        await supabase.rpc("activate_scheduled_duel");
       }
       
       if (urlDuelId) {
@@ -119,8 +118,8 @@ const Arena = () => {
           .from("duels")
           .select("*")
           .eq("id", urlDuelId)
-          .single()
-          .abortSignal(controller.signal);
+          .abortSignal(controller.signal)
+          .single();
         duel = result.data;
         duelErr = result.error;
       } else {
@@ -132,8 +131,8 @@ const Arena = () => {
           .or(`start_at.is.null,start_at.lte.${new Date().toISOString()}`)
           .order("start_at", { ascending: false, nullsFirst: true })
           .limit(1)
-          .maybeSingle()
-          .abortSignal(controller.signal);
+          .abortSignal(controller.signal)
+          .maybeSingle();
         duel = result.data;
         duelErr = result.error;
       }
@@ -272,7 +271,7 @@ const Arena = () => {
         toast.message("Accedi per votare", {
           description: "Devi essere loggato per partecipare al duello.",
         });
-        navigate(`/auth?redirect=${encodeURIComponent(`/arena?duelId=${duelId}`)}`);
+        navigate(`/auth?redirect=${encodeURIComponent(`/arena/fotografica?duelId=${duelId}`)}`);
         votingRef.current = false;
         setVoting(false);
         return;
@@ -316,7 +315,7 @@ const Arena = () => {
       const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
       if (sessionErr || !session?.user) {
         toast.message("Accedi per votare", { description: "Devi essere loggato per partecipare alla finale." });
-        navigate(`/auth?redirect=${encodeURIComponent("/arena")}`);
+        navigate(`/auth?redirect=${encodeURIComponent("/arena/fotografica")}`);
         return;
       }
       const { error } = await supabase.rpc("cast_final_arena_vote", {
@@ -353,7 +352,7 @@ const Arena = () => {
   const handleShareDuel = useCallback(async () => {
     if (!duelId) return;
 
-    const shareUrl = `${window.location.origin}/arena?duelId=${duelId}`;
+    const shareUrl = `${window.location.origin}/arena/fotografica?duelId=${duelId}`;
 
     if (navigator.share) {
       try {
@@ -382,7 +381,7 @@ const Arena = () => {
       return;
     }
 
-    const shareUrl = `${window.location.origin}/arena?duelId=${encodeURIComponent(duelId)}&photoId=${encodeURIComponent(challenger.operaId)}`;
+    const shareUrl = `${window.location.origin}/arena/fotografica?duelId=${encodeURIComponent(duelId)}&photoId=${encodeURIComponent(challenger.operaId)}`;
 
     if (navigator.share) {
       try {

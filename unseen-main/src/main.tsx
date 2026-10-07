@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "./music.css";
 import { Analytics } from "@vercel/analytics/react";
 import { I18nProvider, resolveInitialI18n } from "./i18n/I18nProvider";
 

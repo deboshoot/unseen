@@ -1,9 +1,13 @@
 import type { ComponentType } from "react";
 import it from "@/locales/it.json";
+import type en from "@/locales/en.json";
+import type es from "@/locales/es.json";
+import type fr from "@/locales/fr.json";
+import type de from "@/locales/de.json";
 
 export const supportedLocales = ["it", "en", "es", "fr", "de"] as const;
 export type Locale = (typeof supportedLocales)[number];
-export type Dictionary = typeof it;
+export type Dictionary = typeof it | typeof en | typeof es | typeof fr | typeof de;
 
 const localeLoaders: Record<Locale, () => Promise<{ default: Dictionary }>> = {
   it: async () => ({ default: it }),

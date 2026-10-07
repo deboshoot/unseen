@@ -1,0 +1,18 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { app } from './cloudflare-env.mjs';
+import { supabaseRequest } from './setup-supabase-r2.mjs';
+const keys=await supabaseRequest('api-keys');
+const key=keys.find(item=>item.name==='anon')?.api_key;
+if(!key) throw new Error('Chiave pubblica Supabase non disponibile');
+const content=`VITE_SUPABASE_URL=https://mpqphroecgfwonclmkyb.supabase.co\nVITE_SUPABASE_ANON_KEY=${key}\n`;
+const dev=path.join(app,'.env.development.local');
+const old=await fs.readFile(dev,'utf8').catch(()=>null);
+if(old?.includes('http://127.0.0.1')) await fs.writeFile(path.join(app,'.env.demo.local'),old);
+await fs.writeFile(dev,content);
+await fs.writeFile(path.join(app,'.env.production.local'),content);
+const auth=await supabaseRequest('config/auth');
+const redirects=new Set((auth.uri_allow_list||'').split(',').map(value=>value.trim()).filter(Boolean));
+for(const redirect of ['https://unseen-virid.vercel.app/**','http://localhost:8080/**','http://127.0.0.1:8080/**']) redirects.add(redirect);
+await supabaseRequest('config/auth','PATCH',{uri_allow_list:[...redirects].join(',')});
+process.stdout.write('Anteprima locale e build collegate al progetto Supabase reale con la sola chiave pubblica.\n');

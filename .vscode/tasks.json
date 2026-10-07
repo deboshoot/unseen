@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "UNSEEN: server di sviluppo",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/scripts/start-dev.ps1"],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "unseen-vite",
+        "pattern": { "regexp": "^UNSEEN_ERROR: (.*)$", "message": 1 },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "UNSEEN_STARTING",
+          "endsPattern": "Local:.*http://127\\.0\\.0\\.1:8080|UNSEEN_READY"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}
