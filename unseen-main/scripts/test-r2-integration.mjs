@@ -117,12 +117,10 @@ async function main() {
   const {error:duelError}=await adminClient.from('music_duels').insert({id:fixture.duel,track_1_id:tracks[0].id,track_2_id:tracks[1].id,start_at:new Date(Date.now()-60000).toISOString(),end_at:new Date(Date.now()+3600000).toISOString(),is_active:true});
   assert.ok(!duelError,'Admin music duel creation failed');
   const {error:voteError}=await userClient.rpc('cast_music_vote',{p_duel_id:fixture.duel,p_vote_slot:1});
-  assert.ok(!voteError,`Music vote failed: ${voteError?.code || ''} ${voteError?.message || ''}`);
-  const {error:duplicate}=await userClient.rpc('cast_music_vote',{p_duel_id:fixture.duel,p_vote_slot:2});
-  assert.ok(duplicate,'Duplicate vote allowed');
+  assert.equal(voteError?.code,'42501','Former daily arena voting must be retired');
   const {data:duel}=await db.from('music_duels').select('votes_1,votes_2').eq('id',fixture.duel).single();
-  assert.deepEqual(duel,{votes_1:1,votes_2:0});
-  checks.musicVoteAtomic=true;
+  assert.deepEqual(duel,{votes_1:0,votes_2:0});
+  checks.legacyVotingRetired=true;
   const report=path.resolve(app,'..','debug.local','r2','integration-check.json');
   await fs.writeFile(report,JSON.stringify({at:new Date().toISOString(),checks,temporaryFixtures:true},null,2));
   process.stdout.write('R2 + Supabase: autenticazione, upload firmati, limiti reali, moderazione privata/pubblica, audio Range/CORS e voti verificati.\n');
