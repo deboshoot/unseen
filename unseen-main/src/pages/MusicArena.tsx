@@ -107,7 +107,7 @@ export default function MusicArena() {
           <section className="music-duel" aria-label={copy.competition}>
             {tracks.map((track, i) => <div key={track.id} className={`music-challenger music-challenger-${i + 1}`}>
               <MusicRecord track={track} slot={i + 1} activeId={activeId} onPrepareAudio={prepareAudio} onActiveChange={(id) => setActiveId((previous) => id ?? (previous === track.id ? null : previous))} />
-              <button type="button" className={`music-vote ${selectedVote === track.id ? "is-selected" : ""}`} disabled={voting || Boolean(selectedVote) || ended} onClick={() => void vote(track, i + 1)}>{selectedVote === track.id ? <><Check size={16} />{duel ? copy.voted : copy.demoVoted}</> : copy.vote}</button>
+              <button type="button" className={`music-vote ${selectedVote === track.id ? "is-selected" : ""}`} disabled={true} onClick={() => void vote(track, i + 1)}>{selectedVote === track.id ? <><Check size={16} />{duel ? copy.voted : copy.demoVoted}</> : copy.vote}</button>
             </div>)}
             <span className="music-vs" aria-hidden="true">VS</span>
           </section>

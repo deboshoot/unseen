@@ -7,16 +7,18 @@ import { supabase } from "@/supabaseClient";
 import ThemeToggle from "./ThemeToggle";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
+import { championshipCopy } from "@/i18n/championship-copy";
 
 const Navbar = () => {
   const location = useLocation();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const navItems = [
     { label: t("nav.home"), path: "/" },
     { label: t("nav.arena"), path: "/arena" },
+    { label: championshipCopy[locale].title, path: "/campionato" },
     { label: t("nav.gallery"), path: "/gallery" },
     { label: t("nav.rules"), path: "/regolamento" },
     { label: t("nav.submit"), path: "/submit" },
@@ -52,7 +54,7 @@ const Navbar = () => {
           <img src="/unseen-logo-transparent.png" alt="" className="h-7 w-7 shrink-0 object-contain sm:h-8 sm:w-8" />
           <span>UNSEEN</span>
         </Link>
-        <div className="site-nav-links hidden items-center gap-8 md:flex">
+        <div className="site-nav-links hidden items-center gap-5 lg:flex">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -113,7 +115,7 @@ const Navbar = () => {
             </Link>
           )}
         </div>
-        <div className="site-mobile-actions flex shrink-0 items-center gap-1.5 sm:gap-3 md:hidden">
+        <div className="site-mobile-actions flex shrink-0 items-center gap-1.5 sm:gap-3 lg:hidden">
           <ThemeToggle />
           <LanguageSwitcher />
           <MobileMenu user={user} onSignOut={handleSignOut} navItems={navItems} />

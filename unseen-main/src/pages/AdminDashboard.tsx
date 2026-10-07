@@ -1,28 +1,18 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/supabaseClient";
 import { useI18n } from "@/i18n/I18nProvider";
 import { motion } from "framer-motion";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
-import GalleryMonthManager, { ArtworkSelect } from "@/components/GalleryMonthManager";
+import GalleryMonthManager from "@/components/GalleryMonthManager";
 import { mediaRequest, resolveMediaPreviews } from '@/lib/media-upload';
 import MusicAdminManager from '@/components/MusicAdminManager';
+import ChampionshipAdminManager from '@/components/ChampionshipAdminManager';
 import { toast } from 'sonner';
-import { 
-  Check, X, Trash2, Trophy, Users, Image as ImageIcon, 
+import {
+  Check, X, Trash2, Trophy, Users, Image as ImageIcon,
   Shield, Clock, Calendar, ThumbsUp, Lock, Unlock, BarChart3, Mail, Vote, ListChecks
 } from "lucide-react";
-
-const parseLocalDateTime = (date: string, time: string) => {
-  const [year, month, day] = date.split("-").map(Number);
-  const [hours, minutes] = time.split(":").map(Number);
-  return new Date(year, month - 1, day, hours, minutes, 0, 0);
-};
-
-const formatLocalDateTime = (value: Date) => ({
-  date: `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`,
-  time: `${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`,
-});
 
 const AnalyticsOverview = lazy(() => import("@/components/AnalyticsOverview"));
 
@@ -67,93 +57,24 @@ type DuelSummary = DuelRecord & {
   challenger_title: string;
 };
 
-type ScheduledDuel = DuelRecord & {
-  champion_title: string;
-  challenger_title: string;
-};
-
-type FinalArenaRecord = {
-  id: string;
-  artwork_1_id: string;
-  artwork_2_id: string;
-  artwork_3_id: string;
-  start_at: string;
-  end_at: string;
-  is_active: boolean;
-  votes_1: number;
-  votes_2: number;
-  votes_3: number;
-  unseen_choice_id: string | null;
-  most_wins_id: string | null;
-  last_duel_winner_id: string | null;
-};
-
-type AdminTab = "moderation" | "music" | "gallery" | "arena" | "stats" | "analytics";
+type AdminTab = "moderation" | "music" | "gallery" | "championship" | "stats" | "analytics";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
-  const [activeTab, setActiveTab] = useState<AdminTab>("stats");
-  
+  const [activeTab, setActiveTab] = useState<AdminTab>("championship");
+
   // Moderation state
   const [opere, setOpere] = useState<ArtworkRecord[]>([]);
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkRecord | null>(null);
   const [loadingOpere, setLoadingOpere] = useState(false);
-  
-  // Arena state
-  const [activeDuel, setActiveDuel] = useState<DuelRecord | null>(null);
-  const [loadingDuel, setLoadingDuel] = useState(false);
-  const [championOpere, setChampionOpere] = useState<ArtworkRecord | null>(null);
-  const [challengerOpere, setChallengerOpere] = useState<ArtworkRecord | null>(null);
-  const [scheduledChampionId, setScheduledChampionId] = useState("");
-  const [scheduledChallengerId, setScheduledChallengerId] = useState("");
-  const [scheduleDate, setScheduleDate] = useState(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().slice(0, 10);
-  });
-  const [scheduleTime, setScheduleTime] = useState("20:00");
-  const [scheduleEndDate, setScheduleEndDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() + 2);
-    return date.toISOString().slice(0, 10);
-  });
-  const [scheduleEndTime, setScheduleEndTime] = useState("20:00");
-  const [scheduleEndMode, setScheduleEndMode] = useState<"duration" | "date">("date");
-  const [scheduleDurationHours, setScheduleDurationHours] = useState("24");
-  const [schedulingDuel, setSchedulingDuel] = useState(false);
-  const [scheduledDuels, setScheduledDuels] = useState<ScheduledDuel[]>([]);
-  const [loadingScheduledDuels, setLoadingScheduledDuels] = useState(false);
-  const [finalArena, setFinalArena] = useState<FinalArenaRecord | null>(null);
-  const [finalArtworkIds, setFinalArtworkIds] = useState(["", "", ""]);
-  const [finalStartDate, setFinalStartDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() + 1);
-    return date.toISOString().slice(0, 10);
-  });
-  const [finalStartTime, setFinalStartTime] = useState("20:00");
-  const [finalEndDate, setFinalEndDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() + 4);
-    return date.toISOString().slice(0, 10);
-  });
-  const [finalEndTime, setFinalEndTime] = useState("20:00");
-  const [schedulingFinal, setSchedulingFinal] = useState(false);
-  const [finalAwards, setFinalAwards] = useState({ unseen: "", mostWins: "", lastDuel: "" });
 
-  useEffect(() => {
-    if (scheduleEndMode !== "date") return;
-    const startAt = parseLocalDateTime(scheduleDate, scheduleTime);
-    if (Number.isNaN(startAt.getTime())) return;
-    const nextEnd = formatLocalDateTime(new Date(startAt.getTime() + 24 * 60 * 60 * 1000));
-    setScheduleEndDate(nextEnd.date);
-    setScheduleEndTime(nextEnd.time);
-  }, [scheduleDate, scheduleTime, scheduleEndMode]);
-  
   // Stats state
-  const [stats, setStats] = useState({ users: 0, opere: 0, votes: 0 });
+  const [stats, setStats] = useState({ users: 0, opere: 0, votes: 0, voters: 0 });
+  const [usersPage, setUsersPage] = useState(0);
+  const [votersPage, setVotersPage] = useState(0);
   const [allUsers, setAllUsers] = useState<ProfileRecord[]>([]);
   const [voters, setVoters] = useState<VoterRecord[]>([]);
   const [duelHistory, setDuelHistory] = useState<DuelSummary[]>([]);
@@ -162,10 +83,33 @@ const AdminDashboard = () => {
   const usersSectionRef = useRef<HTMLDivElement>(null);
   const votersSectionRef = useRef<HTMLDivElement>(null);
 
+  const fetchStats = useCallback(async () => {
+    setLoadingStats(true);
+
+    const [community, duelsData, artworksData] = await Promise.all([
+      supabase.rpc('get_admin_community', { p_users_page: usersPage, p_voters_page: votersPage }),
+      supabase.from('duels').select('*').order('start_at', { ascending: false, nullsFirst: false }).limit(100),
+      supabase.from('opere').select('id,titolo')
+    ]);
+    if (community.error) { toast.error('Statistiche non disponibili'); setLoadingStats(false); return; }
+    setStats(community.data.stats);
+    setAllUsers(community.data.users);
+    setVoters(community.data.voters);
+    const artworksById = new Map((artworksData.data || []).map(artwork => [artwork.id, artwork]));
+    setDuelHistory((duelsData.data || []).map((duel) => ({
+      ...duel,
+      champion_title: artworksById.get(duel.champion_id)?.titolo || "Opera rimossa",
+      challenger_title: artworksById.get(duel.challenger_id)?.titolo || "Opera rimossa",
+    })));
+    setLoadingStats(false);
+  }, [usersPage, votersPage]);
+
   useEffect(() => {
+    let disposed = false;
+    let cleanupSubscription: (() => void) | undefined;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         navigate("/");
         return;
@@ -177,14 +121,12 @@ const AdminDashboard = () => {
         return;
       }
 
+      if (disposed) return;
       setAuthorized(true);
       setLoading(false);
       // Load initial data
       fetchOpere();
-      fetchActiveDuel();
-      fetchScheduledDuels();
       fetchStats();
-      fetchFinalArena();
 
       // Real-time subscription for opere updates
       const channel = supabase
@@ -194,24 +136,17 @@ const AdminDashboard = () => {
           fetchStats();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'duels' }, () => {
-          fetchActiveDuel();
-          fetchScheduledDuels();
           fetchStats();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
-          fetchActiveDuel();
           fetchStats();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'final_arenas' }, () => {
-          fetchFinalArena();
         })
         .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      cleanupSubscription = () => { void supabase.removeChannel(channel); };
     })();
-  }, [navigate]);
+    return () => { disposed = true; cleanupSubscription?.(); };
+  }, [navigate, fetchStats]);
 
   const fetchOpere = async () => {
     setLoadingOpere(true);
@@ -226,120 +161,7 @@ const AdminDashboard = () => {
     setLoadingOpere(false);
   };
 
-  const fetchActiveDuel = async () => {
-    setLoadingDuel(true);
-    await supabase.rpc("activate_scheduled_duel");
-    const { data, error } = await supabase
-      .from("duels")
-      .select("*")
-      .eq("is_active", true)
-      .or(`start_at.is.null,start_at.lte.${new Date().toISOString()}`)
-      .order("start_at", { ascending: false, nullsFirst: true })
-      .limit(1)
-      .maybeSingle();
-    
-    if (!error && data) {
-      setActiveDuel(data);
-      
-      // Fetch champion and challenger opere details
-      const [championData, challengerData] = await Promise.all([
-        supabase.from("opere").select("*").eq("id", data.champion_id).single(),
-        supabase.from("opere").select("*").eq("id", data.challenger_id).single()
-      ]);
-      
-      if (!championData.error) setChampionOpere(championData.data);
-      if (!challengerData.error) setChallengerOpere(challengerData.data);
-    }
-    setLoadingDuel(false);
-  };
-
-  const fetchScheduledDuels = async () => {
-    setLoadingScheduledDuels(true);
-    const now = new Date().toISOString();
-    const { data, error } = await supabase
-      .from("duels")
-      .select("*")
-      .eq("is_active", true)
-      .not("start_at", "is", null)
-      .gt("start_at", now)
-      .order("start_at", { ascending: true });
-
-    if (!error && data) {
-      const artworkIds = [...new Set(data.flatMap((duel) => [duel.champion_id, duel.challenger_id]))];
-      const { data: artworks } = await supabase.from("opere").select("id, titolo").in("id", artworkIds);
-      const titles = new Map((artworks || []).map((artwork) => [artwork.id, artwork.titolo]));
-      setScheduledDuels(data.map((duel) => ({
-        ...duel,
-        champion_title: titles.get(duel.champion_id) || "Opera rimossa",
-        challenger_title: titles.get(duel.challenger_id) || "Opera rimossa",
-      })));
-    }
-    setLoadingScheduledDuels(false);
-  };
-
-  const fetchFinalArena = async () => {
-    const { data, error } = await supabase
-      .from("final_arenas")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (!error) {
-      setFinalArena(data);
-      if (data) {
-        setFinalAwards({
-          unseen: data.unseen_choice_id || "",
-          mostWins: data.most_wins_id || "",
-          lastDuel: data.last_duel_winner_id || "",
-        });
-      }
-    }
-  };
-
-  const fetchStats = async () => {
-    setLoadingStats(true);
-    
-    const [usersCount, opereCount, votesCount, usersData, votesData, duelsData, artworksData] = await Promise.all([
-      supabase.from("profiles").select("*", { count: "exact", head: true }),
-      supabase.from("opere").select("*", { count: "exact", head: true }),
-      supabase.from("votes").select("*", { count: "exact", head: true }),
-      supabase.from("profiles").select("id, email, created_at").order("created_at", { ascending: false }),
-      supabase.from("votes").select("user_id, created_at"),
-      supabase.from("duels").select("*").order("start_at", { ascending: false, nullsFirst: false }),
-      supabase.from("opere").select("id, titolo")
-    ]);
-
-    setStats({
-      users: usersCount.count || 0,
-      opere: opereCount.count || 0,
-      votes: votesCount.count || 0
-    });
-    const users = usersData.data || [];
-    const votes = votesData.data || [];
-    const artworksById = new Map((artworksData.data || []).map((artwork) => [artwork.id, artwork]));
-    const voterStats = new Map<string, VoterRecord>();
-
-    votes.forEach((vote) => {
-      const user = users.find((profile) => profile.id === vote.user_id);
-      if (!user) return;
-
-      const existing = voterStats.get(user.id);
-      voterStats.set(user.id, {
-        ...user,
-        voteCount: (existing?.voteCount || 0) + 1,
-        lastVoteAt: existing && existing.lastVoteAt > vote.created_at ? existing.lastVoteAt : vote.created_at,
-      });
-    });
-
-    setAllUsers(users);
-    setVoters(Array.from(voterStats.values()).sort((first, second) => second.lastVoteAt.localeCompare(first.lastVoteAt)));
-    setDuelHistory((duelsData.data || []).map((duel) => ({
-      ...duel,
-      champion_title: artworksById.get(duel.champion_id)?.titolo || "Opera rimossa",
-      challenger_title: artworksById.get(duel.challenger_id)?.titolo || "Opera rimossa",
-    })));
-    setLoadingStats(false);
-  };
+  useEffect(() => { if (authorized) void fetchStats(); }, [fetchStats, authorized]);
 
   const showStatsSection = (section: "users" | "voters") => {
     const sectionRef = section === "users" ? usersSectionRef : votersSectionRef;
@@ -386,190 +208,6 @@ const AdminDashboard = () => {
     if (!error) fetchOpere();
   };
 
-  const handleCloseDuel = async () => {
-    if (!activeDuel) return;
-    if (!confirm("Sei sicuro di voler chiudere questo duello?")) return;
-    const { error } = await supabase
-      .from("duels")
-      .update({ is_active: false })
-      .eq("id", activeDuel.id);
-    if (!error) {
-      setActiveDuel(null);
-      setChampionOpere(null);
-      setChallengerOpere(null);
-      fetchActiveDuel();
-      fetchStats();
-    }
-  };
-
-  const handleCreateDuel = async () => {
-    try {
-      // Find two accepted opere
-      const { data: acceptedOpere, error: fetchError } = await supabase
-        .from("opere")
-        .select("*")
-        .eq("status", "accepted")
-        .limit(2);
-
-      if (fetchError) throw fetchError;
-      if (!acceptedOpere || acceptedOpere.length < 2) {
-        alert("Servono almeno 2 opere accettate per creare un duello");
-        return;
-      }
-
-      // Create new duel
-      const createdAt = new Date();
-      const endAt = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000);
-
-      const { error: insertError } = await supabase
-        .from("duels")
-        .insert({
-          champion_id: acceptedOpere[0].id,
-          challenger_id: acceptedOpere[1].id,
-          end_at: endAt.toISOString(),
-          is_active: true,
-          votes_champion: 0,
-          votes_challenger: 0
-        });
-
-      if (insertError) throw insertError;
-
-      // Reload data
-      fetchActiveDuel();
-      fetchStats();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Errore sconosciuto";
-      alert("Errore nella creazione del duello: " + message);
-    }
-  };
-
-  const handleScheduleDuel = async () => {
-    if (!scheduledChampionId || !scheduledChallengerId || scheduledChampionId === scheduledChallengerId) {
-      alert("Seleziona due opere diverse per programmare il duello");
-      return;
-    }
-
-    const startAt = parseLocalDateTime(scheduleDate, scheduleTime);
-    if (Number.isNaN(startAt.getTime()) || startAt <= new Date()) {
-      alert("Scegli una data e un orario futuri");
-      return;
-    }
-
-    setSchedulingDuel(true);
-    const durationHours = Number(scheduleDurationHours);
-    if (scheduleEndMode === "duration" && (!Number.isFinite(durationHours) || durationHours <= 0)) {
-      alert("Inserisci una durata valida in ore");
-      setSchedulingDuel(false);
-      return;
-    }
-    const endAt = scheduleEndMode === "duration"
-      ? new Date(startAt.getTime() + durationHours * 60 * 60 * 1000)
-      : parseLocalDateTime(scheduleEndDate, scheduleEndTime);
-    if (Number.isNaN(endAt.getTime()) || endAt <= startAt) {
-      alert("Imposta una fine valida dopo l'inizio");
-      setSchedulingDuel(false);
-      return;
-    }
-    const { error } = await supabase.from("duels").insert({
-      champion_id: scheduledChampionId,
-      challenger_id: scheduledChallengerId,
-      start_at: startAt.toISOString(),
-      end_at: endAt.toISOString(),
-      is_active: true,
-      votes_champion: 0,
-      votes_challenger: 0,
-    });
-
-    if (error) {
-      alert("Errore nella programmazione: " + error.message);
-    } else {
-      alert("Duello programmato correttamente");
-      setScheduledChampionId("");
-      setScheduledChallengerId("");
-      fetchActiveDuel();
-      fetchScheduledDuels();
-      fetchStats();
-    }
-    setSchedulingDuel(false);
-  };
-
-  const handleDeleteScheduledDuel = async (id: string) => {
-    const scheduledDuel = scheduledDuels.find((duel) => duel.id === id);
-    if (!scheduledDuel || !confirm(`Eliminare il duello programmato tra "${scheduledDuel.champion_title}" e "${scheduledDuel.challenger_title}"?`)) return;
-
-    const { error } = await supabase.from("duels").delete().eq("id", id);
-    if (error) {
-      alert("Impossibile eliminare il duello: " + error.message);
-      return;
-    }
-    await fetchScheduledDuels();
-    fetchStats();
-  };
-
-  const handleScheduleFinalArena = async () => {
-    if (finalArtworkIds.some((id) => !id) || new Set(finalArtworkIds).size !== 3) {
-      alert("Seleziona tre opere accettate e tutte diverse");
-      return;
-    }
-
-    const startAt = parseLocalDateTime(finalStartDate, finalStartTime);
-    const endAt = parseLocalDateTime(finalEndDate, finalEndTime);
-    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime()) || startAt <= new Date() || endAt <= startAt) {
-      alert("Imposta un intervallo valido nel futuro");
-      return;
-    }
-
-    setSchedulingFinal(true);
-    const { error } = await supabase.from("final_arenas").insert({
-      artwork_1_id: finalArtworkIds[0],
-      artwork_2_id: finalArtworkIds[1],
-      artwork_3_id: finalArtworkIds[2],
-      start_at: startAt.toISOString(),
-      end_at: endAt.toISOString(),
-      is_active: true,
-      votes_1: 0,
-      votes_2: 0,
-      votes_3: 0,
-      unseen_choice_id: finalAwards.unseen || null,
-      most_wins_id: finalAwards.mostWins || null,
-      last_duel_winner_id: finalAwards.lastDuel || null,
-    });
-
-    if (error) {
-      alert("Errore nella programmazione della finale: " + error.message);
-    } else {
-      alert(t("admin.finalArena") + " programmata correttamente");
-      setFinalArtworkIds(["", "", ""]);
-      setFinalAwards({ unseen: "", mostWins: "", lastDuel: "" });
-      fetchFinalArena();
-    }
-    setSchedulingFinal(false);
-  };
-
-  const handleSaveFinalAwards = async () => {
-    const finalArtworkIdsForAwards = [finalArena?.artwork_1_id, finalArena?.artwork_2_id, finalArena?.artwork_3_id];
-    if (!finalArena || new Set(Object.values(finalAwards).filter(Boolean)).size !== 3 || Object.values(finalAwards).some((id) => !finalArtworkIdsForAwards.includes(id))) {
-      alert("Seleziona tre vincitori diversi");
-      return;
-    }
-    const { error } = await supabase.from("final_arenas").update({
-      unseen_choice_id: finalAwards.unseen,
-      most_wins_id: finalAwards.mostWins,
-      last_duel_winner_id: finalAwards.lastDuel,
-    }).eq("id", finalArena.id);
-    if (error) alert(error.message);
-    else fetchFinalArena();
-  };
-
-  const handleCloseFinalArena = async () => {
-    if (!finalArena || !confirm(t("admin.finalArena") + "?")) return;
-    const { error } = await supabase
-      .from("final_arenas")
-      .update({ is_active: false })
-      .eq("id", finalArena.id);
-    if (!error) fetchFinalArena();
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
@@ -609,7 +247,7 @@ const AdminDashboard = () => {
             { id: "moderation", label: t("admin.moderation"), icon: Shield },
             { id: "music", label: "Musica", icon: ThumbsUp },
             { id: "gallery", label: t("admin.gallery"), icon: ImageIcon },
-            { id: "arena", label: t("admin.arena"), icon: Trophy },
+            { id: "championship", label: "Campionati", icon: Trophy },
             { id: "stats", label: t("admin.community"), icon: Users },
             { id: "analytics", label: t("admin.analytics"), icon: BarChart3 },
           ].map((tab) => (
@@ -640,7 +278,7 @@ const AdminDashboard = () => {
                 <Shield size={24} />
                 {t("admin.moderationWorks")}
               </h2>
-              
+
               {loadingOpere ? (
                 <p className="text-white/50 text-center py-8">Caricamento opere...</p>
               ) : (
@@ -670,8 +308,8 @@ const AdminDashboard = () => {
                         <h3 className="font-display font-semibold text-white">{opera.titolo}</h3>
                         <p className="text-white/50 text-sm">{opera.autore}</p>
                         <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
-                          opera.status === "accepted" 
-                            ? "bg-green-500/20 text-green-400" 
+                          opera.status === "accepted"
+                            ? "bg-green-500/20 text-green-400"
                             : opera.status === "rejected"
                             ? "bg-red-500/20 text-red-400"
                             : "bg-yellow-500/20 text-yellow-400"
@@ -719,301 +357,7 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {activeTab === "arena" && (
-            <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl p-8">
-              <h2 className="font-display text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                <Trophy size={24} />
-                {t("admin.arenaControl")}
-              </h2>
-
-              <div className="mb-8 rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.03] p-6">
-                <div className="mb-5 flex items-center justify-between gap-4">
-                  <div>
-                    <h3 className="font-display text-xl font-semibold text-white">Duelli programmati</h3>
-                    <p className="mt-1 text-sm text-white/50">Controlla e rimuovi le gare future prima che inizino.</p>
-                  </div>
-                  <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-sm font-semibold text-cyan-200">{scheduledDuels.length}</span>
-                </div>
-                {loadingScheduledDuels ? <p className="py-5 text-sm text-white/45">Caricamento duelli...</p> : scheduledDuels.length === 0 ? (
-                  <p className="rounded-xl border border-white/10 bg-black/10 p-4 text-sm text-white/45">Nessun duello programmato.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {scheduledDuels.map((duel) => (
-                      <div key={duel.id} className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/10 p-4 md:flex-row md:items-center md:justify-between">
-                        <div className="min-w-0">
-                          <p className="font-display font-semibold text-white">{duel.champion_title} <span className="text-cyan-300">vs</span> {duel.challenger_title}</p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.16em] text-cyan-200/70">Inizio: {duel.start_at ? new Date(duel.start_at).toLocaleString("it-IT", { dateStyle: "medium", timeStyle: "short" }) : "Immediato"}</p>
-                          <p className="mt-1 text-xs text-white/40">Fine: {duel.end_at ? new Date(duel.end_at).toLocaleString("it-IT", { dateStyle: "medium", timeStyle: "short" }) : "Non impostata"}</p>
-                        </div>
-                        <button type="button" onClick={() => void handleDeleteScheduledDuel(duel.id)} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-red-300/25 bg-red-300/10 px-4 py-2.5 text-sm font-semibold text-red-200 transition hover:bg-red-300/20">
-                          <Trash2 size={16} />
-                          Elimina duello
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="mb-8 rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.04] p-6">
-                <div className="mb-5 flex items-start gap-3">
-                  <Calendar size={22} className="mt-1 text-cyan-300" />
-                  <div>
-                    <h3 className="font-display text-xl font-semibold text-white">{t("admin.scheduleNext")}</h3>
-                    <p className="mt-1 text-sm text-white/50">Scegli due opere, l’inizio e quando deve terminare il duello.</p>
-                  </div>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="text-sm text-white/60">
-                    Champion
-                    <select
-                      value={scheduledChampionId}
-                      onChange={(event) => setScheduledChampionId(event.target.value)}
-                      className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
-                    >
-                      <option value="">Seleziona un’opera</option>
-                      {opere.filter((opera) => opera.status === "accepted").map((opera) => (
-                        <option key={opera.id} value={opera.id}>{opera.titolo}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm text-white/60">
-                    Challenger
-                    <select
-                      value={scheduledChallengerId}
-                      onChange={(event) => setScheduledChallengerId(event.target.value)}
-                      className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
-                    >
-                      <option value="">Seleziona un’opera</option>
-                      {opere.filter((opera) => opera.status === "accepted").map((opera) => (
-                        <option key={opera.id} value={opera.id}>{opera.titolo}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm text-white/60">
-                    Giorno di apertura
-                    <input
-                      type="date"
-                      value={scheduleDate}
-                      min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10)}
-                      onChange={(event) => setScheduleDate(event.target.value)}
-                      className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
-                    />
-                  </label>
-                  <label className="text-sm text-white/60">
-                    Orario di apertura
-                    <input
-                      type="time"
-                      value={scheduleTime}
-                      onChange={(event) => setScheduleTime(event.target.value)}
-                      className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
-                    />
-                  </label>
-                  <label className="text-sm text-white/60">
-                    Modalità fine
-                    <select value={scheduleEndMode} onChange={(event) => setScheduleEndMode(event.target.value as "duration" | "date")} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60">
-                      <option value="date">Data e ora precise</option>
-                      <option value="duration">Durata automatica</option>
-                    </select>
-                  </label>
-                  {scheduleEndMode === "duration" ? (
-                    <div>
-                      <label className="text-sm text-white/60">
-                        Durata in ore
-                        <input type="number" min="1" step="1" value={scheduleDurationHours} onChange={(event) => setScheduleDurationHours(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60" />
-                      </label>
-                      {(() => {
-                        const previewStart = parseLocalDateTime(scheduleDate, scheduleTime);
-                        const previewHours = Number(scheduleDurationHours);
-                        const previewEnd = new Date(previewStart.getTime() + (Number.isFinite(previewHours) ? previewHours : 0) * 60 * 60 * 1000);
-                        return Number.isNaN(previewStart.getTime()) || !Number.isFinite(previewHours) || previewHours <= 0 ? null : (
-                          <p className="mt-2 text-xs leading-5 text-cyan-200/70">Fine calcolata: {previewEnd.toLocaleString("it-IT", { dateStyle: "medium", timeStyle: "short" })}</p>
-                        );
-                      })()}
-                    </div>
-                  ) : (
-                    <>
-                      <label className="text-sm text-white/60">
-                        Giorno di fine
-                        <input type="date" value={scheduleEndDate} onChange={(event) => setScheduleEndDate(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60" />
-                      </label>
-                      <label className="text-sm text-white/60">
-                        Orario di fine
-                        <input type="time" value={scheduleEndTime} onChange={(event) => setScheduleEndTime(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-cyan-300/60" />
-                      </label>
-                    </>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={handleScheduleDuel}
-                  disabled={schedulingDuel}
-                  className="mt-5 inline-flex items-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-300/15 px-5 py-3 font-display font-semibold text-cyan-200 transition hover:bg-cyan-300/25 disabled:cursor-wait disabled:opacity-50"
-                >
-                  <Calendar size={18} />
-                  {schedulingDuel ? "Programmazione..." : "Programma duello"}
-                </button>
-              </div>
-
-              <div className="mb-8 rounded-2xl border border-amber-300/15 bg-amber-300/[0.04] p-6">
-                <div className="mb-5 flex items-start gap-3">
-                  <Trophy size={22} className="mt-1 text-amber-300" />
-                  <div>
-                    <h3 className="font-display text-xl font-semibold text-white">{t("admin.finalArena")}</h3>
-                    <p className="mt-1 text-sm text-white/50">Seleziona le tre finaliste e imposta liberamente inizio e fine. Un voto per persona.</p>
-                  </div>
-                </div>
-                <div className="grid gap-4 md:grid-cols-3">
-                  {finalArtworkIds.map((artworkId, index) => (
-                    <label key={index} className="text-sm text-white/60">
-                      Fotografia {index + 1}
-                      <select
-                        value={artworkId}
-                        onChange={(event) => setFinalArtworkIds((current) => current.map((id, itemIndex) => itemIndex === index ? event.target.value : id))}
-                        className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none transition focus:border-amber-300/60"
-                      >
-                        <option value="">Seleziona un’opera</option>
-                        {opere.filter((opera) => opera.status === "accepted").map((opera) => (
-                          <option key={opera.id} value={opera.id}>{opera.titolo}</option>
-                        ))}
-                      </select>
-                    </label>
-                  ))}
-                  <label className="text-sm text-white/60">
-                    Inizio
-                    <input type="datetime-local" value={`${finalStartDate}T${finalStartTime}`} onChange={(event) => { const [date, time] = event.target.value.split("T"); setFinalStartDate(date); setFinalStartTime(time); }} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none focus:border-amber-300/60" />
-                  </label>
-                  <label className="text-sm text-white/60">
-                    Fine
-                    <input type="datetime-local" value={`${finalEndDate}T${finalEndTime}`} onChange={(event) => { const [date, time] = event.target.value.split("T"); setFinalEndDate(date); setFinalEndTime(time); }} className="mt-2 w-full rounded-xl border border-white/10 bg-[#151922] px-4 py-3 text-white outline-none focus:border-amber-300/60" />
-                  </label>
-                </div>
-                <div className="mt-5 grid gap-4 md:grid-cols-3">
-                  <ArtworkSelect label="Scelto da Unseen" value={finalAwards.unseen} onChange={(value) => setFinalAwards((current) => ({ ...current, unseen: value }))} artworks={opere.filter((opera) => opera.status === "accepted")} />
-                  <ArtworkSelect label="Più vittorie" value={finalAwards.mostWins} onChange={(value) => setFinalAwards((current) => ({ ...current, mostWins: value }))} artworks={opere.filter((opera) => opera.status === "accepted")} />
-                  <ArtworkSelect label="Vincitore ultimo duello" value={finalAwards.lastDuel} onChange={(value) => setFinalAwards((current) => ({ ...current, lastDuel: value }))} artworks={opere.filter((opera) => opera.status === "accepted")} />
-                </div>
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <button type="button" onClick={handleScheduleFinalArena} disabled={schedulingFinal} className="inline-flex items-center gap-2 rounded-xl border border-amber-300/30 bg-amber-300/15 px-5 py-3 font-display font-semibold text-amber-200 transition hover:bg-amber-300/25 disabled:cursor-wait disabled:opacity-50">
-                    <Trophy size={18} />
-                    {schedulingFinal ? t("common.loading") : t("admin.finalArena")}
-                  </button>
-                  {finalArena && <button type="button" onClick={() => void handleSaveFinalAwards()} className="rounded-xl border border-amber-300/30 bg-amber-300/10 px-5 py-3 font-display font-semibold text-amber-200 transition hover:bg-amber-300/20">Salva riconoscimenti</button>}
-                  {finalArena && <button type="button" onClick={handleCloseFinalArena} className="rounded-xl border border-red-400/30 bg-red-400/10 px-5 py-3 font-display font-semibold text-red-300 transition hover:bg-red-400/20">Chiudi finale attuale</button>}
-                </div>
-                {finalArena && (
-                  <div className="mt-6 border-t border-amber-300/10 pt-6">
-                    <div className="mb-4 flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-display text-lg font-semibold text-white">Voti della finale</p>
-                        <p className="mt-1 text-xs text-white/45">Aggiornati automaticamente durante la gara</p>
-                      </div>
-                      <span className="rounded-full bg-amber-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-amber-200">Live</span>
-                    </div>
-                    <div className="grid gap-3 md:grid-cols-3">
-                      {[
-                        { id: finalArena.artwork_1_id, votes: finalArena.votes_1, color: "amber" },
-                        { id: finalArena.artwork_2_id, votes: finalArena.votes_2, color: "cyan" },
-                        { id: finalArena.artwork_3_id, votes: finalArena.votes_3, color: "pink" },
-                      ].map((entry, index, entries) => {
-                        const totalVotes = entries.reduce((total, item) => total + (item.votes || 0), 0);
-                        const percentage = totalVotes ? Math.round(((entry.votes || 0) / totalVotes) * 100) : 0;
-                        const artworkTitle = opere.find((artwork) => artwork.id === entry.id)?.titolo || `Opera ${index + 1}`;
-                        const colorClasses = {
-                          amber: "border-amber-300/20 bg-amber-300/[0.05] text-amber-200",
-                          cyan: "border-cyan-300/20 bg-cyan-300/[0.05] text-cyan-200",
-                          pink: "border-pink-300/20 bg-pink-300/[0.05] text-pink-200",
-                        }[entry.color];
-                        return (
-                          <div key={entry.id} className={`rounded-2xl border p-4 ${colorClasses}`}>
-                            <div className="flex items-start justify-between gap-3">
-                              <p className="min-w-0 truncate text-sm font-semibold text-white" title={artworkTitle}>{index + 1}. {artworkTitle}</p>
-                              <span className="shrink-0 font-display text-2xl font-bold">{entry.votes || 0}</span>
-                            </div>
-                            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-black/25">
-                              <div className="h-full rounded-full bg-current transition-[width] duration-500" style={{ width: `${percentage}%` }} />
-                            </div>
-                            <p className="mt-2 text-right text-[11px] uppercase tracking-[0.16em] text-white/45">{percentage}% · voti</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <p className="mt-4 text-sm text-white/55">Finale configurata: {new Date(finalArena.start_at).toLocaleString("it-IT")} - {new Date(finalArena.end_at).toLocaleString("it-IT")}</p>
-                  </div>
-                )}
-              </div>
-              
-              {loadingDuel ? (
-                <p className="text-white/50 text-center py-8">Caricamento duello...</p>
-              ) : !activeDuel ? (
-                <div className="text-center py-16">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-white/5 flex items-center justify-center">
-                    <Trophy size={48} className="text-white/30" />
-                  </div>
-                  <h3 className="font-display text-2xl font-bold text-white mb-3">Nessun duello in corso</h3>
-                  <p className="text-white/50 mb-8">Crea un nuovo duello per iniziare la competizione</p>
-                  <button
-                    onClick={handleCreateDuel}
-                    className="px-8 py-4 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30 transition-all font-display font-semibold tracking-wide"
-                  >
-                    Crea Nuovo Duello
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-6">
-                      <h3 className="font-display font-semibold text-white mb-4">Champion</h3>
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
-                          {championOpere?.immagine_url ? (
-                            <img src={championOpere.immagine_url} alt={championOpere.titolo} className="w-full h-full object-cover" />
-                          ) : (
-                            <ImageIcon size={24} className="text-white/50" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-white/50 text-sm">{championOpere?.titolo || "Nessun titolo"}</p>
-                          <p className="text-2xl font-bold text-white">{activeDuel.votes_champion || 0}</p>
-                          <p className="text-white/50 text-xs">voti</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-6">
-                      <h3 className="font-display font-semibold text-white mb-4">Challenger</h3>
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
-                          {challengerOpere?.immagine_url ? (
-                            <img src={challengerOpere.immagine_url} alt={challengerOpere.titolo} className="w-full h-full object-cover" />
-                          ) : (
-                            <ImageIcon size={24} className="text-white/50" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-white/50 text-sm">{challengerOpere?.titolo || "Nessun titolo"}</p>
-                          <p className="text-2xl font-bold text-white">{activeDuel.votes_challenger || 0}</p>
-                          <p className="text-white/50 text-xs">voti</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                    <div className="flex items-center gap-3">
-                      <Clock size={20} className="text-white/50" />
-                      <span className="text-white/50">Fine duello: {new Date(activeDuel.end_at).toLocaleString('it-IT')}</span>
-                    </div>
-                    <button
-                      onClick={handleCloseDuel}
-                      className="px-6 py-3 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all font-display font-semibold tracking-wide"
-                    >
-                      Chiudi Duello
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          {activeTab === "championship" && <ChampionshipAdminManager />}
 
           {activeTab === "gallery" && <GalleryMonthManager />}
           {activeTab === "music" && <MusicAdminManager />}
@@ -1043,7 +387,7 @@ const AdminDashboard = () => {
                   <p className="text-4xl font-display font-bold text-white">{loadingStats ? "..." : stats.users}</p>
                   <p className="text-white/50 text-sm mt-2">{t("admin.registeredUsers")}</p>
                 </motion.button>
-                
+
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1058,7 +402,7 @@ const AdminDashboard = () => {
                   <p className="text-4xl font-display font-bold text-white">{loadingStats ? "..." : stats.opere}</p>
                   <p className="text-white/50 text-sm mt-2">{t("admin.totalWorks")}</p>
                 </motion.div>
-                
+
                 <motion.button
                   type="button"
                   onClick={() => showStatsSection("voters")}
@@ -1091,9 +435,9 @@ const AdminDashboard = () => {
                         <Users size={24} />
                         {t("admin.allUsers")}
                       </h2>
-                      <p className="mt-2 text-sm text-white/45">Elenco completo degli account registrati</p>
+                      <p className="mt-2 text-sm text-white/45">Account registrati · pagina {usersPage + 1}</p>
                     </div>
-                    <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-sm font-semibold text-cyan-300">{allUsers.length}</span>
+                    <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-sm font-semibold text-cyan-300">{stats.users}</span>
                   </div>
                   <div className="max-h-[420px] space-y-3 overflow-y-auto pr-2">
                     {allUsers.map((user) => (
@@ -1108,6 +452,7 @@ const AdminDashboard = () => {
                       </div>
                     ))}
                     {!loadingStats && allUsers.length === 0 && <p className="py-8 text-center text-white/50">Nessun iscritto</p>}
+                    <div className="flex justify-between text-xs text-white/50"><button disabled={!usersPage || loadingStats} onClick={() => setUsersPage(p => p - 1)}>Precedenti</button><button disabled={(usersPage + 1) * 100 >= stats.users || loadingStats} onClick={() => setUsersPage(p => p + 1)}>Successivi</button></div>
                   </div>
                 </motion.div>
 
@@ -1126,7 +471,7 @@ const AdminDashboard = () => {
                       </h2>
                       <p className="mt-2 text-sm text-white/45">Email degli iscritti che hanno espresso almeno un voto</p>
                     </div>
-                    <span className="rounded-full bg-pink-400/10 px-3 py-1 text-sm font-semibold text-pink-300">{voters.length}</span>
+                    <span className="rounded-full bg-pink-400/10 px-3 py-1 text-sm font-semibold text-pink-300">{stats.voters}</span>
                   </div>
                   <div className="max-h-[420px] space-y-3 overflow-y-auto pr-2">
                     {voters.map((voter) => (
@@ -1144,6 +489,7 @@ const AdminDashboard = () => {
                       </div>
                     ))}
                     {!loadingStats && voters.length === 0 && <p className="py-8 text-center text-white/50">Nessun voto registrato</p>}
+                    <div className="flex justify-between text-xs text-white/50"><button disabled={!votersPage || loadingStats} onClick={() => setVotersPage(p => p - 1)}>Precedenti</button><span>Pagina {votersPage + 1}</span><button disabled={(votersPage + 1) * 100 >= stats.voters || loadingStats} onClick={() => setVotersPage(p => p + 1)}>Successivi</button></div>
                   </div>
                 </motion.div>
               </div>

@@ -529,7 +529,7 @@ const Arena = () => {
                 <button
                   key={challenger.id}
                   type="button"
-                  disabled={voting}
+                  disabled={true}
                   onClick={() => handleFinalVote(challenger.id)}
                   className="arena-vote-button flex w-full items-center justify-center gap-1.5 rounded-xl px-2 py-3 font-display text-[10px] font-semibold text-foreground sm:gap-2 sm:px-4 sm:text-sm disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -598,7 +598,7 @@ const Arena = () => {
                 <motion.button
                   key={c.id}
                   type="button"
-                  disabled={!duelId || voting}
+                  disabled={true}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleVote(c.id as 1 | 2)}
@@ -647,7 +647,7 @@ const Arena = () => {
               </p>
               <motion.button
                 type="button"
-                disabled={(!duelId && !finalArenaId) || voting}
+                disabled={true}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectedWork && (finalArenaId ? handleFinalVote(selectedWork.id) : handleVote(selectedWork.id as 1 | 2))}
                 className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-arena/35 bg-arena/10 py-3.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/18 disabled:cursor-not-allowed disabled:opacity-50"
