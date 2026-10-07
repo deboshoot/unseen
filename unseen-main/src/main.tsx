@@ -10,7 +10,7 @@ const bootstrap = async () => {
 	createRoot(document.getElementById("root")!).render(
 		<I18nProvider initialLocale={locale} initialDictionary={dictionary}>
 			<App />
-			<Analytics />
+			{window.location.hostname.endsWith('.vercel.app') && <Analytics />}
 		</I18nProvider>,
 	);
 };

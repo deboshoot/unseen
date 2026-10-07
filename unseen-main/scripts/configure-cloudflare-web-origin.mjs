@@ -1,0 +1,21 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { app, readLocalEnv } from './cloudflare-env.mjs';
+import { supabaseRequest } from './setup-supabase-r2.mjs';
+
+const origin = 'https://unseen.unseen-deboshoot.workers.dev';
+const env = await readLocalEnv('.env.cloudflare.local');
+const origins = new Set(env.MEDIA_ALLOWED_ORIGINS.split(',').map(value => value.trim()));
+origins.add(origin);
+const allowed = [...origins].join(',');
+const file = path.join(app, '.env.cloudflare.local');
+await fs.writeFile(file, (await fs.readFile(file, 'utf8')).replace(/^MEDIA_ALLOWED_ORIGINS=.*$/m, `MEDIA_ALLOWED_ORIGINS=${allowed}`));
+await supabaseRequest('secrets', 'POST', [{ name: 'MEDIA_ALLOWED_ORIGINS', value: allowed }]);
+const auth = await supabaseRequest('config/auth');
+const folder = path.resolve(app, '..', 'debug.local', 'r2');
+await fs.mkdir(folder, { recursive: true });
+await fs.writeFile(path.join(folder, 'auth-origin-before.json'), JSON.stringify({ site_url: auth.site_url, uri_allow_list: auth.uri_allow_list }));
+const redirects = new Set((auth.uri_allow_list || '').split(',').map(value => value.trim()).filter(Boolean));
+redirects.add(`${origin}/**`);
+await supabaseRequest('config/auth', 'PATCH', { uri_allow_list: [...redirects].join(',') });
+console.log('Nuovo indirizzo autorizzato per login, funzione media e configurazione CORS.');

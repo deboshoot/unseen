@@ -97,6 +97,6 @@ Sono applicati lo schema musicale, `media_assets`, sessioni upload, quote atomic
 
 Le prove reali hanno verificato upload fotografico e musicale, dimensioni firmate, replay della conferma, riservatezza dei pending, pubblicazione/rifiuto, lettura audio parziale, permessi admin e doppio voto. Le fixture sono state eliminate: restano 67 opere e 534 profili; nessun brano o asset di test. Sono passati 22 test frontend, TypeScript, lint mirato e build. La configurazione Auth permette anche i redirect dell'anteprima locale.
 
-I 127 file precedenti restano in Supabase e conservano i propri URL. Il passaggio dei nuovi invii avviene con il deploy frontend GitHub → Vercel; dopo la verifica in produzione, `r2-cutover.sql` chiude i vecchi upload senza eliminare file. Dettagli in [R2.md](./R2.md).
+I 127 file precedenti restano in Supabase e conservano i propri URL. Il codice è su GitHub; Vercel ha bloccato il nuovo deploy. Il frontend aggiornato è pubblicato su `https://unseen.unseen-deboshoot.workers.dev`: verificati bundle, routing, CORS, redirect di login, riproduzione della demo nel browser e flusso reale R2 dalla nuova origine. Dopo questa verifica, `r2-cutover.sql` ha chiuso i vecchi upload senza eliminare file. Dettagli in [R2.md](./R2.md).
 
 Restano da realizzare il selettore degli estratti audio, miniature e statistiche aggregate della dashboard fotografica. La dashboard musicale usa già liste paginate. Non è stata eseguita una migrazione dei file precedenti.

@@ -9,3 +9,5 @@ Serve Node.js LTS. Su questo computer lo script usa anche il runtime locale in `
 Su questo computer `unseen-main/.env.development.local` è collegato al progetto Supabase reale: login, voti e upload agiscono sui dati reali. Gli upload nuovi usano R2; vedi `unseen-main/R2.md`. La precedente configurazione dimostrativa è conservata nel file locale `.env.demo.local`.
 
 Su un nuovo computer usa `unseen-main/.env.example` come riferimento e riavvia il server dopo aver inserito URL e chiave pubblica in `.env.development.local`. Non inserire chiavi `service_role` o segreti R2 nelle variabili `VITE_*`.
+
+La versione aggiornata online è su https://unseen.unseen-deboshoot.workers.dev. Il vecchio indirizzo Vercel non ha ricevuto il nuovo deploy: usare Cloudflare per i nuovi invii.

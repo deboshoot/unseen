@@ -26,6 +26,7 @@ const [status, deployments, checks] = await Promise.all([
   request('repos/deboshoot/unseen/deployments?per_page=5'),
   request(`repos/deboshoot/unseen/commits/${sha}/check-runs`),
 ]);
+const comments = await request(`repos/deboshoot/unseen/commits/${status.sha}/comments`);
 const deploymentStatuses = [];
 for (const deployment of deployments.slice(0, 3)) {
   const entries = await request(`repos/deboshoot/unseen/deployments/${deployment.id}/statuses`);
@@ -33,4 +34,5 @@ for (const deployment of deployments.slice(0, 3)) {
 }
 console.log(JSON.stringify({ login: user.login, name: user.name, email: user.email, id: user.id, permission: repo.permissions, defaultBranch: repo.default_branch, sha: status.sha, status: status.state,
   statuses: status.statuses.map(s => ({ context: s.context, state: s.state, description: s.description, url: s.target_url })),
-  checks: checks.check_runs.map(c => ({ name: c.name, status: c.status, conclusion: c.conclusion, url: c.details_url })), deployments: deploymentStatuses }, null, 2));
+  checks: checks.check_runs.map(c => ({ name: c.name, status: c.status, conclusion: c.conclusion, url: c.details_url })),
+  comments: comments.map(c => ({ author: c.user.login, body: c.body, url: c.html_url })), deployments: deploymentStatuses }, null, 2));

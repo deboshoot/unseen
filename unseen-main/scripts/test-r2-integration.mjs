@@ -6,6 +6,8 @@ import { createClient } from '@supabase/supabase-js';
 import { app, readLocalEnv } from './cloudflare-env.mjs';
 import { supabaseRequest } from './setup-supabase-r2.mjs';
 const env=await readLocalEnv('.env.cloudflare.local');
+const testOrigin=process.env.MEDIA_TEST_ORIGIN || 'https://unseen-virid.vercel.app';
+if(!env.MEDIA_ALLOWED_ORIGINS.split(',').includes(testOrigin)) throw new Error('Origine di prova non autorizzata');
 const base='https://mpqphroecgfwonclmkyb.supabase.co';
 const keys=await supabaseRequest('api-keys');
 const anon=keys.find(key=>key.name==='anon')?.api_key;
@@ -19,7 +21,7 @@ const fixture={userId:null,submissions:[],duel:null};
 const record=path.resolve(app,'..','debug.local','r2','smoke-fixtures.json');
 const checks={};
 const save=()=>fs.writeFile(record,JSON.stringify(fixture,null,2));
-async function call(body,token,expected=200,origin='https://unseen-virid.vercel.app') {
+async function call(body,token,expected=200,origin=testOrigin) {
   const response=await fetch(`${base}/functions/v1/r2-media`,{method:'POST',headers:{Authorization:`Bearer ${token}`,apikey:anon,'Content-Type':'application/json',Origin:origin},body:JSON.stringify(body),signal:AbortSignal.timeout(45000)});
   const data=await response.json();
   assert.equal(response.status,expected,`Media action ${body.action}: HTTP ${response.status}, ${data.error||''}`);
@@ -76,13 +78,13 @@ async function main() {
   assert.equal(before.status,404,'Pending media exposed publicly');
   const {urls}=await call({action:'preview',ids:[photoRow.media_asset_id]},adminToken);
   assert.ok(urls[photoRow.media_asset_id].includes('X-Amz-Signature='));
-  const privateGet=await fetch(urls[photoRow.media_asset_id],{headers:{Origin:'https://unseen-virid.vercel.app'},signal:AbortSignal.timeout(15000)});
+  const privateGet=await fetch(urls[photoRow.media_asset_id],{headers:{Origin:testOrigin},signal:AbortSignal.timeout(15000)});
   assert.equal(privateGet.status,200);
   checks.privateReview=true;
   await call({action:'moderate',kind:'photo',id:photo,status:'accepted'},adminToken);
-  const publicGet=await fetch(photoRow.immagine_url,{headers:{Origin:'https://unseen-virid.vercel.app'},signal:AbortSignal.timeout(15000)});
+  const publicGet=await fetch(photoRow.immagine_url,{headers:{Origin:testOrigin},signal:AbortSignal.timeout(15000)});
   assert.equal(publicGet.status,200);
-  assert.equal(publicGet.headers.get('access-control-allow-origin'),'https://unseen-virid.vercel.app');
+  assert.equal(publicGet.headers.get('access-control-allow-origin'),testOrigin);
   assert.equal((await publicGet.arrayBuffer()).byteLength,cover.length);
   await call({action:'moderate',kind:'photo',id:photo,status:'rejected'},adminToken);
   const revoked=await fetch(photoRow.immagine_url,{headers:{Range:'bytes=0-63'},signal:AbortSignal.timeout(15000)});
@@ -96,7 +98,7 @@ async function main() {
     assert.ok(!error&&track.cover_asset_id&&track.audio_asset_id&&track.audio_url.startsWith(env.R2_PUBLIC_URL));
     tracks.push(track);
   }
-  const range=await fetch(tracks[0].audio_url,{headers:{Range:'bytes=0-63',Origin:'https://unseen-virid.vercel.app'},signal:AbortSignal.timeout(15000)});
+  const range=await fetch(tracks[0].audio_url,{headers:{Range:'bytes=0-63',Origin:testOrigin},signal:AbortSignal.timeout(15000)});
   assert.equal(range.status,206);
   assert.equal((await range.arrayBuffer()).byteLength,64);
   assert.equal(range.headers.get('content-range'),`bytes 0-63/${audio.length}`);

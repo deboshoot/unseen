@@ -27,7 +27,7 @@ if (process.argv.includes('--rehearse')) {
   console.log('Passaggio a R2 verificato in transazione annullata; letture precedenti e gestione admin preservate.');
 } else if (process.argv.includes('--apply')) {
   const deployment = JSON.parse(await fs.readFile(path.join(folder, 'production-verified.json'), 'utf8'));
-  if (!deployment.passed || deployment.url !== 'https://unseen-virid.vercel.app' || Date.now() - Date.parse(deployment.at) > 3600000) throw new Error('Verificare prima il frontend R2 in produzione');
+  if (!deployment.passed || !['https://unseen-virid.vercel.app','https://unseen.unseen-deboshoot.workers.dev'].includes(deployment.url) || Date.now() - Date.parse(deployment.at) > 3600000) throw new Error('Verificare prima il frontend R2 in produzione');
   await supabaseRequest('database/query', 'POST', { query: `begin;\n${sql}\n${checks}\ncommit;`, read_only: false });
   const history = await supabaseRequest('database/migrations');
   if (!history.some(entry => entry.name === 'unseen_r2_cutover')) {
