@@ -1,109 +1,131 @@
-import { useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ArrowDown, ArrowUp, Camera, Music2, Plus, Trophy, X } from 'lucide-react';
+import { ArrowUpRight, CalendarDays, Camera, Check, ChevronRight, LockKeyhole, Music2, Plus, Search, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/supabaseClient';
 import { useChampionship } from '@/hooks/useChampionship';
-import { type ChampionshipKind } from '@/lib/championship';
+import type { Championship, ChampionshipKind } from '@/lib/championship';
+import { adminDate, championshipEnd, championshipMonth, draftBracket, romeStart, type ChampionshipChoice } from '@/lib/admin-studio';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import ChampionshipBracket from './ChampionshipBracket';
+import ChampionshipVoteAudit from './admin/ChampionshipVoteAudit';
 import '@/championship.css';
 
-type Choice = { id: string; title: string; artist: string; image: string; identity: string };
-const pageSize = 40;
-
-export default function ChampionshipAdminManager() {
+const statusLabels = { running: 'In corso', scheduled: 'In programma', completed: 'Concluso', cancelled: 'Annullato' };
+const emptySlots = () => Array<ChampionshipChoice | null>(16).fill(null);
+function readDraft(accountId: string | undefined, kind: ChampionshipKind) {
+  const empty = { slots: emptySlots(), name: '', start: '' };
+  if (!accountId) return empty;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(`unseen-championship-draft:${accountId}:${kind}`) ?? 'null');
+    if (!saved || !Array.isArray(saved.slots) || saved.slots.length !== 16 || typeof saved.name !== 'string' || typeof saved.start !== 'string') return empty;
+    if (!saved.slots.every((entry: ChampionshipChoice | null) => entry === null || ['id', 'title', 'artist', 'image', 'identity'].every(key => typeof entry?.[key] === 'string'))) return empty;
+    return saved as typeof empty;
+  } catch { return empty; }
+}
+export default function ChampionshipAdminManager({ accountId }: { accountId?: string }) {
+  const queryClient = useQueryClient();
+  const initialDraft = useMemo(() => readDraft(accountId, 'photo'), [accountId]);
   const [kind, setKind] = useState<ChampionshipKind>('photo');
-  const [selected, setSelected] = useState<Choice[]>([]);
-  const [name, setName] = useState('');
-  const [start, setStart] = useState('');
-  const [page, setPage] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const busyRef = useRef(false);
-  const [auditMatch, setAuditMatch] = useState('');
-  const [auditPage, setAuditPage] = useState(0);
-  const { data, now, refetch, error } = useChampionship(kind);
+  const [slots, setSlots] = useState(initialDraft.slots);
+  const [activeSeed, setActiveSeed] = useState<number | null>(null);
+  const [name, setName] = useState(initialDraft.name); const [start, setStart] = useState(initialDraft.start);
+  const [search, setSearch] = useState(''); const [term, setTerm] = useState(''); const [page, setPage] = useState(0);
+  const [busy, setBusy] = useState(false); const busyRef = useRef(false);
+  const [draft, setDraft] = useState(false); const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [view, setView] = useState<'bracket' | 'votes' | 'calendar'>('bracket');
+  const { data, now, refetch, error, isLoading } = useChampionship(kind, selectedId);
+  const history = useQuery({ queryKey: ['admin', 'championship-history', kind], queryFn: async ({ signal }) => {
+    const { data, error } = await supabase.from('championships').select('id,kind,name,status,start_at,end_at,winner_id').eq('kind', kind).order('start_at', { ascending: false }).limit(48).abortSignal(signal);
+    if (error) throw error; return (data ?? []) as Championship[];
+  } });
   const championship = data?.championship;
-  const open = championship && ['running', 'scheduled'].includes(championship.status);
-  const choices = useQuery({
-    queryKey: ['championship-admin-choices', kind, page],
+  const open = history.data?.some(item => ['running', 'scheduled'].includes(item.status)) || Boolean(championship && ['running', 'scheduled'].includes(championship.status));
+  const showDraft = !isLoading && !error && !history.isLoading && !history.error && !open && (draft || !championship);
+  const filled = slots.filter(Boolean).length;
+  const startIso = romeStart(start);
+  const proposedName = startIso ? `UNSEEN · ${kind === 'photo' ? 'Fotografia' : 'Musica'} · ${championshipMonth(startIso)}` : '';
+  const setup = useMemo(() => draftBracket(slots, kind), [slots, kind]);
+  useEffect(() => {
+    if (!accountId) return;
+    const key = `unseen-championship-draft:${accountId}:${kind}`;
+    try { if (!slots.some(Boolean) && !name && !start) sessionStorage.removeItem(key); else sessionStorage.setItem(key, JSON.stringify({ slots, name, start })); } catch { /* Storage may be unavailable; editing still works. */ }
+  }, [accountId, kind, slots, name, start]);
+  useEffect(() => { const timer = window.setTimeout(() => { setTerm(search.trim().replace(/[^\p{L}\p{N}\s._-]/gu, '')); setPage(0); }, 250); return () => window.clearTimeout(timer); }, [search]);
+  const choices = useQuery({ queryKey: ['admin', 'choices', kind, page, term], enabled: activeSeed !== null,
     queryFn: async ({ signal }) => {
       if (kind === 'photo') {
-        const { data, error } = await supabase.from('opere').select('id,titolo,autore,immagine_url,owner_id', { count: 'exact' }).eq('status', 'accepted').order('created_at', { ascending: false }).range(page * pageSize, (page + 1) * pageSize - 1).abortSignal(signal);
-        if (error) throw new Error(error.message);
-        return (data ?? []).map(work => ({ id: work.id, title: work.titolo, artist: work.autore, image: work.immagine_url, identity: work.owner_id || work.autore?.trim().toLowerCase() }));
+        let query = supabase.from('opere').select('id,titolo,autore,immagine_url,owner_id').eq('status', 'accepted');
+        if (term) query = query.or(`titolo.ilike.%${term}%,autore.ilike.%${term}%`);
+        const { data, error } = await query.order('created_at', { ascending: false }).order('id').range(page * 40, page * 40 + 39).abortSignal(signal);
+        if (error) throw error;
+        return (data ?? []).map(work => ({ id: work.id, title: work.titolo, artist: work.autore, image: work.immagine_url, identity: work.owner_id || work.autore?.trim().toLowerCase() })) as ChampionshipChoice[];
       }
-      const { data, error } = await supabase.from('music_tracks').select('id,title,artist,cover_url,user_id').eq('status', 'accepted').order('created_at', { ascending: false }).range(page * pageSize, (page + 1) * pageSize - 1).abortSignal(signal);
-      if (error) throw new Error(error.message);
-      return (data ?? []).map(work => ({ id: work.id, title: work.title, artist: work.artist, image: work.cover_url, identity: work.user_id }));
+      let query = supabase.from('music_tracks').select('id,title,artist,cover_url,user_id').eq('status', 'accepted');
+      if (term) query = query.or(`title.ilike.%${term}%,artist.ilike.%${term}%`);
+      const { data, error } = await query.order('created_at', { ascending: false }).order('id').range(page * 40, page * 40 + 39).abortSignal(signal);
+      if (error) throw error;
+      return (data ?? []).map(work => ({ id: work.id, title: work.title, artist: work.artist, image: work.cover_url, identity: work.user_id })) as ChampionshipChoice[];
     }, staleTime: 30000,
   });
-  const audit = useQuery({
-    queryKey: ['championship-vote-audit', auditMatch, auditPage], enabled: Boolean(auditMatch),
-    queryFn: async ({ signal }) => {
-      const { data, error } = await supabase.from('championship_votes').select('id,user_id,vote_slot,created_at').eq('match_id', auditMatch).order('created_at', { ascending: false }).order('id').range(auditPage * 100, (auditPage + 1) * 100 - 1).abortSignal(signal);
-      if (error) throw new Error(error.message);
-      const ids = [...new Set((data ?? []).map(vote => vote.user_id).filter(Boolean))];
-      const { data: profiles, error: profilesError } = ids.length ? await supabase.from('profiles').select('id,email').in('id', ids).abortSignal(signal) : { data: [], error: null };
-      if (profilesError) throw new Error(profilesError.message);
-      return (data ?? []).map(vote => ({ ...vote, email: profiles?.find(profile => profile.id === vote.user_id)?.email || vote.user_id || 'Account eliminato' }));
-    },
-  });
-  const changeKind = (value: ChampionshipKind) => { setKind(value); setPage(0); setSelected([]); setAuditMatch(''); };
-  const toggle = (entry: Choice) => {
-    if (selected.some(work => work.id === entry.id)) { setSelected(previous => previous.filter(work => work.id !== entry.id)); return; }
-    if (selected.length === 16) { toast.error('Hai già selezionato 16 partecipanti.'); return; }
-    if (selected.some(work => work.identity === entry.identity)) { toast.error('Scegli una sola opera per partecipante.'); return; }
-    setSelected(previous => [...previous, entry]);
+  const changeKind = (value: ChampionshipKind) => { if (busy || value === kind) return; const saved = readDraft(accountId, value); setKind(value); setSlots(saved.slots); setActiveSeed(null); setPage(0); setSearch(''); setTerm(''); setSelectedId(null); setDraft(false); setView('bracket'); setName(saved.name); setStart(saved.start); };
+  const choose = (entry: ChampionshipChoice) => {
+    if (activeSeed === null) return;
+    if (slots.some((work, index) => index !== activeSeed - 1 && work?.identity === entry.identity)) { toast.error('Scegli una sola opera per partecipante.'); return; }
+    setSlots(previous => previous.map((work, index) => index === activeSeed - 1 ? entry : work)); setActiveSeed(null);
   };
-  const move = (index: number, offset: number) => setSelected(previous => {
-    const next = [...previous]; [next[index], next[index + offset]] = [next[index + offset], next[index]]; return next;
-  });
   const create = async () => {
-    if (busyRef.current || selected.length !== 16 || !name.trim()) return;
-    const startAt = start ? new Date(start) : null;
-    if (startAt && (!Number.isFinite(startAt.getTime()) || startAt.getTime() < Date.now())) { toast.error('Scegli un inizio futuro oppure lascia vuoto per iniziare ora.'); return; }
+    if (busyRef.current || filled !== 16 || !startIso || !(name.trim() || proposedName)) return;
+    if (Date.parse(startIso) < Date.now()) { toast.error('Scegli una data di inizio futura.'); return; }
     busyRef.current = true; setBusy(true);
     try {
-      const { error } = await supabase.rpc('create_championship', { p_kind: kind, p_name: name.trim(), p_entry_ids: selected.map(work => work.id), p_start_at: startAt?.toISOString() ?? null });
-      if (error) throw new Error(error.message);
-      setSelected([]); setName(''); setStart(''); await refetch(); toast.success('Campionato programmato. I 15 duelli avanzeranno automaticamente.');
+      const { error } = await supabase.rpc('create_championship', { p_kind: kind, p_name: name.trim() || proposedName, p_entry_ids: slots.map(work => work!.id), p_start_at: startIso });
+      if (error) throw error;
+      setSlots(emptySlots()); setName(''); setStart(''); setDraft(false); setSelectedId(null);
+      await Promise.all([refetch(), queryClient.invalidateQueries({ queryKey: ['admin'] })]);
+      toast.success('Campionato programmato. Duelli e galleria saranno gestiti automaticamente.');
     } catch (error) { toast.error(error instanceof Error ? error.message : 'Campionato non creato'); }
     finally { busyRef.current = false; setBusy(false); }
   };
   const cancel = async () => {
-    if (!championship || busyRef.current || !window.confirm('Annullare questo campionato? I duelli si fermeranno e i voti già espressi resteranno nello storico.')) return;
+    if (!championship || busyRef.current || !window.confirm('Annullare il campionato? Le sfide si fermeranno; partecipanti e voti resteranno nello storico.')) return;
     busyRef.current = true; setBusy(true);
-    try {
-      const { error } = await supabase.rpc('cancel_championship', { p_id: championship.id });
-      if (error) throw new Error(error.message);
-      await refetch(); toast.success('Campionato annullato.');
-    } catch (error) { toast.error(error instanceof Error ? error.message : 'Annullamento non riuscito'); }
+    try { const { error } = await supabase.rpc('cancel_championship', { p_id: championship.id }); if (error) throw error; await Promise.all([refetch(), history.refetch(), queryClient.invalidateQueries({ queryKey: ['admin', 'overview'] })]); toast.success('Campionato annullato.'); }
+    catch (error) { toast.error(error instanceof Error ? error.message : 'Annullamento non riuscito'); }
     finally { busyRef.current = false; setBusy(false); }
   };
-  const proposedStart = start ? new Date(start).getTime() : Date.now();
-  return <section className="space-y-8">
-    <div><h2 className="font-display text-2xl">Gestisci i campionati</h2><p className="mt-3 text-sm leading-7 text-white/50">16 partecipanti, 15 duelli da 48 ore, 30 giorni esatti. Fotografia e musica hanno campionati indipendenti.</p></div>
-    <div className="flex gap-3">{(['photo', 'music'] as const).map(value => <button key={value} type="button" onClick={() => changeKind(value)} disabled={busy} className={`flex items-center gap-2 rounded-full border px-5 py-3 text-sm ${kind === value ? 'border-primary bg-primary/10 text-primary' : 'border-white/15'}`}>{value === 'photo' ? <Camera size={16} /> : <Music2 size={16} />}{value === 'photo' ? 'Fotografico' : 'Musicale'}</button>)}</div>
-    {error && <p role="alert">Caricamento campionato non riuscito. <button onClick={() => void refetch()}>Riprova</button></p>}
-    {championship && <div className="space-y-5 rounded-2xl border border-white/10 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-xs uppercase text-primary">{championship.status}</p><h3 className="mt-2 text-xl">{championship.name}</h3><p className="mt-2 text-xs text-white/50">{new Date(championship.start_at).toLocaleString('it-IT')} → {new Date(championship.end_at).toLocaleString('it-IT')} · {(data.matches ?? []).reduce((sum, match) => sum + match.votes_1 + match.votes_2, 0)} voti</p></div><div className="flex gap-3"><Link className="champ-button" to={`/campionato?tipo=${kind === 'music' ? 'musica' : 'foto'}&id=${championship.id}`}><Trophy size={15} />Vedi pubblico</Link>{open && <button className="rounded-full border border-red-400/30 px-4 py-2 text-xs text-red-300" disabled={busy} onClick={() => void cancel()}>Annulla campionato</button>}</div></div>
-      <ChampionshipBracket data={data} kind={kind} now={now} />
-      <label className="block text-sm">Controlla i voti di un duello<select aria-label="Duello per registro voti" value={auditMatch} onChange={event => { setAuditMatch(event.target.value); setAuditPage(0); }} className="mt-2 block w-full rounded-xl border border-white/15 bg-black p-3"><option value="">Scegli duello</option>{data.matches.map(match => <option key={match.id} value={match.id}>#{match.number} · {new Date(match.start_at).toLocaleString('it-IT')} · {match.votes_1 + match.votes_2} voti</option>)}</select></label>
-      {auditMatch && <div className="max-h-72 overflow-auto text-xs">{audit.isLoading ? <p>Caricamento voti…</p> : audit.error ? <p role="alert">Registro voti non disponibile.</p> : audit.data?.length ? <><p className="mb-3 text-white/50">Ultimi 200 voti. Il totale completo è riportato nel duello.</p>{audit.data.map(vote => <div key={vote.id} className="flex flex-wrap justify-between gap-3 border-t border-white/10 py-3"><span>{vote.email}</span><span>Sfidante {vote.vote_slot} · {new Date(vote.created_at).toLocaleString('it-IT')}</span></div>)}</> : <p>Nessun voto.</p>}<div className="mt-4 flex justify-between"><button disabled={auditPage === 0 || audit.isFetching} onClick={() => setAuditPage(p => p - 1)}>Precedenti</button><button disabled={(audit.data?.length ?? 0) < 100 || audit.isFetching} onClick={() => setAuditPage(p => p + 1)}>Successivi</button></div></div>}
-    </div>}
-    {!open && <div className="space-y-6 rounded-2xl border border-white/10 p-5 sm:p-7">
-      <h3 className="font-display text-xl">Nuovo campionato {kind === 'music' ? 'musicale' : 'fotografico'}</h3>
-      <div className="grid gap-5 sm:grid-cols-2"><label className="text-sm">Nome<input aria-label="Nome campionato" value={name} maxLength={120} onChange={event => setName(event.target.value)} placeholder="Es. UNSEEN · Ottobre 2026" className="mt-2 block w-full rounded-xl border border-white/15 bg-black p-3" /></label><label className="text-sm">Inizio (vuoto = ora)<input aria-label="Inizio campionato" type="datetime-local" value={start} onChange={event => setStart(event.target.value)} className="mt-2 block w-full rounded-xl border border-white/15 bg-black p-3" /></label></div>
-      <p className="text-xs leading-6 text-white/50">Orari nel fuso del dispositivo. La finale termina esattamente 720 ore dopo l’inizio: {Number.isFinite(proposedStart) ? new Date(proposedStart + 720 * 3600000).toLocaleString('it-IT') : '—'}. Il calendario mantiene durate da 48 ore anche al cambio dell’ora.</p>
-      <div className="flex items-center justify-between"><h4 className="text-sm">Opere approvate</h4><span className="text-sm text-primary">{selected.length}/16 selezionate</span></div>
-      {choices.isLoading ? <p>Caricamento opere…</p> : choices.error ? <p role="alert">Caricamento non riuscito. <button onClick={() => void choices.refetch()}>Riprova</button></p> : <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{choices.data?.map(entry => {
-        const index = selected.findIndex(work => work.id === entry.id);
-        return <button key={entry.id} type="button" aria-pressed={index >= 0} onClick={() => toggle(entry)} disabled={busy} className={`overflow-hidden rounded-xl border p-2 text-left ${index >= 0 ? 'border-primary bg-primary/10' : 'border-white/10'}`}><img src={entry.image} alt="" className="aspect-square w-full rounded-md object-cover" loading="lazy" /><span className="mt-2 block truncate text-xs">{index >= 0 && `#${index + 1} · `}{entry.title}</span><span className="mt-1 block truncate text-[10px] text-white/50">{entry.artist}</span></button>;
-      })}{!choices.data?.length && <p className="col-span-full py-5 text-sm text-white/50">Non ci sono opere approvate. Approvale dalla sezione {kind === 'photo' ? 'Moderazione' : 'Musica'}.</p>}</div>}
-      <div className="flex justify-between text-xs"><button disabled={page === 0 || choices.isFetching} onClick={() => setPage(value => value - 1)}>Precedenti</button><span>Pagina {page + 1}</span><button disabled={(choices.data?.length ?? 0) < pageSize || choices.isFetching} onClick={() => setPage(value => value + 1)}>Successivi</button></div>
-      <div className="border-t border-white/10 pt-6"><h4 className="mb-2 text-sm">Abbinamenti e posizioni iniziali</h4><p className="mb-4 text-xs leading-6 text-white/50">#1 sfida #2, #3 sfida #4 e così via. Riordina con le frecce. In parità passa sempre il numero più basso, anche nei turni successivi.</p><div className="grid gap-4 sm:grid-cols-2">{Array.from({ length: 8 }, (_, pair) => <div key={pair} className="rounded-xl border border-white/10 p-3"><p className="mb-2 text-[10px] uppercase tracking-wider text-white/40">Duello {pair + 1}</p>{[pair * 2, pair * 2 + 1].map(index => <div key={index} className="flex items-center gap-2 py-2 text-xs"><span className="w-6 text-primary">#{index + 1}</span>{selected[index] ? <><img src={selected[index].image} alt="" className="h-8 w-8 rounded object-cover" /><span className="min-w-0 flex-1 truncate">{selected[index].artist} · {selected[index].title}</span><button aria-label={`Sposta posizione ${index + 1} sopra`} disabled={index === 0 || busy} onClick={() => move(index, -1)}><ArrowUp size={14} /></button><button aria-label={`Sposta posizione ${index + 1} sotto`} disabled={index === selected.length - 1 || busy} onClick={() => move(index, 1)}><ArrowDown size={14} /></button><button aria-label={`Rimuovi posizione ${index + 1}`} disabled={busy} onClick={() => toggle(selected[index])}><X size={14} /></button></> : <span className="text-white/30">Seleziona un partecipante</span>}</div>)}</div>)}</div></div>
-      <button type="button" disabled={busy || selected.length !== 16 || !name.trim()} onClick={() => void create()} className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40"><Plus size={16} />{busy ? 'Creazione…' : 'Avvia / programma i 15 duelli'}</button>
-    </div>}
+  return <section>
+    <div className="admin-section-heading"><div><h2>Campionati</h2><p>Prepara il tabellone. Scegli l’inizio. Al resto pensa il campionato.</p></div><div className="admin-kind-switch">{(['photo', 'music'] as const).map(value => <button key={value} aria-pressed={kind === value} className={kind === value ? 'is-selected' : ''} disabled={busy} onClick={() => changeKind(value)}>{value === 'photo' ? <Camera size={15} /> : <Music2 size={15} />}{value === 'photo' ? 'Fotografia' : 'Musica'}</button>)}</div></div>
+    {(isLoading || history.isLoading) && <p className="admin-empty" role="status">Caricamento campionati…</p>}
+    {(error || history.error) && <div className="admin-empty" role="alert">Campionati non disponibili. <button className="admin-button" onClick={() => { void refetch(); void history.refetch(); }}>Riprova</button></div>}
+    {!showDraft && championship && data && <>
+      <div className="admin-panel admin-champ-summary"><div><span className={`admin-status ${championship.status}`}>{statusLabels[championship.status]}</span><h3>{championship.name}</h3><p>{adminDate(championship.start_at)} <ChevronRight size={13} /> {adminDate(championship.end_at)}</p><p>{data.matches.filter(match => match.resolved_at).length}/15 duelli conclusi · {(data.matches.reduce((sum, match) => sum + (match.votes_1 ?? 0) + (match.votes_2 ?? 0), 0)).toLocaleString('it-IT')} voti</p></div><div className="admin-actions"><Link className="admin-button" to={`/campionato?tipo=${kind === 'music' ? 'musica' : 'foto'}&id=${championship.id}`}>Vedi pubblico<ArrowUpRight size={14} /></Link>{!open && <button className="admin-primary" onClick={() => setDraft(true)}><Plus size={14} />Nuovo campionato</button>}</div></div>
+      <div className="admin-subtabs" role="group" aria-label="Vista campionato">{[{ id: 'bracket', text: 'Tabellone' }, { id: 'votes', text: 'Voti' }, { id: 'calendar', text: 'Calendario' }].map(tab => <button key={tab.id} aria-pressed={view === tab.id} className={view === tab.id ? 'is-selected' : ''} onClick={() => setView(tab.id as typeof view)}>{tab.text}</button>)}</div>
+      {view === 'bracket' && <><p className="admin-inline-note"><LockKeyhole size={14} />Qui vedi i conteggi in tempo reale. Il pubblico li vedrà a duello concluso.</p><ChampionshipBracket data={data} kind={kind} now={now} admin /></>}
+      {view === 'votes' && <ChampionshipVoteAudit key={championship.id} data={data} onRefresh={refetch} />}
+      {view === 'calendar' && <div className="admin-panel admin-table-scroll"><table className="admin-table"><thead><tr><th>Duello</th><th>Turno</th><th>Inizio</th><th>Fine</th><th>Stato</th></tr></thead><tbody>{data.matches.map(match => <tr key={match.id}><td>#{match.number}</td><td>{['Ottavi', 'Quarti', 'Semifinali', 'Finale'][match.round - 1]}</td><td>{adminDate(match.start_at)}</td><td>{adminDate(match.end_at)}</td><td>{match.resolved_at ? 'Concluso' : Date.parse(match.start_at) <= now && Date.parse(match.end_at) > now && championship.status === 'running' ? 'In corso' : championship.status === 'cancelled' ? 'Annullato' : 'In programma'}</td></tr>)}</tbody></table></div>}
+      {['running', 'scheduled'].includes(championship.status) && <details className="admin-advanced"><summary>Gestione del campionato</summary><p>Interrompi il campionato mantenendo lo storico dei voti.</p><button className="admin-button is-danger" disabled={busy} onClick={() => void cancel()}>Annulla campionato</button></details>}
+    </>}
+    {showDraft && <>
+      <div className="admin-setup-steps"><span><b>1</b>Riempi il tabellone</span><span><b>2</b>Scegli l’inizio</span><span><b>3</b>Programma</span></div>
+      <div className="admin-panel-heading admin-draft-heading"><div><h3>I primi 16 partecipanti</h3><p>Clicca un blocco degli ottavi e scegli un’opera approvata. Un’opera per autore.</p></div><span className="admin-filled-count">{filled}/16 <small>inseriti</small></span></div>
+      <ChampionshipBracket data={setup} kind={kind} now={now} onSeedClick={busy ? undefined : setActiveSeed} activeSeed={activeSeed} />
+      <p className="admin-inline-note">#1 sfida #2, #3 sfida #4 e così via. In parità passa la posizione iniziale migliore. I turni successivi si riempiono automaticamente.</p>
+      <p className="admin-inline-note">La preparazione resta salvata in questa scheda del browser. Puoi passare ai contenuti senza perdere le posizioni.</p>
+      <section className="admin-panel admin-schedule-setup"><div className="admin-panel-heading"><div><h3>Quando si comincia?</h3><p>Una sfida ogni 48 ore. La finale termina dopo 30 giorni esatti.</p></div><CalendarDays size={21} /></div><div className="admin-form-grid"><label className="admin-field">Giorno e ora di inizio<input type="datetime-local" aria-label="Inizio campionato" value={start} onChange={event => setStart(event.target.value)} disabled={busy} /><small>Fuso orario: Europa/Roma.</small></label><label className="admin-field">Nome del campionato <small>Facoltativo</small><input aria-label="Nome campionato" maxLength={120} value={name} placeholder={proposedName || 'Nome generato dalla data di inizio'} onChange={event => setName(event.target.value)} disabled={busy} /></label></div>
+        {start && !startIso && <p className="admin-error" role="alert">Scegli una data e un orario validi. Questo orario potrebbe non esistere al cambio dell’ora.</p>}
+        {startIso && <div className="admin-schedule-summary"><div><span>Fine automatica della finale</span><strong>{adminDate(championshipEnd(startIso))}</strong></div><div><span>Il vincitore sarà in galleria per</span><strong>{championshipMonth(startIso)}</strong></div></div>}
+        <div className="admin-launch"><p><Check size={15} />{filled === 16 ? 'Tabellone completo' : `Mancano ${16 - filled} partecipanti`}<span>16 partecipanti · 15 duelli · 30 giorni</span></p><button className="admin-primary" disabled={busy || filled !== 16 || !startIso || Date.parse(startIso) <= now} onClick={() => void create()}>{busy ? 'Programmazione…' : 'Programma campionato'}<ChevronRight size={16} /></button></div>
+        <p className="admin-inline-note"><Trophy size={14} />Alla fine della finale, il vincitore sarà pubblicato automaticamente nella galleria del mese di inizio.</p>
+      </section>
+    </>}
+    {!showDraft && (history.data?.length ?? 0) > 1 && <label className="admin-field admin-history">Storico dei campionati<select value={selectedId || championship?.id || ''} onChange={event => { setSelectedId(event.target.value); setDraft(false); setView('bracket'); }}>{history.data?.map(item => <option key={item.id} value={item.id}>{item.name} · {statusLabels[item.status]}</option>)}</select></label>}
+    <Dialog open={activeSeed !== null} onOpenChange={open => { if (!open) setActiveSeed(null); }}><DialogContent className="admin-picker"><DialogHeader><DialogTitle>Partecipante #{activeSeed}</DialogTitle><DialogDescription>Seleziona {kind === 'photo' ? 'una fotografia' : 'un brano'} approvato per questo blocco.</DialogDescription></DialogHeader>
+      {activeSeed !== null && slots[activeSeed - 1] && <div className="admin-picker-current"><span>{slots[activeSeed - 1]?.title}</span><label>Sposta in<select aria-label="Sposta partecipante" value={activeSeed} onChange={event => { const to = Number(event.target.value) - 1; setSlots(previous => { const next = [...previous]; [next[activeSeed - 1], next[to]] = [next[to], next[activeSeed - 1]]; return next; }); setActiveSeed(null); }}>{Array.from({ length: 16 }, (_, n) => <option key={n} value={n + 1}>Posizione {n + 1}</option>)}</select></label><button className="admin-button" onClick={() => { setSlots(previous => previous.map((work, index) => index === activeSeed - 1 ? null : work)); setActiveSeed(null); }}>Rimuovi</button></div>}
+      <label className="admin-search"><Search size={16} /><input aria-label="Cerca opera approvata" value={search} onChange={event => setSearch(event.target.value)} placeholder="Cerca titolo o autore…" /></label>
+      {choices.isLoading ? <p className="admin-empty">Caricamento opere…</p> : choices.error ? <p className="admin-empty" role="alert">Opere non disponibili. <button onClick={() => void choices.refetch()}>Riprova</button></p> : <div className="admin-picker-grid">{choices.data?.map(entry => { const used = slots.findIndex((work, index) => index !== (activeSeed ?? 1) - 1 && work?.identity === entry.identity); return <button key={entry.id} type="button" onClick={() => choose(entry)} disabled={used >= 0} aria-label={`${entry.title} — ${entry.artist}`}><img src={entry.image} alt="" loading="lazy" /><strong>{entry.title}</strong><span>{entry.artist}</span>{used >= 0 && <small>Già in posizione #{used + 1}</small>}</button>; })}{!choices.data?.length && <p className="admin-empty">{term ? 'Nessun risultato.' : `Non ci sono ${kind === 'photo' ? 'fotografie approvate' : 'brani approvati'}. Approva i contenuti dalla sezione Contenuti.`}</p>}</div>}
+      <div className="admin-pagination"><button disabled={page === 0 || choices.isFetching} onClick={() => setPage(p => p - 1)}>Precedenti</button><span>Pagina {page + 1}</span><button disabled={(choices.data?.length ?? 0) < 40 || choices.isFetching} onClick={() => setPage(p => p + 1)}>Successivi</button></div>
+    </DialogContent></Dialog>
   </section>;
 }

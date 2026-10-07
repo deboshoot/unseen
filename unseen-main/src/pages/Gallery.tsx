@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
-import { ArrowUpRight, ChevronDown, Images, Sparkles } from "lucide-react";
+import { useQuery } from '@tanstack/react-query';
+import { ArrowUpRight, Camera, ChevronDown, Images, Music2, Sparkles, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArtworkDetailModal } from "@/components/ArtworkDetailModal";
 import { supabase } from "@/supabaseClient";
 import { getInstagramProfile } from "@/lib/instagram";
 import { useI18n } from "@/i18n/I18nProvider";
+import type { ChampionshipKind } from '@/lib/championship';
+import { galleryChampionSelect, galleryMonthLabel, type GalleryChampion } from '@/lib/championship-gallery';
+import MusicRecord from '@/components/MusicRecord';
+import '@/gallery-champions.css';
 
 type GalleryWork = {
   id: string;
@@ -26,7 +31,14 @@ type GalleryMonth = {
 };
 
 const Gallery = () => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const [kind, setKind] = useState<ChampionshipKind>('photo');
+  const [page, setPage] = useState(0);
+  const [activeAudio, setActiveAudio] = useState<string | null>(null);
+  const champions = useQuery({ queryKey: ['gallery-champions', kind, page], queryFn: async ({ signal }) => {
+    const { data, error, count } = await supabase.from('championship_gallery').select(galleryChampionSelect, { count: 'exact' }).eq('kind', kind).order('month_key', { ascending: false }).order('published_at', { ascending: false }).range(page * 24, page * 24 + 23).abortSignal(signal);
+    if (error) throw error; return { rows: (data ?? []) as unknown as GalleryChampion[], count: count ?? 0 };
+  }, staleTime: 30000, refetchInterval: 60000 });
   const categories = [
     { key: "winner_id", label: t("gallery.winner"), accent: "text-amber-200" },
     { key: "people_choice_id", label: t("gallery.peopleChoice"), accent: "text-cyan-200" },
@@ -53,6 +65,7 @@ const Gallery = () => {
 
       const galleryMonths = monthData as GalleryMonth[];
       const ids = [...new Set(galleryMonths.flatMap((month) => [month.winner_id, month.people_choice_id, month.jury_choice_id]))];
+      if (!ids.length) { setMonths(galleryMonths); setIsLoading(false); return; }
       const { data: artworkData, error: artworkError } = await supabase
         .from("opere")
         .select("id, titolo, immagine_url, autore, storia, social_link")
@@ -77,11 +90,19 @@ const Gallery = () => {
             <span><Images size={14} /> Archivio digitale</span>
           </div>
           <h1 className="gallery-title mt-5">{t("gallery.title")}</h1>
-          <p className="gallery-hero-intro">Le immagini che hanno superato la sfida e trovato il loro posto nella memoria di Unseen.</p>
+          <p className="gallery-hero-intro">Le opere che hanno vinto il campionato e trovato il loro posto nella memoria di Unseen.</p>
+          <div className="champ-kind-tabs" aria-label="Tipo di vincitori">{(['photo', 'music'] as const).map(value => <button key={value} className={kind === value ? 'is-selected' : ''} aria-pressed={kind === value} onClick={() => { setKind(value); setPage(0); setActiveAudio(null); }}>{value === 'photo' ? <Camera size={15} /> : <Music2 size={15} />}{value === 'photo' ? 'Fotografia' : 'Musica'}</button>)}</div>
         </motion.header>
 
         {isLoading ? <p className="py-24 text-center font-body text-sm uppercase tracking-[0.3em] text-muted-foreground">{t("gallery.loading")}</p> : null}
-        {!isLoading && months.length === 0 ? (
+        {champions.isLoading && <p className="py-8 text-muted-foreground" role="status">Caricamento vincitori…</p>}
+        {champions.error && <p className="py-8 text-muted-foreground" role="alert">Non riesco a caricare i vincitori. <button onClick={() => void champions.refetch()} className="underline">Riprova</button></p>}
+        {!!champions.data?.rows.length && <section className="gallery-champions" aria-label="Vincitori dei campionati"><div className="gallery-season-heading"><div><p className="gallery-section-label">CAMPIONI DEL MESE</p><p className="gallery-season-count">{champions.data.count} VINCITORI</p></div><p className="gallery-season-hint">Ogni vincitore celebra il mese di inizio del suo campionato.</p></div><div className={`gallery-champion-grid ${kind === 'music' ? 'is-music' : ''}`}>{champions.data.rows.map(item => {
+          const entry = item.entry;
+          const work = { id: entry.id, titolo: entry.title, autore: entry.artist, immagine_url: entry.image_url, storia: '', social_link: entry.instagram_username ?? '' };
+          return <article key={item.championship_id} className="gallery-champion-card"><p className="gallery-champion-month"><Trophy size={14} />{galleryMonthLabel(item.month_key, locale)}</p>{kind === 'music' ? <MusicRecord track={{ ...entry, cover_url: entry.image_url, audio_url: entry.audio_url ?? '' }} activeId={activeAudio} onActiveChange={setActiveAudio} /> : <GalleryCard work={work} category="VINCITORE DEL CAMPIONATO" accent="text-amber-200" onOpen={() => setSelectedWork(work)} />}<Link to={`/campionato?tipo=${kind === 'music' ? 'musica' : 'foto'}&id=${item.championship_id}`} className="gallery-champion-link">{item.championship.name}<ArrowUpRight size={13} /></Link></article>;
+        })}</div><div className="gallery-champion-pagination"><button disabled={!page} onClick={() => setPage(p => p - 1)}>Precedenti</button><span>Pagina {page + 1}</span><button disabled={(page + 1) * 24 >= champions.data.count} onClick={() => setPage(p => p + 1)}>Successivi</button></div></section>}
+        {!isLoading && !champions.isLoading && !champions.error && !champions.data?.count && (kind === 'music' || months.length === 0) ? (
           <motion.section initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="gallery-empty-display" aria-label="Spazio espositivo in attesa della prima collezione">
             <div className="gallery-empty-header">
               <span className="gallery-empty-index">ARCHIVIO · 01</span>
@@ -91,9 +112,9 @@ const Gallery = () => {
               <div className="gallery-empty-copy">
                 <div className="gallery-empty-icon"><Sparkles size={18} /></div>
                 <p className="gallery-empty-kicker">{t("gallery.firstCollection")}</p>
-                <h2>{t("gallery.emptyTitle")}</h2>
-                <p>{t("gallery.emptyText")}</p>
-                <Link to="/submit" className="gallery-empty-cta">Invia la tua opera <ArrowUpRight size={16} /></Link>
+                <h2>{kind === 'music' ? 'Il prossimo suono da ricordare.' : t("gallery.emptyTitle")}</h2>
+                <p>{kind === 'music' ? 'Il vincitore del primo campionato musicale troverà qui il suo posto. La prossima copertina potrebbe essere la tua.' : t("gallery.emptyText")}</p>
+                <Link to={kind === 'music' ? '/submit?tipo=musica' : '/submit'} className="gallery-empty-cta">{kind === 'music' ? 'Invia il tuo brano' : 'Invia la tua opera'} <ArrowUpRight size={16} /></Link>
               </div>
               <div className="gallery-empty-frames" aria-hidden="true">
                 <span className="gallery-empty-frame gallery-empty-frame-back" />
@@ -104,7 +125,7 @@ const Gallery = () => {
           </motion.section>
         ) : null}
 
-        {months.length > 0 ? <div className="gallery-season-section">
+        {kind === 'photo' && months.length > 0 ? <div className="gallery-season-section">
           <div className="gallery-season-heading">
             <div>
               <p className="gallery-section-label">{t("gallery.archive")}</p>

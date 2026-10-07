@@ -69,7 +69,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
           return <article key={`${match.id}-${index}`} className={kind === 'music' ? `music-challenger music-challenger-${index + 1}` : 'champ-photo-challenger'}>
             {entry ? <>
               {kind === 'music' ? <MusicRecord track={{ ...entry, cover_url: entry.image_url, audio_url: entry.audio_url ?? '' }} slot={index + 1} activeId={activeId} onActiveChange={setActiveId} onPrepareAudio={prepareAudio} /> : <><div className={`champ-photo-frame ${lost ? 'is-lost' : ''}`}><img src={entry.image_url} alt={entry.title} />{lost && <span aria-label={copy.lost}>×</span>}</div><div className="champ-photo-caption"><span>#{entry.seed} · {entry.artist}</span><h2>{entry.title}</h2></div></>}
-              <p className="champ-arena-result">{index === 0 ? match.votes_1 : match.votes_2} {copy.votes}{match.winner_id && <span>{lost ? copy.lost : copy.qualified}</span>}</p>
+              <p className="champ-arena-result">{match.resolved_at ? <>{(index === 0 ? match.votes_1 : match.votes_2) ?? 0} {copy.votes}</> : copy.secretVotes}{match.winner_id && <span>{lost ? copy.lost : copy.qualified}</span>}</p>
               <button className={`music-vote ${chosen === index + 1 ? 'is-selected' : ''}`} disabled={!canVote || busy || Boolean(chosen)} onClick={() => void vote(index + 1)}>{chosen === index + 1 ? <><Check size={16} />{copy.voted}</> : !userId && canVote ? copy.login : copy.vote}</button>
             </> : <div className="champ-empty">{copy.waiting} #{(match.round === 2 ? (match.position - 1) * 2 : match.round === 3 ? 8 + (match.position - 1) * 2 : 12) + index + 1}</div>}
           </article>;

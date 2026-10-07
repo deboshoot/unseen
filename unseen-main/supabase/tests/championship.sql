@@ -36,7 +36,7 @@ do $$ declare cid uuid:=(select val from championship_test_state where key='main
   select id into mid from public.championship_matches where championship_id=cid and number=1;
   perform public.cast_championship_vote(mid,2::smallint);
   begin perform public.cast_championship_vote(mid,1::smallint); raise exception 'Duplicate voting allowed'; exception when unique_violation then null; end;
-  if (select votes_2 from public.championship_matches where id=mid)<>1 then raise exception 'Vote not counted once'; end if;
+  if (public.get_championship('photo')->'matches'->0->>'votes_2') is not null then raise exception 'Live votes exposed to a voter'; end if;
   if jsonb_array_length(public.get_championship('photo')->'my_votes')<>1 then raise exception 'Own vote absent'; end if;
 end; $$;
 reset role;

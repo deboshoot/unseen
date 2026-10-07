@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Trophy, X } from 'lucide-react';
+import { LockKeyhole, Plus, Trophy, X } from 'lucide-react';
 import { arenaPath, feederNumbers, isMatchOpen, matchCenter, type ChampionshipData, type ChampionshipKind, type ChampionshipMatch } from '@/lib/championship';
 import { useI18n } from '@/i18n/I18nProvider';
 import { championshipCopy } from '@/i18n/championship-copy';
 
-export default function ChampionshipBracket({ data, kind, now }: { data?: ChampionshipData; kind: ChampionshipKind; now: number }) {
+export default function ChampionshipBracket({ data, kind, now, admin = false, onSeedClick, activeSeed }: { data?: ChampionshipData; kind: ChampionshipKind; now: number; admin?: boolean; onSeedClick?: (seed: number) => void; activeSeed?: number | null }) {
   const { locale } = useI18n();
   const copy = championshipCopy[locale];
   const entries = new Map(data?.entries.map(entry => [entry.id, entry]));
@@ -29,18 +29,21 @@ export default function ChampionshipBracket({ data, kind, now }: { data?: Champi
       {matches.map(match => {
         const live = data?.championship && isMatchOpen(match, data.championship, now);
         const feeders = feederNumbers(match);
-        const url = data?.championship ? `${arenaPath(kind)}?campionato=${data.championship.id}&match=${match.id}` : null;
+        const url = data?.championship && !onSeedClick ? `${arenaPath(kind)}?campionato=${data.championship.id}&match=${match.id}` : null;
         const content = <>
           <div className="champ-match-label"><span>#{String(match.number).padStart(2, '0')}</span><span>{live ? copy.live : match.winner_id ? '✓' : match.start_at ? new Date(match.start_at).toLocaleDateString(locale, { day: '2-digit', month: 'short' }) : '48h'}</span></div>
           {[match.entry_1_id, match.entry_2_id].map((id, slot) => {
             const entry = id ? entries.get(id) : null;
             const lost = Boolean(entry && match.winner_id && match.winner_id !== id);
             const won = entry && match.winner_id === id;
-            return <div key={slot} className={`champ-entry ${lost ? 'is-lost' : ''} ${won ? 'is-winner' : ''}`}>
+            const seed = (match.position - 1) * 2 + slot + 1;
+            const body = <>
               <div className="champ-entry-image">{entry ? <img src={entry.image_url} alt="" loading="lazy" /> : <span>{match.round === 1 ? String((match.position - 1) * 2 + slot + 1).padStart(2, '0') : '·'}</span>}{lost && <X size={22} aria-label={copy.lost} />}</div>
               <div className="champ-entry-text"><strong>{entry?.title || (match.round === 1 ? `${copy.slot} ${(match.position - 1) * 2 + slot + 1}` : `${copy.waiting} #${feeders[slot]}`)}</strong><span>{entry ? `#${entry.seed} · ${entry.artist}` : '—'}</span></div>
-              {entry && <span className="champ-entry-votes">{slot === 0 ? match.votes_1 : match.votes_2}{won && <Trophy size={10} />}</span>}
-            </div>;
+              {onSeedClick && match.round === 1 ? <Plus size={13} /> : entry && <span className="champ-entry-votes">{admin || match.resolved_at ? (slot === 0 ? match.votes_1 : match.votes_2) ?? '—' : <LockKeyhole size={12} aria-label={copy.secretVotes} />}{won && <Trophy size={10} />}</span>}
+            </>;
+            const className = `champ-entry ${lost ? 'is-lost' : ''} ${won ? 'is-winner' : ''} ${activeSeed === seed && match.round === 1 ? 'is-editing' : ''}`;
+            return onSeedClick && match.round === 1 ? <button key={slot} type="button" className={`${className} champ-seed-button`} onClick={() => onSeedClick(seed)} aria-label={`Scegli partecipante posizione ${seed}${entry ? `: ${entry.title}` : ''}`}>{body}</button> : <div key={slot} className={className}>{body}</div>;
           })}
           {match.tie_break && <span className="champ-tie" title={copy.tie}>{copy.tie}</span>}
         </>;

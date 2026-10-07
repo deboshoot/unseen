@@ -21,6 +21,17 @@ function mount(url = '/arena/fotografica') { return render(<MemoryRouter initial
 beforeEach(() => { vi.clearAllMocks(); empty = false; state = championshipFixture(); userId = 'user'; now = fixtureNow; mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'user' } } } }); mocks.rpc.mockResolvedValue({ error: null }); mocks.refetch.mockResolvedValue({}); });
 afterEach(cleanup);
 describe('championship arena voting', () => {
+  it('keeps live totals secret and reveals scores only after the match has been resolved', () => {
+    state.matches[0].votes_1 = 532; state.matches[0].votes_2 = 341;
+    const { unmount } = mount();
+    expect(screen.queryByText(/532/)).not.toBeInTheDocument();
+    expect(screen.getAllByText('Voti segreti fino alla fine del duello')).toHaveLength(2);
+    unmount();
+    state.matches[0].resolved_at = new Date(fixtureNow + 48 * 3600000).toISOString();
+    now += 48 * 3600000; mount('/arena/fotografica?match=match-1');
+    expect(screen.getByText(/532/)).toBeInTheDocument();
+    expect(screen.getByText(/341/)).toBeInTheDocument();
+  });
   it('renders the music opening page without a championship and links to song submissions', () => {
     empty = true;
     const { container } = render(<MemoryRouter initialEntries={['/arena/musicale']}><ChampionshipArena kind="music" /><Location /></MemoryRouter>);
