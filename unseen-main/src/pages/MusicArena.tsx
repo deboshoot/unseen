@@ -6,7 +6,7 @@ import MusicRecord from "@/components/MusicRecord";
 import MusicWaveform from "@/components/MusicWaveform";
 import { useMusicAnalyser } from "@/hooks/useMusicAnalyser";
 import { type MusicTrack } from "@/lib/music";
-import MusicComingSoon from "@/components/MusicComingSoon";
+import ArenaComingSoon from "@/components/ArenaComingSoon";
 import { musicCopy } from "@/i18n/music-copy";
 import { useI18n } from "@/i18n/I18nProvider";
 import { supabase } from "@/supabaseClient";
@@ -91,7 +91,7 @@ export default function MusicArena() {
     finally { votingRef.current = false; setVoting(false); }
   };
 
-  if (!loading && !duel) return <MusicComingSoon />;
+  if (!loading && !duel) return <ArenaComingSoon kind="music" />;
   return (
     <main className="music-arena min-h-screen px-4 pb-16 pt-28 sm:px-8 sm:pt-32">
       <div className="music-arena-inner mx-auto max-w-5xl">

@@ -8,7 +8,7 @@ import { arenaPath, countdown, currentMatch, isMatchOpen, type ChampionshipKind 
 import { useI18n } from '@/i18n/I18nProvider';
 import { championshipCopy } from '@/i18n/championship-copy';
 import MusicRecord from '@/components/MusicRecord';
-import MusicComingSoon from '@/components/MusicComingSoon';
+import ArenaComingSoon from '@/components/ArenaComingSoon';
 import MusicWaveform from '@/components/MusicWaveform';
 import { useMusicAnalyser } from '@/hooks/useMusicAnalyser';
 import '@/championship.css';
@@ -52,7 +52,8 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) toast.error(copy.error); }
   };
   if (params.get('duelId')) return <Navigate replace to={`/archivio${arenaPath(kind)}?${params.toString()}`} />;
-  if (kind === 'music' && !isLoading && !error && !requested && (!championship || championship.status === 'scheduled')) return <MusicComingSoon startsAt={championship?.start_at} />;
+  const showOpening = kind === 'music' ? !championship || championship.status === 'scheduled' : !match;
+  if (!isLoading && !error && !requested && showOpening) return <ArenaComingSoon kind={kind} startsAt={championship?.status === 'scheduled' ? championship.start_at : undefined} />;
   return <main className={`champ-page ${kind === 'music' ? 'music-arena' : ''}`}><div className="champ-container champ-arena-container">
     <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
     <header className="champ-hero"><p className="champ-eyebrow">UNSEEN · {kind === 'music' ? copy.music : copy.photo} · {copy.title}</p><h1>ARENA<span>.</span></h1><p>{championship?.name ?? copy.intro}</p>
