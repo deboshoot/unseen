@@ -4,8 +4,8 @@ import { useI18n } from '@/i18n/I18nProvider';
 import { musicComingCopy } from '@/i18n/music-coming-copy';
 import { photoComingCopy } from '@/i18n/photo-coming-copy';
 import type { ChampionshipKind } from '@/lib/championship';
-import photoPortrait from '@/assets/sample-photo-3.jpg';
-import photoCity from '@/assets/sample-photo-1.jpg';
+import photoShoes from '@/assets/photo-coming-shoes.jpg';
+import photoWindow from '@/assets/photo-coming-window.jpg';
 import '@/music-coming-soon.css';
 
 export default function ArenaComingSoon({ kind, startsAt }: { kind: ChampionshipKind; startsAt?: string }) {
@@ -41,8 +41,8 @@ export default function ArenaComingSoon({ kind, startsAt }: { kind: Championship
           <p>UNSEEN / INDEPENDENT SOUND</p>
         </div> : <div className="music-coming-art photo-coming-art" aria-hidden="true">
           <span className="music-coming-orbit" />
-          <div className="photo-coming-print photo-coming-print-back"><img src={photoCity} alt="" /><span>UNSEEN / CITY STUDIES</span></div>
-          <div className="photo-coming-print photo-coming-print-front"><div className="photo-coming-print-top"><span>UNSEEN</span><span>PHOTO SERIES / 01</span></div><img src={photoPortrait} alt="" /><div className="photo-coming-print-bottom"><strong>YOUR<br />NEXT FRAME.</strong><span>16 ARTISTS<br />ONE PERSPECTIVE</span></div></div>
+          <div className="photo-coming-print photo-coming-print-back"><img src={photoWindow} alt="" /><span>UNSEEN / CITY STUDIES</span></div>
+          <div className="photo-coming-print photo-coming-print-front"><div className="photo-coming-print-top"><span>UNSEEN</span><span>PHOTO SERIES / 01</span></div><img src={photoShoes} alt="" /><div className="photo-coming-print-bottom"><strong>YOUR<br />NEXT FRAME.</strong><span>16 ARTISTS<br />ONE PERSPECTIVE</span></div></div>
           <p>UNSEEN / INDEPENDENT VISION</p>
         </div>}
       </section>
