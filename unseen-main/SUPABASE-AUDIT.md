@@ -29,6 +29,12 @@ Sessanta oggetti, per circa 84,3 MB, non hanno un riferimento esatto nella colon
 
 Le tabelle `music_tracks`, `music_duels` e `music_votes` e i bucket musicali non esistono nel progetto remoto. La sezione musicale del codice locale ha quindi ancora bisogno della configurazione backend prevista. La nuova configurazione dovrebbe collegare i media a R2 senza creare prima una dipendenza permanente dallo Storage Supabase.
 
+## Aggiornamento amministratori ? 8 ottobre 2026
+
+Su richiesta esplicita ? stato aggiunto `irushadissanayake2@gmail.com`, gi? registrato e con email confermata. Gli amministratori attuali sono questo account e `deboshoot@gmail.com`. La migrazione `unseen_second_admin` aggiunge solo l?identit? verificata alla tabella privata `unseen_private.admin_accounts`; non modifica le policy e non abilita la promozione tramite profilo o metadati. Dashboard, statistiche, campionati e moderazione R2 usano gi? `is_unseen_admin()`, quindi la modifica ? effettiva senza aggiornamenti del frontend.
+
+Il test `supabase/tests/second-admin.sql`, eseguito con rollback, verifica i due admin, letture private, moderazione delle foto e blocco dell?autopromozione. ? stato inoltre verificato l?account nuovo con una sessione reale per RPC della dashboard, statistiche e controlli admin della funzione R2; nessun contenuto reale ? stato modificato. Le sezioni seguenti descrivono l?audit iniziale del 7 ottobre.
+
 ## Dashboard e amministratori
 
 La dashboard locale consente l'accesso a `deboshoot@gmail.com`. Questo account esiste ed è confermato. Alcune vecchie policy SQL riconoscono invece l'UUID `b01c6977-ded3-43f7-98de-8dbfd45d07d7`; questo identifica un altro account esistente. Le policy nuove riconoscono l'email della dashboard. Non si tratta dello stesso utente.
