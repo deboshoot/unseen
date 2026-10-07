@@ -2,6 +2,14 @@
   "installCommand": "cd unseen-main && npm install",
   "buildCommand": "cd unseen-main && npm run build",
   "outputDirectory": "unseen-main/dist",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "unseen-virid\\.vercel\\.app" }],
+      "destination": "https://unseen.unseen-deboshoot.workers.dev/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ]
