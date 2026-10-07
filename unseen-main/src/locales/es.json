@@ -1,14 +1,382 @@
 {
-  "nav": {"home":"Inicio","arena":"Arena","gallery":"Galería","howItWorks":"Cómo funciona","rules":"Reglamento","submit":"Enviar obra","login":"Acceder","loginOrRegister":"Acceder / Registrarse","logout":"Cerrar sesión","profile":"Abrir perfil"},
-  "theme": {"light":"Cambiar al tema claro","dark":"Cambiar al tema oscuro"},
-  "common": {"loading":"Cargando...","error":"Error","close":"Cerrar","submit":"Enviar","vote":"Votar","votes":"votos","back":"Atrás","notFound":"Página no encontrada","returnHome":"Volver al inicio","language":"Idioma","selectLanguage":"Seleccionar idioma"},
-  "home": {"eyebrow":"Galería de arte digital","tagline":"Un espacio para imágenes que merecen permanecer.","galleryCta":"Explorar la galería","arenaCta":"Entrar en la Arena","ritual":"El ritual Unseen","headline":"Mira. Elige. Deja tu huella.","subheadline":"La comunidad elige. Las mejores obras permanecen.","arenaTitle":"Arena","arenaText":"Dos obras. Un voto. El desafío comienza.","galleryTitle":"Galería","galleryText":"Fotografías que dejaron huella.","artistsTitle":"Artistas","artistsText":"Un espacio para quienes ven el mundo de otra manera."},
-  "auth": {"title":"Entra en la Arena","description":"Regístrate o accede con tu cuenta de Google para votar.","register":"Registrarse","signInGoogle":"Acceder con Google","loading":"Cargando...","signInFailed":"Error al acceder con Google"},
-  "submit": {"title":"ENVÍA TU OBRA","subtitle":"Comparte tu visión con el mundo","upload":"Sube tu obra","formats":"JPG, PNG o WEBP","titleLabel":"Título","titlePlaceholder":"Nombre de la obra","author":"Autor","authorPlaceholder":"Tu nombre","story":"Historia","storyPlaceholder":"Describe el concepto de la obra","instagram":"Usuario de Instagram","instagramPlaceholder":"@usuario","send":"Enviar obra","sending":"Enviando...","fileTooLarge":"Archivo demasiado grande","fileTooLargeDescription":"El archivo no puede superar los 5 MB.","unsupported":"Formato no compatible","unsupportedDescription":"Solo se aceptan JPG, PNG o WEBP.","missingFile":"Falta el archivo","missingFileDescription":"Selecciona una imagen para subir.","success":"¡Obra enviada!","successDescription":"Tu visión se ha compartido correctamente.","uploadError":"Error al enviar","unexpectedError":"Se produjo un error inesperado.","preview":"Vista previa"},
-  "gallery": {"kicker":"UNSEEN / COLECCIONES","title":"GALERÍA","loading":"Cargando archivo...","emptyLabel":"En preparación","firstCollection":"Primera colección","emptyTitle":"El primer campeonato está a punto de comenzar.","emptyText":"Este espacio recibirá las obras ganadoras, expuestas una junto a otra.","archive":"Archivo de ganadores","seasonHint":"Selecciona una temporada para descubrir los demás reconocimientos","hideAwards":"Ocultar reconocimientos","showAwards":"Mostrar otros ganadores","winner":"Ganador del mes","peopleChoice":"Favorito del público","juryChoice":"Elegido por el jurado","firstPosition":"1ª posición · Foto del mes","secondPosition":"2ª posición","thirdPosition":"3ª posición","archiveLabel":"Archivo Unseen","noDescription":"No hay descripción disponible."},
-  "howItWorks": {"title":"CÓMO FUNCIONA","subtitle":"Cuatro pasos hacia la galería","monthly":"Cada mes","awardsTitle":"Un campeón por categoría","awardsText":"El ganador de la final conquista el campeonato fotográfico o musical.","steps":[{"title":"Envía tu obra","description":"Envía una fotografía o una canción con su portada."},{"title":"16 participantes","description":"El equipo elige las obras aprobadas y publica el cuadro."},{"title":"Un duelo cada 48 horas","description":"Accede y vota. Los ganadores avanzan automáticamente."},{"title":"La final en 30 días","description":"Sigue todos los turnos en la sección Campeonato."}],"awards":[{"label":"01","title":"Un campeón por categoría","description":"El ganador de la final conquista el campeonato fotográfico o musical."}]},
-  "rules": {"eyebrow":"Unseen · Documento oficial","title":"Reglamento y condiciones del servicio","intro":"Unseen organiza campeonatos independientes de fotografía y música: 16 participantes, eliminación directa y voto de la comunidad registrada.","index":"Índice","articleLabel":"Artículo","account":"Comunidad registrada","accountText":"El voto está abierto a usuarios con cuenta Unseen.","monthlyPhoto":"16 participantes","monthlyPhotoText":"Una obra por participante en cada campeonato.","oneVote":"Un voto por duelo","oneVoteText":"La competición es transparente y verificable.","accepted":"Al participar en Unseen declaras que has leído y aceptado este reglamento.","sendPhoto":"Envía tu fotografía","articles":[{"title":"Objeto de la plataforma","intro":"Unseen organiza campeonatos independientes de fotografía y música: 16 participantes, eliminación directa y voto de la comunidad registrada."},{"title":"Candidaturas y selección","intro":"Envía una fotografía o una canción con su portada. El equipo aprueba las obras y elige 16 participantes distintos por campeonato. Las posiciones iniciales y los emparejamientos son públicos antes del inicio.","eyebrow":""},{"title":"Calendario del campeonato","intro":"Cada campeonato dura exactamente 720 horas (30 días). Se juega un duelo a la vez durante 48 horas: 8 octavos, 4 cuartos, 2 semifinales y 1 final. El administrador fija el inicio; los demás horarios son automáticos.","eyebrow":"16 → 8 → 4 → 2 → 1"},{"title":"Votación y clasificación","intro":"Debes iniciar sesión para votar. Cada cuenta puede votar una vez por duelo durante sus 48 horas. La obra con más votos avanza. En empate, incluso con cero votos, gana la mejor posición inicial: #1 antes de #2.","eyebrow":""},{"title":"Cuadro y ganador","intro":"La sección Campeonato muestra las 16 obras, resultados y calendario. Los ganadores ocupan el siguiente turno; las obras eliminadas se oscurecen y reciben una X. El ganador de la final es el campeón. La Galería conserva las colecciones del equipo y los premios históricos.","eyebrow":""},{"title":"Juego limpio y anti-bot","intro":"Solo pueden votar los usuarios registrados, una vez por duelo. Están prohibidos los bots, las cuentas falsas o duplicadas, los scripts automatizados y el intercambio artificial de votos; los votos sospechosos pueden anularse."},{"title":"Derechos de autor y licencia de uso","intro":"El autor conserva todos sus derechos. Al subir una foto, concede a Unseen una licencia gratuita y no exclusiva para mostrarla y promocionarla con los créditos, sin venderla ni cederla a terceros sin autorización escrita."}]},
-  "notFound": {"title":"404","message":"¡Ups! Página no encontrada","home":"Volver al inicio"},
-  "arena": {"competition":"Unseen · Competición fotográfica","timeRemaining":"Tiempo restante","championshipStatus":"Estado del campeonato","votePrompt":"Expresa tu preferencia","share":"Compartir duelo","shareWhat":"¿Qué quieres compartir?","shareDuel":"Compartir el duelo","shareFirst":"Compartir rival 1","shareSecond":"Compartir rival 2","challenger":"Rival","voteWork":"Votar por esta obra","loginToVote":"Accede para votar","alreadyVoted":"¡Ya has votado!","voteRegistered":"Voto registrado","voteFailed":"Voto no registrado","duelUnavailable":"Duelo no disponible"},
-  "admin": {"moderation":"Moderación","gallery":"Galería","arena":"Arena","community":"Comunidad","analytics":"Analítica","controlCenter":"Centro de control","moderationWorks":"Moderación de obras","loadingWorks":"Cargando obras...","noWorks":"No hay obras para moderar","arenaControl":"Control de la Arena","noDuel":"No hay duelo en curso","createDuel":"Crear nuevo duelo","closeDuel":"Cerrar duelo","scheduleNext":"Programar el próximo duelo","finalArena":"Arena Final · 3 fotografías","allUsers":"Todos los registrados","whoVoted":"Quién ha votado","duelDetails":"Detalles de duelos","registeredUsers":"Usuarios registrados","totalWorks":"Obras totales","totalVotes":"Votos totales","schedule":"Programar duelo","selectWork":"Seleccionar una obra","openingDay":"Día de apertura","openingTime":"Hora de apertura"}
+  "nav": {
+    "home": "Inicio",
+    "arena": "Arena",
+    "gallery": "Galería",
+    "howItWorks": "Cómo funciona",
+    "rules": "Reglamento",
+    "submit": "Enviar obra",
+    "login": "Acceder",
+    "loginOrRegister": "Acceder / Registrarse",
+    "logout": "Cerrar sesión",
+    "profile": "Abrir perfil"
+  },
+  "theme": {
+    "light": "Cambiar al tema claro",
+    "dark": "Cambiar al tema oscuro"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "close": "Cerrar",
+    "submit": "Enviar",
+    "vote": "Votar",
+    "votes": "votos",
+    "back": "Atrás",
+    "notFound": "Página no encontrada",
+    "returnHome": "Volver al inicio",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar idioma"
+  },
+  "home": {
+    "eyebrow": "Galería de arte digital",
+    "tagline": "Un espacio para imágenes que merecen permanecer.",
+    "galleryCta": "Explorar la galería",
+    "arenaCta": "Entrar en la Arena",
+    "ritual": "El ritual Unseen",
+    "headline": "Mira. Elige. Deja tu huella.",
+    "subheadline": "La comunidad elige. Las mejores obras permanecen.",
+    "arenaTitle": "Arena",
+    "arenaText": "Dos obras. Un voto. El desafío comienza.",
+    "galleryTitle": "Galería",
+    "galleryText": "Fotografías que dejaron huella.",
+    "artistsTitle": "Artistas",
+    "artistsText": "Un espacio para quienes ven el mundo de otra manera."
+  },
+  "auth": {
+    "title": "Entra en la Arena",
+    "description": "Regístrate o accede con tu cuenta de Google para votar.",
+    "register": "Registrarse",
+    "signInGoogle": "Acceder con Google",
+    "loading": "Cargando...",
+    "signInFailed": "Error al acceder con Google"
+  },
+  "submit": {
+    "title": "ENVÍA TU OBRA",
+    "subtitle": "Comparte tu visión con el mundo",
+    "upload": "Sube tu obra",
+    "formats": "JPG, PNG o WEBP",
+    "titleLabel": "Título",
+    "titlePlaceholder": "Nombre de la obra",
+    "author": "Autor",
+    "authorPlaceholder": "Tu nombre",
+    "story": "Historia",
+    "storyPlaceholder": "Describe el concepto de la obra",
+    "instagram": "Usuario de Instagram",
+    "instagramPlaceholder": "@usuario",
+    "send": "Enviar obra",
+    "sending": "Enviando...",
+    "fileTooLarge": "Archivo demasiado grande",
+    "fileTooLargeDescription": "El archivo no puede superar los 5 MB.",
+    "unsupported": "Formato no compatible",
+    "unsupportedDescription": "Solo se aceptan JPG, PNG o WEBP.",
+    "missingFile": "Falta el archivo",
+    "missingFileDescription": "Selecciona una imagen para subir.",
+    "success": "¡Obra enviada!",
+    "successDescription": "Tu visión se ha compartido correctamente.",
+    "uploadError": "Error al enviar",
+    "unexpectedError": "Se produjo un error inesperado.",
+    "preview": "Vista previa"
+  },
+  "gallery": {
+    "kicker": "UNSEEN / COLECCIONES",
+    "title": "GALERÍA",
+    "loading": "Cargando archivo...",
+    "emptyLabel": "En preparación",
+    "firstCollection": "Primera colección",
+    "emptyTitle": "El primer campeonato está a punto de comenzar.",
+    "emptyText": "Este espacio recibirá las obras ganadoras, expuestas una junto a otra.",
+    "archive": "Archivo de ganadores",
+    "seasonHint": "Selecciona una temporada para descubrir los demás reconocimientos",
+    "hideAwards": "Ocultar reconocimientos",
+    "showAwards": "Mostrar otros ganadores",
+    "winner": "Ganador del mes",
+    "peopleChoice": "Favorito del público",
+    "juryChoice": "Elegido por el jurado",
+    "firstPosition": "1ª posición · Foto del mes",
+    "secondPosition": "2ª posición",
+    "thirdPosition": "3ª posición",
+    "archiveLabel": "Archivo Unseen",
+    "noDescription": "No hay descripción disponible."
+  },
+  "howItWorks": {
+    "title": "CÓMO FUNCIONA",
+    "subtitle": "Cuatro pasos hacia la galería",
+    "monthly": "Cada mes",
+    "awardsTitle": "Un campeón por categoría",
+    "awardsText": "El ganador de la final conquista el campeonato fotográfico o musical.",
+    "steps": [
+      {
+        "title": "Envía tu obra",
+        "description": "Envía una fotografía o una canción con su portada."
+      },
+      {
+        "title": "16 participantes",
+        "description": "El equipo elige las obras aprobadas y publica el cuadro."
+      },
+      {
+        "title": "Un duelo cada 48 horas",
+        "description": "Accede y vota. Los ganadores avanzan automáticamente."
+      },
+      {
+        "title": "La final en 30 días",
+        "description": "Sigue todos los turnos en la sección Campeonato."
+      }
+    ],
+    "awards": [
+      {
+        "label": "01",
+        "title": "Un campeón por categoría",
+        "description": "El ganador de la final conquista el campeonato fotográfico o musical."
+      }
+    ]
+  },
+  "rules": {
+    "title": "Reglamento",
+    "eyebrow": "UNSEEN ? Fotograf?a y m?sica",
+    "intro": "Dos campeonatos independientes. Diecis?is participantes por categor?a. El p?blico decide, duelo a duelo, qui?n llega a la final.",
+    "index": "?ndice del reglamento",
+    "articleLabel": "Art?culo",
+    "bracket": "Explora el campeonato",
+    "statsLabel": "El campeonato en n?meros",
+    "flowEyebrow": "Del primer duelo a la final",
+    "flowTitle": "Un recorrido. Un solo campe?n.",
+    "flowText": "Fotograf?a y m?sica siguen el mismo cuadro, con obras, votos y ganadores independientes. Cada categor?a celebra un ?nico duelo a la vez.",
+    "secretNote": "Los votos son secretos durante el duelo. Los recuentos solo se hacen p?blicos despu?s de su conclusi?n.",
+    "ctaTitle": "La pr?xima obra podr?a ser la tuya.",
+    "ctaText": "Env?a una fotograf?a o una canci?n con su portada.",
+    "sendPhoto": "Enviar una fotograf?a",
+    "sendMusic": "Enviar una canci?n",
+    "accepted": "Al participar en Unseen declaras que has leído y aceptado este reglamento.",
+    "stats": [
+      {
+        "value": "16",
+        "label": "participantes por campeonato"
+      },
+      {
+        "value": "15",
+        "label": "duelos de eliminaci?n directa"
+      },
+      {
+        "value": "48h",
+        "label": "por cada duelo"
+      },
+      {
+        "value": "30",
+        "label": "d?as exactos ? 720 horas"
+      }
+    ],
+    "rounds": [
+      {
+        "title": "Octavos",
+        "participants": "16 ? 8",
+        "matches": "8 duelos",
+        "duration": "16 d?as"
+      },
+      {
+        "title": "Cuartos",
+        "participants": "8 ? 4",
+        "matches": "4 duelos",
+        "duration": "8 d?as"
+      },
+      {
+        "title": "Semifinales",
+        "participants": "4 ? 2",
+        "matches": "2 duelos",
+        "duration": "4 d?as"
+      },
+      {
+        "title": "Final",
+        "participants": "2 ? 1",
+        "matches": "1 duelo",
+        "duration": "2 d?as"
+      }
+    ],
+    "articles": [
+      {
+        "title": "Dos campeonatos independientes",
+        "intro": "UNSEEN organiza campeonatos fotogr?ficos y musicales separados. Participar es gratuito. Inicia sesi?n para enviar una obra o votar."
+      },
+      {
+        "title": "Enviar una fotograf?a",
+        "rules": [
+          {
+            "label": "Archivos",
+            "text": "JPG, PNG o WEBP, hasta 5 MB. Las im?genes se optimizan para su publicaci?n."
+          },
+          {
+            "label": "Presentaci?n",
+            "text": "Indica t?tulo y autor. Puedes a?adir una descripci?n y tu nombre de Instagram con un enlace directo al perfil."
+          },
+          {
+            "label": "Autor?a",
+            "text": "Env?a una fotograf?a de tu autor?a y sobre la que tengas los derechos. No se permiten contenidos ofensivos o que vulneren la privacidad o los derechos de otras personas."
+          }
+        ]
+      },
+      {
+        "title": "Enviar una canci?n",
+        "rules": [
+          {
+            "label": "Audio y portada",
+            "text": "Elige un MP3 o WAV de hasta 30 MB y una portada JPG, PNG o WEBP de hasta 5 MB. La portada acompa?a al disco en la arena musical."
+          },
+          {
+            "label": "Fragmento en competici?n",
+            "text": "Selecciona el inicio y el final precisos en el formulario, con un m?ximo de 40 segundos. Escucha la vista previa antes de enviar. Solo se sube el fragmento elegido para la competici?n."
+          },
+          {
+            "label": "Perfil y enlaces opcionales",
+            "text": "Indica t?tulo y artista. Puedes a?adir Instagram y los enlaces de tu canci?n en YouTube, como Reel de Instagram o en Spotify. No sustituyen al audio y la portada obligatorios."
+          },
+          {
+            "label": "Derechos",
+            "text": "Debes ser autor de la canci?n y disponer tambi?n de los derechos necesarios sobre la portada. No env?es contenido que vulnere derechos de terceros."
+          }
+        ]
+      },
+      {
+        "title": "Revisi?n y selecci?n",
+        "rules": [
+          {
+            "label": "Revisi?n previa",
+            "text": "El equipo revisa las candidaturas. Enviar una obra o recibir aprobaci?n no garantiza un puesto en el pr?ximo campeonato."
+          },
+          {
+            "label": "Diecis?is autores distintos",
+            "text": "Los administradores eligen 16 obras aprobadas por categor?a, una por participante en cada campeonato. Ya no se aplica el antiguo l?mite de una fotograf?a al mes."
+          },
+          {
+            "label": "Posiciones y duelos",
+            "text": "Las posiciones #1 a #16 se asignan antes del inicio: #1 se enfrenta a #2, #3 a #4, etc. El cuadro programado se puede consultar en Campeonato."
+          },
+          {
+            "label": "Env?os repetidos",
+            "text": "Cada cuenta puede iniciar hasta 5 intentos de subida cada 24 horas, compartidos entre fotograf?as y canciones. Una subida iniciada pero no completada puede contar. El formulario indica cu?ndo se alcanza el l?mite."
+          }
+        ]
+      },
+      {
+        "title": "Calendario y duraci?n",
+        "rules": [
+          {
+            "label": "Fecha de inicio",
+            "text": "Los administradores fijan el d?a y la hora de inicio. Ya no existen fases fijas desde el d?a 1 o el 15 del mes."
+          },
+          {
+            "label": "Un duelo cada 48 horas",
+            "text": "Se celebran consecutivamente 8 octavos, 4 cuartos, 2 semifinales y 1 final. Cada duelo dura 48 horas. El campeonato termina tras exactamente 720 horas, o 30 d?as, incluso con cambios de hora."
+          },
+          {
+            "label": "Avance autom?tico",
+            "text": "Al cerrar cada duelo, el sistema determina al ganador y completa la siguiente ronda sin cambiar el calendario."
+          },
+          {
+            "label": "Campeonato cancelado",
+            "text": "Un campeonato cancelado por los administradores se detiene, conserva su historial y no publica un campe?n en la galer?a."
+          }
+        ]
+      },
+      {
+        "title": "Voto secreto y clasificaci?n",
+        "rules": [
+          {
+            "label": "Inicio de sesi?n y voto ?nico",
+            "text": "Inicia sesi?n y vota durante las 48 horas del duelo. Cada cuenta tiene un solo voto por duelo; un voto registrado no se puede cambiar."
+          },
+          {
+            "label": "Resultados al final",
+            "text": "El p?blico no ve los recuentos en directo. Los votos aparecen en el cuadro cuando el resultado est? cerrado. Los administradores pueden consultar recuentos y registro durante la competici?n."
+          },
+          {
+            "label": "Qui?n avanza",
+            "text": "La obra con m?s votos se clasifica autom?ticamente. Los votos de duelos anteriores no se acumulan."
+          },
+          {
+            "label": "Empate, incluso sin votos",
+            "text": "Avanza la mejor posici?n inicial, el n?mero m?s bajo. Se mantiene en todas las rondas: por ejemplo #3 precede a #12. Tambi?n se aplica si ambas obras reciben cero votos."
+          }
+        ]
+      },
+      {
+        "title": "Cuadro, ganador y galer?a",
+        "rules": [
+          {
+            "label": "Sigue el recorrido",
+            "text": "Campeonato muestra obras, duelos, calendario y resultados cerrados. Los ganadores completan los siguientes bloques; las obras eliminadas se oscurecen y se marcan con una X."
+          },
+          {
+            "label": "Un campe?n por categor?a",
+            "text": "El ganador de la final es el campe?n de esa competici?n. Se publica autom?ticamente en la galer?a con su fotograf?a, o su portada y canci?n."
+          },
+          {
+            "label": "El mes del ganador",
+            "text": "El campe?n pertenece al mes de inicio del campeonato, en el huso Europa/Roma. Si comienza en octubre y termina en noviembre, el ganador corresponde a octubre."
+          },
+          {
+            "label": "Archivo",
+            "text": "Las colecciones anteriores siguen disponibles. Los antiguos premios y la Arena de Campeones no son fases del nuevo campeonato."
+          }
+        ]
+      },
+      {
+        "title": "Juego limpio y anti-bot",
+        "intro": "Solo pueden votar los usuarios registrados, una vez por duelo. Están prohibidos los bots, las cuentas falsas o duplicadas, los scripts automatizados y el intercambio artificial de votos; los votos sospechosos pueden anularse."
+      },
+      {
+        "title": "Derechos de autor y licencia de uso",
+        "intro": "El autor conserva todos sus derechos. Al subir una foto, concede a Unseen una licencia gratuita y no exclusiva para mostrarla y promocionarla con los créditos, sin venderla ni cederla a terceros sin autorización escrita."
+      }
+    ]
+  },
+  "notFound": {
+    "title": "404",
+    "message": "¡Ups! Página no encontrada",
+    "home": "Volver al inicio"
+  },
+  "arena": {
+    "competition": "Unseen · Competición fotográfica",
+    "timeRemaining": "Tiempo restante",
+    "championshipStatus": "Estado del campeonato",
+    "votePrompt": "Expresa tu preferencia",
+    "share": "Compartir duelo",
+    "shareWhat": "¿Qué quieres compartir?",
+    "shareDuel": "Compartir el duelo",
+    "shareFirst": "Compartir rival 1",
+    "shareSecond": "Compartir rival 2",
+    "challenger": "Rival",
+    "voteWork": "Votar por esta obra",
+    "loginToVote": "Accede para votar",
+    "alreadyVoted": "¡Ya has votado!",
+    "voteRegistered": "Voto registrado",
+    "voteFailed": "Voto no registrado",
+    "duelUnavailable": "Duelo no disponible"
+  },
+  "admin": {
+    "moderation": "Moderación",
+    "gallery": "Galería",
+    "arena": "Arena",
+    "community": "Comunidad",
+    "analytics": "Analítica",
+    "controlCenter": "Centro de control",
+    "moderationWorks": "Moderación de obras",
+    "loadingWorks": "Cargando obras...",
+    "noWorks": "No hay obras para moderar",
+    "arenaControl": "Control de la Arena",
+    "noDuel": "No hay duelo en curso",
+    "createDuel": "Crear nuevo duelo",
+    "closeDuel": "Cerrar duelo",
+    "scheduleNext": "Programar el próximo duelo",
+    "finalArena": "Arena Final · 3 fotografías",
+    "allUsers": "Todos los registrados",
+    "whoVoted": "Quién ha votado",
+    "duelDetails": "Detalles de duelos",
+    "registeredUsers": "Usuarios registrados",
+    "totalWorks": "Obras totales",
+    "totalVotes": "Votos totales",
+    "schedule": "Programar duelo",
+    "selectWork": "Seleccionar una obra",
+    "openingDay": "Día de apertura",
+    "openingTime": "Hora de apertura"
+  }
 }

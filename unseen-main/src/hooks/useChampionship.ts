@@ -43,5 +43,5 @@ export function useChampionship(kind: ChampionshipKind, id?: string | null) {
       void refetch();
     }
   }, [boundary, now, refetch, id, kind]);
-  return { ...query, now, userId };
+  return { ...query, isLoading: !sessionReady || query.isLoading, now, userId };
 }

@@ -21,6 +21,7 @@ assert.ok(remoteJs.toString().includes('/arena/musicale'), 'Arena musicale assen
 assert.ok(remoteJs.toString().includes('get_championship') && remoteJs.toString().includes('cast_championship_vote'), 'Campionati assenti dal bundle');
 assert.ok(remoteJs.toString().includes('unseen-clip.wav') && remoteJs.toString().includes('instagram_reel_url') && remoteJs.toString().includes('music-studio-form'), 'Nuovo invio brani assente dal bundle');
 assert.ok(remoteJs.toString().includes('get_admin_overview') && remoteJs.toString().includes('admin-studio') && remoteJs.toString().includes('championship_gallery'), 'Nuova dashboard o galleria dei campioni assente dal bundle');
+assert.ok(remoteJs.toString().includes('rules-page') && remoteJs.toString().includes('Il voto è segreto durante la sfida.'), 'Regolamento aggiornato assente dal bundle');
 assert.ok(remoteJs.toString().includes('mpqphroecgfwonclmkyb.supabase.co'), 'Progetto Supabase errato nel frontend');
 const publicEnv=await readLocalEnv('.env.production.local');
 let publicKey=remoteJs.toString().includes(publicEnv.VITE_SUPABASE_ANON_KEY)?publicEnv.VITE_SUPABASE_ANON_KEY:null;
@@ -31,7 +32,7 @@ if(!publicKey) for(const token of remoteJs.toString().match(/\beyJ[A-Za-z0-9_-]+
 assert.ok(publicKey,'Chiave pubblica Supabase non riconosciuta nel frontend');
 const publicRead=await fetch('https://mpqphroecgfwonclmkyb.supabase.co/rest/v1/opere?select=id&limit=1',{headers:{apikey:publicKey,Authorization:`Bearer ${publicKey}`},signal:AbortSignal.timeout(20000)});
 assert.equal(publicRead.status,200,'La chiave Supabase della build pubblica non funziona');
-for (const route of ['/arena','/arena/fotografica','/arena/musicale','/campionato','/submit','/submit?tipo=musica','/auth','/admin']) {
+for (const route of ['/arena','/arena/fotografica','/arena/musicale','/campionato','/submit','/submit?tipo=musica','/auth','/admin','/regolamento','/gallery']) {
   assert.equal(await (await get(route, { headers: { 'Sec-Fetch-Mode': 'navigate' } })).text(), root, `Routing SPA non valido: ${route}`);
 }
 for (const kind of ['photo','music']) {
@@ -60,5 +61,5 @@ assert.ok(auth.uri_allow_list.split(',').includes(`${origin}/**`), 'Redirect log
 const cron = await cfRequest('workers/scripts/unseen-media/schedules');
 assert.ok(cron.schedules.some(schedule => schedule.cron === '17 * * * *'), 'Pulizia media non programmata');
 const folder = path.resolve(app, '..', 'debug.local', 'r2');
-await fs.writeFile(path.join(folder, 'production-verified.json'), JSON.stringify({ passed: true, url: origin, routes: 9, bundle: js, checks: ['r2_in_bundle','music_in_bundle','music_submission_studio','championship_in_bundle','championship_rpc','championship_cron','public_supabase_key','spa_routes','auth_redirect','edge_cors','hourly_cleanup'], at: new Date().toISOString() }, null, 2));
-console.log(`Frontend pubblico verificato: ${origin}; dashboard, galleria automatica, voti segreti, invio brani, campionati, nove pagine, Supabase, redirect login, CORS e pulizia.`);
+await fs.writeFile(path.join(folder, 'production-verified.json'), JSON.stringify({ passed: true, url: origin, routes: 11, bundle: js, checks: ['r2_in_bundle','music_in_bundle','music_submission_studio','dashboard_control_room','updated_rules','automatic_gallery','secret_scores_rest','championship_in_bundle','championship_rpc','championship_cron','public_supabase_key','spa_routes','auth_redirect','edge_cors','hourly_cleanup'], at: new Date().toISOString() }, null, 2));
+console.log(`Frontend pubblico verificato: ${origin}; dashboard, regolamento aggiornato, galleria automatica, voti segreti, invio brani, campionati, undici pagine, Supabase, redirect login, CORS e pulizia.`);

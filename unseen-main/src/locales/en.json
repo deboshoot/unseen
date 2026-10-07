@@ -1,14 +1,382 @@
 {
-  "nav": {"home":"Home","arena":"Arena","gallery":"Gallery","howItWorks":"How It Works","rules":"Rules","submit":"Submit Work","login":"Sign in","loginOrRegister":"Sign in / Register","logout":"Log out","profile":"Open profile"},
-  "theme": {"light":"Switch to light theme","dark":"Switch to dark theme"},
-  "common": {"loading":"Loading...","error":"Error","close":"Close","submit":"Submit","vote":"Vote","votes":"votes","back":"Back","notFound":"Page not found","returnHome":"Return Home","language":"Language","selectLanguage":"Select language"},
-  "home": {"eyebrow":"Digital art gallery","tagline":"A space for images that deserve to remain.","galleryCta":"Explore the gallery","arenaCta":"Enter the Arena","ritual":"The Unseen ritual","headline":"Look. Choose. Leave your mark.","subheadline":"The community chooses. The best works remain.","arenaTitle":"Arena","arenaText":"Two works. One vote. The challenge begins.","galleryTitle":"Gallery","galleryText":"Photographs that left their mark.","artistsTitle":"Artists","artistsText":"A space for those who see the world differently."},
-  "auth": {"title":"Enter the Arena","description":"Register or sign in with your Google account to vote.","register":"Register","signInGoogle":"Sign in with Google","loading":"Loading...","signInFailed":"Google sign-in failed"},
-  "submit": {"title":"SUBMIT YOUR WORK","subtitle":"Share your vision with the world","upload":"Upload your work","formats":"JPG, PNG or WEBP","titleLabel":"Title","titlePlaceholder":"Work name","author":"Author","authorPlaceholder":"Your name","story":"Story","storyPlaceholder":"Describe the concept of the work","instagram":"Instagram username","instagramPlaceholder":"@username","send":"Submit work","sending":"Submitting...","fileTooLarge":"File too large","fileTooLargeDescription":"The file must not exceed 5MB.","unsupported":"Unsupported format","unsupportedDescription":"Only JPG, PNG or WEBP are accepted.","missingFile":"Missing file","missingFileDescription":"Select an image to upload.","success":"Work submitted!","successDescription":"Your vision was shared successfully.","uploadError":"Submission error","unexpectedError":"An unexpected error occurred.","preview":"Preview"},
-  "gallery": {"kicker":"UNSEEN / COLLECTIONS","title":"GALLERY","loading":"Loading archive...","emptyLabel":"Being prepared","firstCollection":"First collection","emptyTitle":"The first championship is about to begin.","emptyText":"This space will welcome the winning works, displayed side by side.","archive":"Winners archive","seasonHint":"Select a season to discover the other awards","hideAwards":"Hide awards","showAwards":"Show other winners","winner":"Winner of the month","peopleChoice":"People's choice","juryChoice":"Jury's choice","firstPosition":"1st position · Photo of the month","secondPosition":"2nd position","thirdPosition":"3rd position","archiveLabel":"Unseen Archive","noDescription":"No description available."},
-  "howItWorks": {"title":"HOW IT WORKS","subtitle":"Four steps to the gallery","monthly":"Every month","awardsTitle":"One champion per category","awardsText":"The final winner takes the photography or music championship.","steps":[{"title":"Submit your work","description":"Submit a photograph or a song with its cover."},{"title":"16 participants","description":"The team selects approved entries and publishes the bracket."},{"title":"One match every 48 hours","description":"Log in and vote. Winners advance automatically."},{"title":"The final within 30 days","description":"Follow every round in the Championship section."}],"awards":[{"label":"01","title":"One champion per category","description":"The final winner takes the photography or music championship."}]},
-  "rules": {"eyebrow":"Unseen · Official document","title":"Rules and terms of service","intro":"Unseen hosts independent photography and music championships: 16 participants, single elimination and votes from the registered community.","index":"Contents","articleLabel":"Article","account":"Registered community","accountText":"Voting is open to Unseen account holders.","monthlyPhoto":"16 participants","monthlyPhotoText":"One entry per participant in each championship.","oneVote":"One vote per duel","oneVoteText":"The competition stays transparent and verifiable.","accepted":"By participating in Unseen you confirm that you have read and accepted these rules.","sendPhoto":"Submit your photograph","articles":[{"title":"Platform purpose","intro":"Unseen hosts independent photography and music championships: 16 participants, single elimination and votes from the registered community."},{"title":"Submissions and selection","intro":"Submit a photograph or a song with its cover. The team approves entries and selects 16 different participants for each championship. Initial seeds and pairings are public before the start.","eyebrow":""},{"title":"Championship schedule","intro":"Each championship lasts exactly 720 hours (30 days). One match is played at a time for 48 hours: 8 round-of-16 matches, 4 quarterfinals, 2 semifinals and 1 final. The administrator sets the start; all subsequent times are automatic.","eyebrow":"16 → 8 → 4 → 2 → 1"},{"title":"Voting and advancement","intro":"You must be logged in to vote. Each account may vote once per match during its 48-hour window. The entry with more votes advances. Ties, including zero votes, are decided by initial seed: #1 takes priority over #2, and so on.","eyebrow":""},{"title":"Bracket and winner","intro":"The Championship section displays the 16 entries, results and schedule. Winners fill the next round; eliminated entries are darkened and marked with an X. The final winner is the champion. The Gallery retains team-curated collections and historical awards.","eyebrow":""},{"title":"Fair play and anti-bot","intro":"Only registered users may vote, with one vote per duel. Bots, fake or duplicate accounts, automated scripts and artificial vote exchanges are forbidden; suspicious votes may be cancelled."},{"title":"Copyright and usage licence","intro":"The author keeps full copyright. By uploading a photo, the author grants Unseen a free, non-exclusive licence to display and promote it with credit, without any sale or transfer to third parties without written permission."}]},
-  "notFound": {"title":"404","message":"Oops! Page not found","home":"Return Home"},
-  "arena": {"competition":"Unseen · Photography competition","timeRemaining":"Time remaining","championshipStatus":"Championship status","votePrompt":"Cast your preference","share":"Share duel","shareWhat":"What would you like to share?","shareDuel":"Share the duel","shareFirst":"Share challenger 1","shareSecond":"Share challenger 2","challenger":"Challenger","voteWork":"Vote for this work","loginToVote":"Sign in to vote","alreadyVoted":"You already voted!","voteRegistered":"Vote registered","voteFailed":"Vote not registered","duelUnavailable":"Duel unavailable"},
-  "admin": {"moderation":"Moderation","gallery":"Gallery","arena":"Arena","community":"Community","analytics":"Analytics","controlCenter":"Control center","moderationWorks":"Artwork moderation","loadingWorks":"Loading works...","noWorks":"No works to moderate","arenaControl":"Arena control","noDuel":"No duel in progress","createDuel":"Create new duel","closeDuel":"Close duel","scheduleNext":"Schedule the next duel","finalArena":"Final Arena · 3 photographs","allUsers":"All registered users","whoVoted":"Who voted","duelDetails":"Duel details","registeredUsers":"Registered users","totalWorks":"Total works","totalVotes":"Total votes","schedule":"Schedule duel","selectWork":"Select a work","openingDay":"Opening day","openingTime":"Opening time"}
+  "nav": {
+    "home": "Home",
+    "arena": "Arena",
+    "gallery": "Gallery",
+    "howItWorks": "How It Works",
+    "rules": "Rules",
+    "submit": "Submit Work",
+    "login": "Sign in",
+    "loginOrRegister": "Sign in / Register",
+    "logout": "Log out",
+    "profile": "Open profile"
+  },
+  "theme": {
+    "light": "Switch to light theme",
+    "dark": "Switch to dark theme"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "close": "Close",
+    "submit": "Submit",
+    "vote": "Vote",
+    "votes": "votes",
+    "back": "Back",
+    "notFound": "Page not found",
+    "returnHome": "Return Home",
+    "language": "Language",
+    "selectLanguage": "Select language"
+  },
+  "home": {
+    "eyebrow": "Digital art gallery",
+    "tagline": "A space for images that deserve to remain.",
+    "galleryCta": "Explore the gallery",
+    "arenaCta": "Enter the Arena",
+    "ritual": "The Unseen ritual",
+    "headline": "Look. Choose. Leave your mark.",
+    "subheadline": "The community chooses. The best works remain.",
+    "arenaTitle": "Arena",
+    "arenaText": "Two works. One vote. The challenge begins.",
+    "galleryTitle": "Gallery",
+    "galleryText": "Photographs that left their mark.",
+    "artistsTitle": "Artists",
+    "artistsText": "A space for those who see the world differently."
+  },
+  "auth": {
+    "title": "Enter the Arena",
+    "description": "Register or sign in with your Google account to vote.",
+    "register": "Register",
+    "signInGoogle": "Sign in with Google",
+    "loading": "Loading...",
+    "signInFailed": "Google sign-in failed"
+  },
+  "submit": {
+    "title": "SUBMIT YOUR WORK",
+    "subtitle": "Share your vision with the world",
+    "upload": "Upload your work",
+    "formats": "JPG, PNG or WEBP",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Work name",
+    "author": "Author",
+    "authorPlaceholder": "Your name",
+    "story": "Story",
+    "storyPlaceholder": "Describe the concept of the work",
+    "instagram": "Instagram username",
+    "instagramPlaceholder": "@username",
+    "send": "Submit work",
+    "sending": "Submitting...",
+    "fileTooLarge": "File too large",
+    "fileTooLargeDescription": "The file must not exceed 5MB.",
+    "unsupported": "Unsupported format",
+    "unsupportedDescription": "Only JPG, PNG or WEBP are accepted.",
+    "missingFile": "Missing file",
+    "missingFileDescription": "Select an image to upload.",
+    "success": "Work submitted!",
+    "successDescription": "Your vision was shared successfully.",
+    "uploadError": "Submission error",
+    "unexpectedError": "An unexpected error occurred.",
+    "preview": "Preview"
+  },
+  "gallery": {
+    "kicker": "UNSEEN / COLLECTIONS",
+    "title": "GALLERY",
+    "loading": "Loading archive...",
+    "emptyLabel": "Being prepared",
+    "firstCollection": "First collection",
+    "emptyTitle": "The first championship is about to begin.",
+    "emptyText": "This space will welcome the winning works, displayed side by side.",
+    "archive": "Winners archive",
+    "seasonHint": "Select a season to discover the other awards",
+    "hideAwards": "Hide awards",
+    "showAwards": "Show other winners",
+    "winner": "Winner of the month",
+    "peopleChoice": "People's choice",
+    "juryChoice": "Jury's choice",
+    "firstPosition": "1st position · Photo of the month",
+    "secondPosition": "2nd position",
+    "thirdPosition": "3rd position",
+    "archiveLabel": "Unseen Archive",
+    "noDescription": "No description available."
+  },
+  "howItWorks": {
+    "title": "HOW IT WORKS",
+    "subtitle": "Four steps to the gallery",
+    "monthly": "Every month",
+    "awardsTitle": "One champion per category",
+    "awardsText": "The final winner takes the photography or music championship.",
+    "steps": [
+      {
+        "title": "Submit your work",
+        "description": "Submit a photograph or a song with its cover."
+      },
+      {
+        "title": "16 participants",
+        "description": "The team selects approved entries and publishes the bracket."
+      },
+      {
+        "title": "One match every 48 hours",
+        "description": "Log in and vote. Winners advance automatically."
+      },
+      {
+        "title": "The final within 30 days",
+        "description": "Follow every round in the Championship section."
+      }
+    ],
+    "awards": [
+      {
+        "label": "01",
+        "title": "One champion per category",
+        "description": "The final winner takes the photography or music championship."
+      }
+    ]
+  },
+  "rules": {
+    "title": "Rules",
+    "eyebrow": "UNSEEN ? Photography and music",
+    "intro": "Two independent championships. Sixteen participants per category. The audience decides, one match at a time, who reaches the final.",
+    "index": "Rules contents",
+    "articleLabel": "Article",
+    "bracket": "Explore the championship",
+    "statsLabel": "Championship in numbers",
+    "flowEyebrow": "From the first match to the final",
+    "flowTitle": "One journey. One champion.",
+    "flowText": "Photography and music use the same bracket structure, with separate entries, votes and winners. Each category runs one match at a time.",
+    "secretNote": "Votes stay secret during a match. Counts become public only after that match has finished.",
+    "ctaTitle": "The next entry could be yours.",
+    "ctaText": "Submit a photograph or a song with its cover.",
+    "sendPhoto": "Submit a photograph",
+    "sendMusic": "Submit a song",
+    "accepted": "By participating in Unseen you confirm that you have read and accepted these rules.",
+    "stats": [
+      {
+        "value": "16",
+        "label": "participants per championship"
+      },
+      {
+        "value": "15",
+        "label": "single-elimination matches"
+      },
+      {
+        "value": "48h",
+        "label": "for each match"
+      },
+      {
+        "value": "30",
+        "label": "exact days ? 720 hours"
+      }
+    ],
+    "rounds": [
+      {
+        "title": "Round of 16",
+        "participants": "16 ? 8",
+        "matches": "8 matches",
+        "duration": "16 days"
+      },
+      {
+        "title": "Quarterfinals",
+        "participants": "8 ? 4",
+        "matches": "4 matches",
+        "duration": "8 days"
+      },
+      {
+        "title": "Semifinals",
+        "participants": "4 ? 2",
+        "matches": "2 matches",
+        "duration": "4 days"
+      },
+      {
+        "title": "Final",
+        "participants": "2 ? 1",
+        "matches": "1 match",
+        "duration": "2 days"
+      }
+    ],
+    "articles": [
+      {
+        "title": "Two separate championships",
+        "intro": "UNSEEN runs independent photography and music championships. Participation is free. You must sign in to submit an entry or vote."
+      },
+      {
+        "title": "Submitting a photograph",
+        "rules": [
+          {
+            "label": "Files",
+            "text": "Use JPG, PNG or WEBP, up to 5 MB. Images are optimized for publication."
+          },
+          {
+            "label": "Details",
+            "text": "Provide the title and author. You may add a description and your Instagram username, linking directly to your profile."
+          },
+          {
+            "label": "Authorship",
+            "text": "Submit your own photograph and hold the necessary rights. Offensive material and content that violates privacy or others? rights are not allowed."
+          }
+        ]
+      },
+      {
+        "title": "Submitting a song",
+        "rules": [
+          {
+            "label": "Audio and cover",
+            "text": "Choose an MP3 or WAV file up to 30 MB and a JPG, PNG or WEBP cover up to 5 MB. The cover accompanies the record in the music arena."
+          },
+          {
+            "label": "Competition excerpt",
+            "text": "Select exact start and end points in the form, with a maximum of 40 seconds. Preview it before submitting. Only the chosen excerpt is uploaded for the competition."
+          },
+          {
+            "label": "Optional profile and links",
+            "text": "Provide title and artist. You may add Instagram and links to your song on YouTube, as an Instagram Reel or on Spotify. Links do not replace the required audio and cover."
+          },
+          {
+            "label": "Rights",
+            "text": "You must be the song?s author and hold the necessary rights to the cover too. Do not submit material that infringes others? rights."
+          }
+        ]
+      },
+      {
+        "title": "Review and participant selection",
+        "rules": [
+          {
+            "label": "Review first",
+            "text": "The team reviews submissions. Submission or approval does not guarantee a place in the next championship."
+          },
+          {
+            "label": "Sixteen different authors",
+            "text": "Administrators select 16 approved entries per category, with one entry per participant in each championship. The previous limit of one photograph per month no longer applies."
+          },
+          {
+            "label": "Seeds and pairings",
+            "text": "Initial seeds #1?#16 are assigned before the start: #1 faces #2, #3 faces #4, and so on. The scheduled bracket is visible in Championship."
+          },
+          {
+            "label": "Repeated uploads",
+            "text": "Each account can start up to 5 upload attempts per 24 hours, shared between photographs and songs. An upload started but not completed may still count. The form tells you when the limit is reached."
+          }
+        ]
+      },
+      {
+        "title": "Schedule and duration",
+        "rules": [
+          {
+            "label": "Starting date",
+            "text": "Administrators choose the start date and time. There are no fixed stages starting on the 1st or 15th of each month."
+          },
+          {
+            "label": "One match every 48 hours",
+            "text": "8 round-of-16 matches, 4 quarterfinals, 2 semifinals and 1 final run sequentially. Each lasts 48 hours. The championship ends after exactly 720 hours, or 30 days, including across daylight-saving changes."
+          },
+          {
+            "label": "Automatic advancement",
+            "text": "After each match the system determines the winner and fills the next round without changing the schedule."
+          },
+          {
+            "label": "Cancelled championships",
+            "text": "A championship cancelled by administrators stops, retains its history and does not publish a gallery champion."
+          }
+        ]
+      },
+      {
+        "title": "Secret votes and advancement",
+        "rules": [
+          {
+            "label": "Sign-in and one vote",
+            "text": "You must sign in and vote within the match?s 48-hour window. Each account has one vote per match; a recorded vote cannot be changed."
+          },
+          {
+            "label": "Results at the end",
+            "text": "The audience cannot see live totals. Scores appear in the bracket when the result is finalized. Administrators can inspect counts and the vote register during the competition."
+          },
+          {
+            "label": "Who advances",
+            "text": "The entry with more votes advances automatically. Votes from earlier matches do not carry over."
+          },
+          {
+            "label": "Ties, including zero votes",
+            "text": "The participant with the better initial seed, the lower number, advances. The same seed applies in every round: for example #3 outranks #12. This also applies when both entries receive zero votes."
+          }
+        ]
+      },
+      {
+        "title": "Bracket, winner and gallery",
+        "rules": [
+          {
+            "label": "Follow the competition",
+            "text": "Championship shows entries, pairings, schedule and finalized results. Winners fill the next blocks; eliminated entries are darkened and marked with an X."
+          },
+          {
+            "label": "One champion per category",
+            "text": "The final winner is that championship?s champion. It automatically enters the gallery with its photograph, or cover and song."
+          },
+          {
+            "label": "The winner?s month",
+            "text": "The champion belongs to the championship?s starting month in Europe/Rome time. A competition starting in October and ending in November has an October winner."
+          },
+          {
+            "label": "Archive",
+            "text": "Previous collections remain available. Historical awards and the Arena of Champions are not stages of the new championship."
+          }
+        ]
+      },
+      {
+        "title": "Fair play and anti-bot",
+        "intro": "Only registered users may vote, with one vote per duel. Bots, fake or duplicate accounts, automated scripts and artificial vote exchanges are forbidden; suspicious votes may be cancelled."
+      },
+      {
+        "title": "Copyright and usage licence",
+        "intro": "The author keeps full copyright. By uploading a photo, the author grants Unseen a free, non-exclusive licence to display and promote it with credit, without any sale or transfer to third parties without written permission."
+      }
+    ]
+  },
+  "notFound": {
+    "title": "404",
+    "message": "Oops! Page not found",
+    "home": "Return Home"
+  },
+  "arena": {
+    "competition": "Unseen · Photography competition",
+    "timeRemaining": "Time remaining",
+    "championshipStatus": "Championship status",
+    "votePrompt": "Cast your preference",
+    "share": "Share duel",
+    "shareWhat": "What would you like to share?",
+    "shareDuel": "Share the duel",
+    "shareFirst": "Share challenger 1",
+    "shareSecond": "Share challenger 2",
+    "challenger": "Challenger",
+    "voteWork": "Vote for this work",
+    "loginToVote": "Sign in to vote",
+    "alreadyVoted": "You already voted!",
+    "voteRegistered": "Vote registered",
+    "voteFailed": "Vote not registered",
+    "duelUnavailable": "Duel unavailable"
+  },
+  "admin": {
+    "moderation": "Moderation",
+    "gallery": "Gallery",
+    "arena": "Arena",
+    "community": "Community",
+    "analytics": "Analytics",
+    "controlCenter": "Control center",
+    "moderationWorks": "Artwork moderation",
+    "loadingWorks": "Loading works...",
+    "noWorks": "No works to moderate",
+    "arenaControl": "Arena control",
+    "noDuel": "No duel in progress",
+    "createDuel": "Create new duel",
+    "closeDuel": "Close duel",
+    "scheduleNext": "Schedule the next duel",
+    "finalArena": "Final Arena · 3 photographs",
+    "allUsers": "All registered users",
+    "whoVoted": "Who voted",
+    "duelDetails": "Duel details",
+    "registeredUsers": "Registered users",
+    "totalWorks": "Total works",
+    "totalVotes": "Total votes",
+    "schedule": "Schedule duel",
+    "selectWork": "Select a work",
+    "openingDay": "Opening day",
+    "openingTime": "Opening time"
+  }
 }
