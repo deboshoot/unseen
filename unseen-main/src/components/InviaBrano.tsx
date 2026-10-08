@@ -29,6 +29,7 @@ export default function InviaBrano() {
   const [title, setTitle] = useState(''); const [artist, setArtist] = useState('');
   const [instagram, setInstagram] = useState(''); const [youtube, setYoutube] = useState(''); const [reel, setReel] = useState(''); const [spotify, setSpotify] = useState('');
   const [cover, setCover] = useState<File | null>(null); const [audio, setAudio] = useState<File | null>(null);
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [coverUrl, setCoverUrl] = useState(''); const [audioUrl, setAudioUrl] = useState('');
   const [buffer, setBuffer] = useState<AudioBuffer | null>(null); const [decoding, setDecoding] = useState(false); const [decodeError, setDecodeError] = useState('');
   const [start, setStart] = useState(0); const [end, setEnd] = useState(0); const [prepared, setPrepared] = useState<PreparedClip | null>(null);
@@ -37,6 +38,14 @@ export default function InviaBrano() {
   const clipFile = prepared && prepared.source === buffer && prepared.start === start && prepared.end === end ? prepared.file : null;
   const username = normalizeInstagram(instagram); const youtubeUrl = normalizeMusicLink(youtube, 'youtube'); const reelUrl = normalizeMusicLink(reel, 'reel'); const spotifyUrl = normalizeMusicLink(spotify, 'spotify');
   const invalidSocial = username === null || youtubeUrl === null || reelUrl === null || spotifyUrl === null;
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setHasSession(Boolean(data.session));
+    });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (!cover) { setCoverUrl(''); return; }
@@ -74,6 +83,16 @@ export default function InviaBrano() {
     }
     if (kind === 'cover') setCover(file); else { setAudio(file); setBuffer(null); setPrepared(null); }
   };
+  const handleFilePickerClick = (event: React.MouseEvent<HTMLInputElement>) => {
+    if (hasSession === true) return;
+    event.preventDefault();
+    if (hasSession === false) {
+      toast.info(copy.login);
+      navigate(`/auth?redirect=${encodeURIComponent('/submit?tipo=musica')}`);
+    } else {
+      toast.info('Verifica dell’accesso in corso. Riprova tra un istante.');
+    }
+  };
   const send = async (event: FormEvent) => {
     event.preventDefault();
     if (submitting.current) return;
@@ -99,7 +118,7 @@ export default function InviaBrano() {
         <div className="music-studio-section-heading"><span>01</span><div><h2>{text.stepFiles}</h2><p>{text.filesHint}</p></div></div>
         <div className="music-studio-uploads">{(['cover', 'audio'] as const).map(kind => {
           const file = kind === 'cover' ? cover : audio; const Icon = kind === 'cover' ? ImagePlus : Headphones;
-          return <label key={kind} className={`music-studio-upload ${file ? 'has-file' : ''}`}><Icon size={24} strokeWidth={1.4} /><strong>{kind === 'cover' ? copy.cover : copy.audio}</strong><small>{kind === 'cover' ? copy.coverHint : audioFormatsHint}</small><span>{file ? text.change : kind === 'cover' ? text.pickCover : text.pickAudio}<ArrowUpRight size={12} /></span><input className="sr-only" aria-label={kind === 'cover' ? copy.cover : copy.audio} type="file" accept={kind === 'cover' ? 'image/jpeg,image/png,image/webp' : 'audio/mpeg,audio/mpa,audio/mp4,audio/mp4a-latm,audio/m4a,audio/x-m4a,audio/aac,audio/wav,audio/x-wav,.mpa,.mp3,.mp4a,.m4a,.wav'} onChange={event => { selectFile(event.target.files?.[0], kind); event.target.value = ''; }} disabled={loading} />{file && <em title={file.name}><Check size={12} />{file.name}</em>}</label>;
+          return <label key={kind} className={`music-studio-upload ${file ? 'has-file' : ''}`}><Icon size={24} strokeWidth={1.4} /><strong>{kind === 'cover' ? copy.cover : copy.audio}</strong><small>{kind === 'cover' ? copy.coverHint : audioFormatsHint}</small><span>{file ? text.change : kind === 'cover' ? text.pickCover : text.pickAudio}<ArrowUpRight size={12} /></span><input className="sr-only" aria-label={kind === 'cover' ? copy.cover : copy.audio} type="file" accept={kind === 'cover' ? 'image/jpeg,image/png,image/webp' : 'audio/mpeg,audio/mpa,audio/mp4,audio/mp4a-latm,audio/m4a,audio/x-m4a,audio/aac,audio/wav,audio/x-wav,.mpa,.mp3,.mp4a,.m4a,.wav'} onClick={handleFilePickerClick} onChange={event => { selectFile(event.target.files?.[0], kind); event.target.value = ''; }} disabled={loading} />{file && <em title={file.name}><Check size={12} />{file.name}</em>}</label>;
         })}</div>
         {decoding && <p className="music-studio-processing" role="status"><LoaderCircle size={15} className="animate-spin" />{text.decoding}</p>}
         {decodeError && <p role="alert" className="music-studio-error">{decodeError}</p>}

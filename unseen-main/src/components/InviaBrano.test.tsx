@@ -59,12 +59,11 @@ describe("music submissions", () => {
     expect(mocks.error).toHaveBeenCalled();
   });
 
-  it("requires login before uploading any files", async () => {
+  it("requires login before opening an audio file picker", async () => {
     mocks.session.mockResolvedValueOnce({ data: { session: null }, error: null });
-    const { container } = render(<InviaBrano />);
-    fillSubmission();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Invia il brano' })).toBeEnabled());
-    fireEvent.submit(container.querySelector("form")!);
+    render(<InviaBrano />);
+    await waitFor(() => expect(mocks.session).toHaveBeenCalled());
+    expect(fireEvent.click(screen.getByLabelText("File audio"))).toBe(false);
     await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/auth?redirect=%2Fsubmit%3Ftipo%3Dmusica"));
     expect(mocks.upload).not.toHaveBeenCalled();
   });

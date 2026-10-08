@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ export default function InviaOpera() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const submitting = useRef(false);
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [titolo, setTitolo] = useState('');
   const [autore, setAutore] = useState('');
   const [storia, setStoria] = useState('');
@@ -21,6 +22,25 @@ export default function InviaOpera() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setHasSession(Boolean(data.session));
+    });
+    return () => { active = false; };
+  }, []);
+
+  const handleFilePickerClick = (event: React.MouseEvent<HTMLInputElement>) => {
+    if (hasSession === true) return;
+    event.preventDefault();
+    if (hasSession === false) {
+      toast.info('Accedi o registrati per allegare una fotografia.');
+      navigate(`/auth?redirect=${encodeURIComponent('/submit')}`);
+    } else {
+      toast.info('Verifica dell’accesso in corso. Riprova tra un istante.');
+    }
+  };
 
   const clearSelection = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -151,7 +171,7 @@ export default function InviaOpera() {
               <span className="font-display text-xl font-semibold text-foreground">{t('submit.upload')}</span>
               <p className="mt-3 max-w-xs font-body text-sm leading-6 text-muted-foreground">Trascina qui la tua immagine o selezionala dal dispositivo.</p>
               <span className="mt-6 rounded-full border border-border/70 px-4 py-2 font-body text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t('submit.formats')} · max 5 MB</span>
-              <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
+              <input type="file" className="hidden" onClick={handleFilePickerClick} onChange={handleFileChange} accept="image/*" />
             </label>
           )}
         </div>
