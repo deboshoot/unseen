@@ -163,31 +163,31 @@
       },
       {
         "value": "30",
-        "label": "exact days ? 720 hours"
+        "label": "exact days, or 720 hours"
       }
     ],
     "rounds": [
       {
         "title": "Round of 16",
-        "participants": "16 ? 8",
+        "participants": "16 → 8",
         "matches": "8 matches",
         "duration": "16 days"
       },
       {
         "title": "Quarterfinals",
-        "participants": "8 ? 4",
+        "participants": "8 → 4",
         "matches": "4 matches",
         "duration": "8 days"
       },
       {
         "title": "Semifinals",
-        "participants": "4 ? 2",
+        "participants": "4 → 2",
         "matches": "2 matches",
         "duration": "4 days"
       },
       {
         "title": "Final",
-        "participants": "2 ? 1",
+        "participants": "2 → 1",
         "matches": "1 match",
         "duration": "2 days"
       }

@@ -142,7 +142,7 @@
     "flowEyebrow": "Del primer duelo a la final",
     "flowTitle": "Un recorrido. Un solo campe?n.",
     "flowText": "Fotograf?a y m?sica siguen el mismo cuadro, con obras, votos y ganadores independientes. Cada categor?a celebra un ?nico duelo a la vez.",
-    "secretNote": "Los votos son secretos durante el duelo. Los recuentos solo se hacen p?blicos despu?s de su conclusi?n.",
+    "secretNote": "Los votos son secretos durante el duelo. Los recuentos solo se hacen públicos después de su conclusión.",
     "ctaTitle": "La pr?xima obra podr?a ser la tuya.",
     "ctaText": "Env?a una fotograf?a o una canci?n con su portada.",
     "sendPhoto": "Enviar una fotograf?a",
@@ -163,31 +163,31 @@
       },
       {
         "value": "30",
-        "label": "d?as exactos ? 720 horas"
+        "label": "días exactos, es decir, 720 horas"
       }
     ],
     "rounds": [
       {
         "title": "Octavos",
-        "participants": "16 ? 8",
+        "participants": "16 → 8",
         "matches": "8 duelos",
         "duration": "16 d?as"
       },
       {
         "title": "Cuartos",
-        "participants": "8 ? 4",
+        "participants": "8 → 4",
         "matches": "4 duelos",
         "duration": "8 d?as"
       },
       {
         "title": "Semifinales",
-        "participants": "4 ? 2",
+        "participants": "4 → 2",
         "matches": "2 duelos",
         "duration": "4 d?as"
       },
       {
         "title": "Final",
-        "participants": "2 ? 1",
+        "participants": "2 → 1",
         "matches": "1 duelo",
         "duration": "2 d?as"
       }

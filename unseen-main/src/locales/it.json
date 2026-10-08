@@ -142,7 +142,7 @@
     "flowEyebrow": "Dal primo duello alla finale",
     "flowTitle": "Un percorso. Un solo campione.",
     "flowText": "Fotografia e musica seguono lo stesso tabellone, con partecipanti, voti e vincitori separati. In ogni categoria si disputa una sola sfida alla volta.",
-    "secretNote": "Il voto ? segreto durante la sfida. I conteggi diventano pubblici soltanto quando quel duello ? concluso.",
+    "secretNote": "Il voto è segreto durante la sfida. I conteggi diventano pubblici soltanto quando quel duello è concluso.",
     "ctaTitle": "La prossima opera potrebbe essere la tua.",
     "ctaText": "Invia una fotografia oppure un brano con la sua copertina.",
     "sendPhoto": "Invia una fotografia",
@@ -163,31 +163,31 @@
       },
       {
         "value": "30",
-        "label": "giorni esatti ? 720 ore"
+        "label": "giorni esatti, pari a 720 ore"
       }
     ],
     "rounds": [
       {
         "title": "Ottavi",
-        "participants": "16 ? 8",
+        "participants": "16 → 8",
         "matches": "8 duelli",
         "duration": "16 giorni"
       },
       {
         "title": "Quarti",
-        "participants": "8 ? 4",
+        "participants": "8 → 4",
         "matches": "4 duelli",
         "duration": "8 giorni"
       },
       {
         "title": "Semifinali",
-        "participants": "4 ? 2",
+        "participants": "4 → 2",
         "matches": "2 duelli",
         "duration": "4 giorni"
       },
       {
         "title": "Finale",
-        "participants": "2 ? 1",
+        "participants": "2 → 1",
         "matches": "1 duello",
         "duration": "2 giorni"
       }

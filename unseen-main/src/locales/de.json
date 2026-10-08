@@ -142,7 +142,7 @@
     "flowEyebrow": "Vom ersten Duell bis zum Finale",
     "flowTitle": "Ein Weg. Ein Champion.",
     "flowText": "Fotografie und Musik folgen demselben Turnierbaum, mit getrennten Werken, Stimmen und Gewinnern. Jede Kategorie spielt jeweils ein Duell.",
-    "secretNote": "Stimmen bleiben w?hrend des Duells geheim. Die Zahlen werden erst nach Abschluss des jeweiligen Duells ?ffentlich.",
+    "secretNote": "Stimmen bleiben während des Duells geheim. Die Zahlen werden erst nach Abschluss des jeweiligen Duells öffentlich.",
     "ctaTitle": "Das n?chste Werk k?nnte deines sein.",
     "ctaText": "Reiche ein Foto oder einen Song mit seinem Cover ein.",
     "sendPhoto": "Foto einreichen",
@@ -163,31 +163,31 @@
       },
       {
         "value": "30",
-        "label": "genaue Tage ? 720 Stunden"
+        "label": "genaue Tage, also 720 Stunden"
       }
     ],
     "rounds": [
       {
         "title": "Achtelfinale",
-        "participants": "16 ? 8",
+        "participants": "16 → 8",
         "matches": "8 Duelle",
         "duration": "16 Tage"
       },
       {
         "title": "Viertelfinale",
-        "participants": "8 ? 4",
+        "participants": "8 → 4",
         "matches": "4 Duelle",
         "duration": "8 Tage"
       },
       {
         "title": "Halbfinale",
-        "participants": "4 ? 2",
+        "participants": "4 → 2",
         "matches": "2 Duelle",
         "duration": "4 Tage"
       },
       {
         "title": "Finale",
-        "participants": "2 ? 1",
+        "participants": "2 → 1",
         "matches": "1 Duell",
         "duration": "2 Tage"
       }

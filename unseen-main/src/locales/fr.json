@@ -142,7 +142,7 @@
     "flowEyebrow": "Du premier duel ? la finale",
     "flowTitle": "Un parcours. Un seul champion.",
     "flowText": "Photographie et musique suivent le m?me tableau, avec des ?uvres, votes et vainqueurs distincts. Chaque cat?gorie dispute un seul duel ? la fois.",
-    "secretNote": "Les votes restent secrets pendant le duel. Les scores deviennent publics seulement apr?s sa conclusion.",
+    "secretNote": "Les votes restent secrets pendant le duel. Les scores deviennent publics seulement après sa conclusion.",
     "ctaTitle": "La prochaine ?uvre pourrait ?tre la v?tre.",
     "ctaText": "Envoyez une photographie ou un morceau avec sa pochette.",
     "sendPhoto": "Envoyer une photographie",
@@ -163,31 +163,31 @@
       },
       {
         "value": "30",
-        "label": "jours exacts ? 720 heures"
+        "label": "jours exacts, soit 720 heures"
       }
     ],
     "rounds": [
       {
         "title": "Huiti?mes",
-        "participants": "16 ? 8",
+        "participants": "16 → 8",
         "matches": "8 duels",
         "duration": "16 jours"
       },
       {
         "title": "Quarts",
-        "participants": "8 ? 4",
+        "participants": "8 → 4",
         "matches": "4 duels",
         "duration": "8 jours"
       },
       {
         "title": "Demi-finales",
-        "participants": "4 ? 2",
+        "participants": "4 → 2",
         "matches": "2 duels",
         "duration": "4 jours"
       },
       {
         "title": "Finale",
-        "participants": "2 ? 1",
+        "participants": "2 → 1",
         "matches": "1 duel",
         "duration": "2 jours"
       }
