@@ -114,6 +114,8 @@ describe("submission file boundaries", () => {
     expect(musicFileError(new File(["audio"], "track.mpa", { type: "audio/mpa" }), "audio")).toBeNull();
     expect(musicFileError(new File(["audio"], "track.mpa", { type: "application/octet-stream" }), "audio")).toBeNull();
     expect(musicFileError(new File(["audio"], "track.m4a", { type: "audio/mp4" }), "audio")).toBeNull();
+    expect(musicFileError(new File(["audio"], "track.m4a", { type: "audio/x-m4a" }), "audio")).toBeNull();
+    expect(musicFileError(new File(["audio"], "track.m4a", { type: "audio/m4a" }), "audio")).toBeNull();
     expect(musicFileError(new File(["audio"], "track.mp4a", { type: "audio/mp4a-latm" }), "audio")).toBeNull();
     expect(musicFileError(new File(["image"], "cover.webp", { type: "image/webp" }), "cover")).toBeNull();
     expect(musicFileError(new File(["script"], "track.mp3", { type: "text/javascript" }), "audio")).toBe("format");

@@ -19,7 +19,7 @@ export const formatAudioTime = (seconds: number) => {
   return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
 };
 
-const AUDIO_TYPES = ["audio/mpeg", "audio/mpa", "audio/mp4", "audio/mp4a-latm", "audio/aac", "audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave"];
+const AUDIO_TYPES = ["audio/mpeg", "audio/mpa", "audio/mp4", "audio/mp4a-latm", "audio/m4a", "audio/x-m4a", "audio/aac", "audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave"];
 const AUDIO_EXTENSIONS = new Set(["mpa", "mp3", "mp4a", "m4a", "wav"]);
 
 export const musicFileError = (file: File, kind: "cover" | "audio") => {
