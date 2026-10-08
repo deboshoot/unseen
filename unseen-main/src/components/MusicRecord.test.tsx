@@ -111,6 +111,10 @@ describe("music playback", () => {
 describe("submission file boundaries", () => {
   it("accepts audio and covers, and rejects wrong types, empty files, and oversized uploads", () => {
     expect(musicFileError(new File(["audio"], "track.mp3", { type: "audio/mpeg" }), "audio")).toBeNull();
+    expect(musicFileError(new File(["audio"], "track.mpa", { type: "audio/mpa" }), "audio")).toBeNull();
+    expect(musicFileError(new File(["audio"], "track.mpa", { type: "application/octet-stream" }), "audio")).toBeNull();
+    expect(musicFileError(new File(["audio"], "track.m4a", { type: "audio/mp4" }), "audio")).toBeNull();
+    expect(musicFileError(new File(["audio"], "track.mp4a", { type: "audio/mp4a-latm" }), "audio")).toBeNull();
     expect(musicFileError(new File(["image"], "cover.webp", { type: "image/webp" }), "cover")).toBeNull();
     expect(musicFileError(new File(["script"], "track.mp3", { type: "text/javascript" }), "audio")).toBe("format");
     expect(musicFileError(new File([], "track.wav", { type: "audio/wav" }), "audio")).toBe("size");
