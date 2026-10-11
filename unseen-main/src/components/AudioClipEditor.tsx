@@ -2,10 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { LoaderCircle, Pause, Play, Scissors } from 'lucide-react';
 import { useI18n } from '@/i18n/I18nProvider';
 import { musicSubmitCopy } from '@/i18n/music-submit-copy';
-import { MAX_CLIP_SECONDS, waveformPeaks } from '@/lib/audio-clip';
+import { MAX_CLIP_SECONDS, waveformPeaks, type AudioSource } from '@/lib/audio-clip';
 import { formatAudioTime } from '@/lib/music';
 
-type Props = { buffer: AudioBuffer; start: number; end: number; onChange: (start: number, end: number) => void; clipUrl: string; activeId: string | null; onActiveChange: (id: string | null) => void; disabled: boolean };
+type Props = { buffer: AudioSource; start: number; end: number; onChange: (start: number, end: number) => void; clipUrl: string; activeId: string | null; onActiveChange: (id: string | null) => void; disabled: boolean };
 export default function AudioClipEditor({ buffer, start, end, onChange, clipUrl, activeId, onActiveChange, disabled }: Props) {
   const { locale } = useI18n(); const copy = musicSubmitCopy[locale];
   const audioRef = useRef<HTMLAudioElement>(null);

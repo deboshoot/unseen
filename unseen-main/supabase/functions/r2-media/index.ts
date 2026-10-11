@@ -177,7 +177,7 @@ Deno.serve(async request => {
       await rpc('r2_reserve_upload', { p_id: id, p_user_id: user.id, p_kind: submission.kind, p_metadata: submission.metadata, p_files: submission.files });
       const files = await Promise.all(submission.files.map(async file => {
         // Browser sets Content-Length automatically for File/Blob requests.
-        const signed = await s3.sign(new Request(`${urlFor(privateBucket, file.uploadKey)}?X-Amz-Expires=300`, { method: 'PUT', headers: { 'Content-Type': file.mime, 'Content-Length': String(file.bytes) } }), { aws: { signQuery: true, allHeaders: true } });
+        const signed = await s3.sign(new Request(`${urlFor(privateBucket, file.uploadKey)}?X-Amz-Expires=900`, { method: 'PUT', headers: { 'Content-Type': file.mime, 'Content-Length': String(file.bytes) } }), { aws: { signQuery: true, allHeaders: true } });
         return { kind: file.kind, url: signed.url, contentType: file.mime };
       }));
       return reply({ id, files });

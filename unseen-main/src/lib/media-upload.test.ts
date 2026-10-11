@@ -25,4 +25,29 @@ describe('R2 upload protocol', () => {
     const rows=await resolveMediaPreviews([{immagine_url:'https://supabase.example/old.jpg'},{media_asset_id:'asset-id',immagine_url:'https://media.example/new.jpg'}]);
     expect(rows.map(row=>row.immagine_url)).toEqual(['https://supabase.example/old.jpg','https://r2.example/private-signed']);
   });
+  it('retries a transient PUT failure using the same reservation', async () => {
+    const file = new File(['image'], 'image.webp', { type: 'image/webp' });
+    mocks.invoke.mockResolvedValueOnce({ data: { id: 'same-id', files: [{ kind: 'image', url: 'https://r2.example/upload', contentType: 'image/webp' }] }, error: null })
+      .mockResolvedValueOnce({ data: { id: 'same-id' }, error: null });
+    fetchMock.mockRejectedValueOnce(new TypeError('network unavailable')).mockResolvedValueOnce(new Response(null, { status: 200 }));
+    expect(await uploadSubmission('photo', {}, [{ kind: 'image', file }])).toEqual({ id: 'same-id' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(mocks.invoke).toHaveBeenCalledTimes(2);
+  });
+  it('retries only idempotent confirmation after a temporary service failure', async () => {
+    const file = new File(['image'], 'image.webp', { type: 'image/webp' });
+    mocks.invoke.mockResolvedValueOnce({ data: { id: 'same-id', files: [{ kind: 'image', url: 'https://r2.example/upload', contentType: 'image/webp' }] }, error: null })
+      .mockResolvedValueOnce({ data: null, error: { context: new Response(JSON.stringify({ error: 'Temporarily unavailable' }), { status: 503 }) } })
+      .mockResolvedValueOnce({ data: { id: 'same-id' }, error: null });
+    expect(await uploadSubmission('photo', {}, [{ kind: 'image', file }])).toEqual({ id: 'same-id' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(mocks.invoke).toHaveBeenNthCalledWith(3, 'r2-media', { body: { action: 'complete', id: 'same-id' } });
+  });
+  it('stops retries after three failed PUT attempts and never confirms', async () => {
+    mocks.invoke.mockResolvedValueOnce({ data: { id: 'same-id', files: [{ kind: 'image', url: 'https://r2.example/upload', contentType: 'image/webp' }] }, error: null });
+    fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 503 })));
+    await expect(uploadSubmission('photo', {}, [{ kind: 'image', file: new File(['image'], 'image.webp') }])).rejects.toThrow('Caricamento');
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(mocks.invoke).toHaveBeenCalledTimes(1);
+  });
 });

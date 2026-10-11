@@ -1,14 +1,21 @@
+import { readBlob, readWavClip, readWavSource, type WavSource } from './wav-source';
+export type AudioSource = AudioBuffer | WavSource;
 export const MAX_CLIP_SECONDS = 40;
 const SAMPLE_RATE = 44100;
 
-export async function decodeAudioFile(file: File): Promise<AudioBuffer> {
+export async function decodeAudioFile(file: File, signal?: AbortSignal): Promise<AudioSource> {
+  const wav = await readWavSource(file, signal);
+  if (wav) return wav;
+  signal?.throwIfAborted();
   const context = new OfflineAudioContext(2, 1, SAMPLE_RATE);
-  const buffer = await context.decodeAudioData(await file.arrayBuffer());
+  const buffer = await context.decodeAudioData(await readBlob(file));
+  signal?.throwIfAborted();
   if (!Number.isFinite(buffer.duration) || buffer.duration <= 0) throw new Error('Audio non valido');
   return buffer;
 }
 
-export function waveformPeaks(buffer: AudioBuffer, count = 100): number[] {
+export function waveformPeaks(buffer: AudioSource, count = 100): number[] {
+  if ('kind' in buffer) return buffer.peaks;
   const samples = buffer.getChannelData(0);
   const stride = Math.max(1, Math.floor(samples.length / count));
   return Array.from({ length: count }, (_, index) => {
@@ -39,13 +46,15 @@ export function encodeClipWav(channels: Float32Array[], sampleRate = SAMPLE_RATE
   return output;
 }
 
-export async function renderAudioClip(buffer: AudioBuffer, start: number, end: number): Promise<File> {
+export async function renderAudioClip(buffer: AudioSource, start: number, end: number, signal?: AbortSignal): Promise<File> {
   if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end > buffer.duration + .001 || end <= start || end - start > MAX_CLIP_SECONDS + .00001) throw new Error('Seleziona un estratto valido fino a 40 secondi.');
   const frames = Math.min(SAMPLE_RATE * MAX_CLIP_SECONDS, Math.floor((end - start) * SAMPLE_RATE));
   if (frames < 1) throw new Error('Estratto troppo breve.');
   const context = new OfflineAudioContext(Math.min(2, buffer.numberOfChannels), frames, SAMPLE_RATE);
-  const source = context.createBufferSource(); source.buffer = buffer; source.connect(context.destination); source.start(0, start, frames / SAMPLE_RATE);
+  const wav = 'kind' in buffer;
+  const source = context.createBufferSource(); source.buffer = wav ? await readWavClip(buffer, start, end, context, signal) : buffer; source.connect(context.destination); source.start(0, wav ? start - Math.floor(start * buffer.sampleRate) / buffer.sampleRate : start, frames / SAMPLE_RATE);
   const clip = await context.startRendering();
+  signal?.throwIfAborted();
   const data = encodeClipWav(Array.from({ length: clip.numberOfChannels }, (_, index) => clip.getChannelData(index)));
   return new File([data], 'unseen-clip.wav', { type: 'audio/wav' });
 }

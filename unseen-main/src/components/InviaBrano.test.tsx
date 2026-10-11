@@ -38,6 +38,33 @@ function fillSubmission() {
 }
 
 describe("music submissions", () => {
+  it('accepts a WAV original over 30 MB without MIME and uploads only the prepared clip', async () => {
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    const original = new File(['master'], 'MASTER.WAW');
+    Object.defineProperty(original, 'size', { value: 100 * 1024 * 1024 });
+    fireEvent.change(screen.getByLabelText('File audio'), { target: { files: [original] } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Invia il brano' })).toBeEnabled());
+    expect(mocks.decode).toHaveBeenLastCalledWith(original, expect.any(AbortSignal));
+    expect(mocks.error).not.toHaveBeenCalled();
+    fireEvent.submit(container.querySelector('form')!);
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalled());
+    const files = mocks.upload.mock.calls[0][2];
+    expect(files.find((file: { kind: string }) => file.kind === 'audio').file.name).toBe('unseen-clip.wav');
+    expect(files.some((file: { file: File }) => file.file === original)).toBe(false);
+  });
+  it('distinguishes empty files, unsupported formats and oversized originals', () => {
+    render(<InviaBrano />);
+    const input = screen.getByLabelText('File audio');
+    fireEvent.change(input, { target: { files: [new File([], 'empty.wav')] } });
+    expect(mocks.error).toHaveBeenLastCalledWith('Il file è vuoto. Seleziona un altro file.');
+    fireEvent.change(input, { target: { files: [new File(['pdf'], 'document.pdf', { type: 'application/pdf' })] } });
+    expect(mocks.error).toHaveBeenLastCalledWith('Scegli un file MPA, MP3, MP4A/M4A o WAV valido.');
+    const huge = new File(['wav'], 'huge.wav'); Object.defineProperty(huge, 'size', { value: 250 * 1024 * 1024 + 1 });
+    fireEvent.change(input, { target: { files: [huge] } });
+    expect(mocks.error).toHaveBeenLastCalledWith('Il file audio supera 250 MB. Esporta un file più piccolo e riprova.');
+    expect(mocks.decode).not.toHaveBeenCalled();
+  });
   it("previews the selected cover and audio and submits both files through R2", async () => {
     const { container } = render(<InviaBrano />);
     fillSubmission();
@@ -79,7 +106,7 @@ describe("music submissions", () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Reel Instagram' }), { target: { value: 'https://www.instagram.com/reel/Test123/?igsh=tracking' } });
     fireEvent.change(screen.getByRole('textbox', { name: 'Brano su Spotify' }), { target: { value: 'https://open.spotify.com/intl-it/track/0123456789012345678901?si=tracking' } });
     await waitFor(() => expect(screen.getByRole('button', { name: 'Invia il brano' })).toBeEnabled());
-    expect(mocks.clip).toHaveBeenLastCalledWith(expect.objectContaining({duration:120}),25.25,60.25);
+    expect(mocks.clip).toHaveBeenLastCalledWith(expect.objectContaining({duration:120}),25.25,60.25,expect.any(AbortSignal));
     expect(screen.queryByRole('textbox',{name:/storia/i})).not.toBeInTheDocument();
     expect(screen.getAllByRole('link',{name:/@my.artist/})[0]).toHaveAttribute('href','https://www.instagram.com/my.artist/');
     fireEvent.submit(container.querySelector('form')!);

@@ -19,15 +19,17 @@ export const formatAudioTime = (seconds: number) => {
   return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
 };
 
-const AUDIO_TYPES = ["audio/mpeg", "audio/mpa", "audio/mp4", "audio/mp4a-latm", "audio/m4a", "audio/x-m4a", "audio/aac", "audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave"];
-const AUDIO_EXTENSIONS = new Set(["mpa", "mp3", "mp4a", "m4a", "wav"]);
-
+// This limit applies to the local original, not the much smaller 40-second upload.
+export const MAX_AUDIO_SOURCE_BYTES = 250 * 1024 * 1024;
+export const AUDIO_FILE_ACCEPT = '.mpa,.mp4a,.m4a,.mp3,.wav,.wave,.waw,audio/mpa,audio/mp4,audio/mp4a-latm,audio/m4a,audio/x-m4a,audio/aac,audio/mpeg,audio/mp3,audio/x-mp3,audio/wav,audio/x-wav,audio/wave,audio/vnd.wave';
 export const musicFileError = (file: File, kind: "cover" | "audio") => {
-  const validCoverType = ["image/jpeg", "image/png", "image/webp"].includes(file.type);
-  const extension = file.name.split(".").pop()?.toLowerCase() || "";
-  const genericAudioType = !file.type || file.type === "application/octet-stream";
-  const validAudioType = AUDIO_TYPES.includes(file.type) || (genericAudioType && AUDIO_EXTENSIONS.has(extension));
-  if (kind === "cover" ? !validCoverType : !validAudioType) return "format";
-  if (file.size === 0 || file.size > (kind === "cover" ? 5 : 30) * 1024 * 1024) return "size";
+  if (file.size === 0) return "empty";
+  if (file.size > (kind === 'cover' ? 5 * 1024 * 1024 : MAX_AUDIO_SOURCE_BYTES)) return "size";
+  const mime = file.type.toLowerCase().split(';')[0].trim();
+  const types = kind === "cover" ? ["image/jpeg", "image/jpg", "image/png", "image/webp"] : ["audio/mpa", "audio/mp4", "audio/mp4a-latm", "audio/m4a", "audio/x-m4a", "audio/aac", "audio/mpeg", "audio/mp3", "audio/x-mp3", "audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave"];
+  const extension = kind === 'cover' ? /\.(jpe?g|png|webp)$/i : /\.(mpa|mp4a|m4a|mp3|wav|wave|waw)$/i;
+  // Some OS/browser combinations return no MIME or a generic binary MIME.
+  const generic = ['', 'application/octet-stream', 'binary/octet-stream', 'application/x-wav'].includes(mime);
+  if (!types.includes(mime) && !(generic && extension.test(file.name))) return "format";
   return null;
 };

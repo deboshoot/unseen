@@ -119,12 +119,12 @@ describe("submission file boundaries", () => {
     expect(musicFileError(new File(["audio"], "track.mp4a", { type: "audio/mp4a-latm" }), "audio")).toBeNull();
     expect(musicFileError(new File(["image"], "cover.webp", { type: "image/webp" }), "cover")).toBeNull();
     expect(musicFileError(new File(["script"], "track.mp3", { type: "text/javascript" }), "audio")).toBe("format");
-    expect(musicFileError(new File([], "track.wav", { type: "audio/wav" }), "audio")).toBe("size");
+    expect(musicFileError(new File([], "track.wav", { type: "audio/wav" }), "audio")).toBe("empty");
     const tooLarge = new File(["image"], "cover.png", { type: "image/png" });
     Object.defineProperty(tooLarge, "size", { value: 5 * 1024 * 1024 + 1 });
     expect(musicFileError(tooLarge, "cover")).toBe("size");
     const longAudio = new File(["audio"], "track.wav", { type: "audio/wav" });
-    Object.defineProperty(longAudio, "size", { value: 30 * 1024 * 1024 + 1 });
+    Object.defineProperty(longAudio, "size", { value: 250 * 1024 * 1024 + 1 });
     expect(musicFileError(longAudio, "audio")).toBe("size");
     expect(formatAudioTime(Infinity)).toBe("0:00");
     expect(formatAudioTime(65.7)).toBe("1:05");
