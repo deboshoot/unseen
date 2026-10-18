@@ -124,7 +124,7 @@ export default function Gallery() {
       </section>}
 
       {!loading && !hasError && !featuredWork && <section className={`collection-empty ${kind === 'music' ? 'is-music' : ''}`} aria-label={text.emptyLabel}>
-        <div className="collection-empty-art" aria-hidden="true"><div className="collection-empty-object"><span>UNSEEN</span><small>{kind === 'music' ? 'SOUND COLLECTION' : 'PHOTO COLLECTION'}</small></div><span className="collection-empty-mark">U.</span></div>
+        <div className="collection-empty-art" aria-hidden="true"><div className="collection-empty-object"><span>UNSEEN</span><small>{kind === 'music' ? 'SOUND COLLECTION' : 'PHOTO COLLECTION'}</small></div></div>
         <div className="collection-empty-copy"><p className="collection-eyebrow">{text.emptyLabel}</p><h2>{text.emptyTitle}</h2><p>{kind === 'music' ? text.emptyMusic : text.emptyPhoto}</p><Link className="collection-text-link" to={championshipPath(kind)}>{text.discover}<ArrowUpRight size={17} /></Link></div>
       </section>}
 
