@@ -27,7 +27,7 @@ export default function ArenaChoice() {
           </Link>
           <Link to="/arena/musicale" className="arena-choice-card arena-choice-music group">
             <span className="choice-new">{copy.new}</span>
-            <div className="arena-choice-art music-choice-art" aria-hidden="true"><div className="choice-vinyl"><div className="choice-vinyl-label"><span>UNSEEN</span><i /></div></div></div>
+            <div className="arena-choice-art music-choice-art" aria-hidden="true"><div className="choice-vinyl"><div className="choice-vinyl-label"><img src="/unseen-logo-transparent.png" alt="" width={390} height={390} draggable={false} /><i /></div></div></div>
             <div className="arena-choice-copy"><p className="arena-eyebrow">02 / {musicArtworkCopy[locale].category}</p><h2>{copy.music}</h2><p>{copy.musicDescription}</p><span className="arena-choice-enter">{copy.enter}<ArrowUpRight size={19} /></span></div>
           </Link>
         </div>
