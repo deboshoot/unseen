@@ -63,11 +63,14 @@
 }
 .music-track.is-playing .vinyl-button { transform: translate(-50%, -50%) translateY(0%); z-index: 6; }
 .vinyl-button:hover { filter: drop-shadow(0 8px 7px #0008) brightness(1.08); }
-/* The PVC surface and printed label rotate together as one physical record. */
-.vinyl-record {
-  position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; border-radius: 50%;
+/* Lighting stays fixed while the printed record rotates beneath it. */
+.vinyl-button::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
   background: #08090b url("/music/vinyl-photoreal.png") center / 100% 100% no-repeat;
   box-shadow: 0 2px 3px #0009;
+}
+.vinyl-record {
+  position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; border-radius: 50%;
   animation: vinyl-spin 1.8s linear infinite;
   will-change: transform; backface-visibility: hidden;
 }
