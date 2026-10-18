@@ -21,9 +21,13 @@
 .collection-navigation nav > button::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: hsl(var(--primary)); transform: scaleX(0); transform-origin: left; transition: transform .25s; }
 .collection-navigation nav > button[aria-pressed="true"], .collection-navigation nav > button:hover { color: var(--collection-ink); }
 .collection-navigation nav > button[aria-pressed="true"]::after { transform: scaleX(1); }
-.collection-archive-label { display: flex; align-items: center; gap: 9px; font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: var(--collection-muted); }
+.collection-archive-label { display: flex; align-items: center; gap: 9px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--collection-muted); }
 .collection-archive-label > span { width: 4px; height: 4px; border-radius: 50%; background: #bdb09a; }
-.collection-archive-label > small { padding-left: 17px; margin-left: 8px; border-left: 1px solid var(--collection-line); font-size: inherit; }
+.collection-edition-header { display: flex; justify-content: space-between; align-items: end; gap: 24px; padding: 36px 0 31px; }
+.collection-edition-header .collection-eyebrow { color: var(--collection-muted); font-size: 10px; margin-bottom: 10px; }
+.collection-edition-header h2 { font-family: var(--font-display); font-size: clamp(25px, 3vw, 36px); font-weight: 400; line-height: 1.2; letter-spacing: -.025em; }
+.collection-edition-header h2 > span { color: #c8bba3; }
+.collection-edition-category { color: var(--collection-muted); font-size: 12px; padding-bottom: 4px; }
 .collection-section-line { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 37px 0 29px; font-size: 9px; line-height: 1.7; }
 .collection-section-line > p { text-transform: uppercase; letter-spacing: .18em; }
 .collection-section-line > p > span { color: var(--collection-muted); margin-right: 12px; }
@@ -52,12 +56,12 @@
 .collection-profile:hover, .collection-tournament:hover { color: var(--collection-ink); }
 .collection-tournament { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 23px; padding-top: 16px; border-top: 1px solid var(--collection-line); color: var(--collection-muted); font-size: 10px; line-height: 1.7; }
 .collection-awards { margin-top: 35px; }
-.collection-awards-toggle { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 0; border-top: 1px solid var(--collection-line); border-bottom: 1px solid var(--collection-line); color: var(--collection-muted); font-size: 10px; text-align: left; }
-.collection-awards-toggle > span { display: flex; align-items: center; gap: 16px; }
-.collection-awards-toggle small { font-size: 8px; color: var(--collection-ink); }
-.collection-awards-toggle > svg { transition: transform .25s; }
+.collection-awards-toggle { display: flex; width: 100%; min-height: 76px; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 24px; border: 1px solid #b9ab9355; background: #c8bba30b; color: var(--collection-ink); font-size: 15px; font-weight: 500; line-height: 1.5; text-align: left; transition: background .2s, border-color .2s; }
+.collection-awards-toggle > span { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.collection-awards-toggle small { display: grid; place-items: center; flex-shrink: 0; min-width: 28px; height: 28px; border: 1px solid var(--collection-line); font-size: 11px; color: var(--collection-ink); }
+.collection-awards-toggle > svg { width: 20px; height: 20px; flex-shrink: 0; transition: transform .25s; }
 .collection-awards-toggle[aria-expanded="true"] > svg { transform: rotate(180deg); }
-.collection-awards-toggle:hover { color: var(--collection-ink); }
+.collection-awards-toggle:hover { background: #c8bba315; border-color: #b9ab9390; }
 .collection-awards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; max-width: 850px; margin: 38px auto 0; }
 .collection-archive { margin-top: 65px; border-top: 1px solid var(--collection-line); }
 .collection-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 65px 40px; }
@@ -111,6 +115,7 @@
 .light-mode .unseen-collection { --collection-ink: #252724; --collection-muted: #686961; --collection-line: #24271f24; --collection-paper: #e5e1d7; color: var(--collection-ink); background: #f6f4ef; }
 .light-mode .unseen-collection :is(.collection-exhibition-copy > .collection-eyebrow,.collection-piece-caption > .collection-eyebrow,.collection-empty-copy > .collection-eyebrow) { color: #7a6848; }
 .light-mode .collection-invitation h2 > em { color: #7a6848; }
+.light-mode .collection-edition-header h2 > span { color: #7a6848; }
 .light-mode .collection-signature { color: #25272409; }
 .light-mode .collection-empty-object { background: #eeeae1; box-shadow: 14px 22px 45px #48402d0c, inset 0 0 0 15px #f6f4ef, inset 0 0 0 16px #82755633; }
 .light-mode .collection-empty.is-music .collection-empty-object { background: #08090b url('/music/vinyl-photoreal.png') center / cover; color: #eeeae3; box-shadow: 12px 22px 45px #48402d24; }
@@ -127,9 +132,10 @@
   .collection-navigation { gap: 10px; align-items: stretch; }
   .collection-navigation nav { gap: 25px; }
   .collection-navigation nav > button { padding: 21px 0; font-size: 11px; gap: 8px; }
-  .collection-archive-label { font-size: 0; gap: 0; }
-  .collection-archive-label > span { display: none; }
-  .collection-archive-label > small { font-size: 8px; margin: 0; padding: 0; border: 0; letter-spacing: 0; text-transform: none; }
+  .collection-archive-label { display: none; }
+  .collection-edition-header { padding: 28px 0 24px; }
+  .collection-edition-header h2 { font-size: 26px; }
+  .collection-edition-category { display: none; }
   .collection-section-line { padding: 27px 0 22px; gap: 12px; font-size: 8px; }
   .collection-exhibition, .collection-exhibition.is-music { grid-template-columns: 1fr; gap: 35px; }
   .collection-mount { min-height: 260px; padding: 28px; }
@@ -143,6 +149,7 @@
   .collection-metadata { margin-bottom: 20px; }
   .collection-profile { display: inline-flex; margin-left: 28px; }
   .collection-awards { margin-top: 33px; }
+  .collection-awards-toggle { padding: 20px 16px; font-size: 14px; }
   .collection-awards-grid { gap: 23px; margin-top: 27px; }
   .collection-piece-mount { padding: 16px; }
   .collection-piece-caption { padding-top: 18px; }

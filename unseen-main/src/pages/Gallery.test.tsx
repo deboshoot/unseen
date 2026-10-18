@@ -31,7 +31,7 @@ describe('monthly championship gallery', () => {
     render(<MemoryRouter><Gallery /></MemoryRouter>);
     expect(await screen.findByRole('heading', { name: 'Opera winner' })).toBeInTheDocument();
     expect(screen.queryByText('Opera second')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Gli altri riconoscimenti/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Scopri gli altri riconoscimenti/ }));
     expect(await screen.findByText('Opera second')).toBeInTheDocument();
     expect(screen.getByText('Opera third')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Seconda posizione Opera second/ }));

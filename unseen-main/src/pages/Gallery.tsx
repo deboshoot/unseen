@@ -67,7 +67,6 @@ export default function Gallery() {
   const featuredWork = featuredChampion ? championWork(featuredChampion) : featuredMonth ? artworks[featuredMonth.winner_id] : null;
   const featuredLabel = featuredChampion ? text.monthlyChampion : text.photoWinner;
   const featuredPeriod = featuredChampion?.month_key ?? featuredMonth?.month_key;
-  const collectionCount = (champions.data?.count ?? 0) + legacy.length;
   const loading = champions.isLoading || (kind === 'photo' && archiveLoading);
   const hasError = Boolean(champions.error) || (kind === 'photo' && archiveError);
   const remainingMonths = legacy.filter(month => month.id !== featuredMonth?.id);
@@ -93,15 +92,15 @@ export default function Gallery() {
 
       <div className="collection-navigation">
         <nav aria-label={text.categories}>{(['photo', 'music'] as const).map((value, index) => <button type="button" key={value} aria-pressed={kind === value} onClick={() => { setKind(value); setPage(0); setActiveAudio(null); setExpandedMonth(null); }}><span aria-hidden="true">0{index + 1}</span>{value === 'photo' ? text.photo : text.music}</button>)}</nav>
-        <p className="collection-archive-label"><span />{text.permanent}{!loading && !hasError && collectionCount > 0 && <small>{String(collectionCount).padStart(2, '0')} {collectionCount === 1 ? text.edition : text.editions}</small>}</p>
+        <p className="collection-archive-label"><span />{text.permanent}</p>
       </div>
 
       {loading && <div className="collection-loading" role="status"><span />{text.loading}</div>}
       {champions.error && <div className="collection-notice" role="alert">{text.loadError}<button onClick={() => void champions.refetch()}>{text.retry}<ArrowRight size={14} /></button></div>}
       {kind === 'photo' && archiveError && <div className="collection-notice" role="alert">{text.archiveError}<button onClick={() => setArchiveRevision(value => value + 1)}>{text.retry}<ArrowRight size={14} /></button></div>}
 
-      {!loading && featuredWork && <section className="collection-feature" aria-label={text.featured}>
-        <div className="collection-section-line"><p><span>01 /</span> {text.collectionLabel}</p><span>{featuredPeriod && galleryMonthLabel(featuredPeriod, locale)}</span></div>
+      {!loading && featuredWork && <section className="collection-feature" aria-labelledby="collection-edition-title">
+        <header className="collection-edition-header"><div><p className="collection-eyebrow">{text.collectionLabel}</p><h2 id="collection-edition-title">{text.editionHeading} <span>{featuredPeriod && galleryMonthLabel(featuredPeriod, locale)}</span></h2></div><span className="collection-edition-category">{kind === 'photo' ? text.photo : text.music}</span></header>
         <div className={`collection-exhibition ${kind === 'music' ? 'is-music' : ''}`}>
           <div className="collection-exhibition-media">
             {kind === 'music' && featuredChampion ? <MusicRecord track={{ ...featuredChampion.entry, cover_url: featuredChampion.entry.image_url, audio_url: featuredChampion.entry.audio_url ?? '' }} activeId={activeAudio} onActiveChange={setActiveAudio} /> : <button type="button" className="collection-artwork" onClick={() => setSelectedWork(featuredWork)} aria-label={`${text.enlarge}: ${featuredWork.titolo}`}>
