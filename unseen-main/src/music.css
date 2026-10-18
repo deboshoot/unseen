@@ -7,10 +7,9 @@
 .photo-choice-art, .music-choice-art { background: radial-gradient(ellipse at 50% 40%, #57768935, transparent 65%), linear-gradient(135deg, #14212b, #10171e); }
 .choice-camera { display: block; width: 270px; max-width: 72%; height: auto; filter: drop-shadow(9px 14px 15px #0007); }
 .choice-vinyl { display: grid; place-items: center; width: 176px; height: 176px; border-radius: 50%; background: #08090b url('/music/vinyl-photoreal.png') center / cover; box-shadow: 10px 15px 28px #0007, inset 0 0 0 1px #ffffff15; transform: rotate(-15deg); }
-.choice-vinyl-label { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 32%; aspect-ratio: 1; border-radius: 50%; border: 1px solid #807667; background: #b5a690; color: #29251f; box-shadow: inset 0 0 7px #0002; }
-.choice-vinyl-label > span { font-size: 8px; font-weight: 700; letter-spacing: .12em; }
-.choice-vinyl-label > small { font-size: 5px; line-height: 1.3; text-transform: uppercase; letter-spacing: .04em; }
-.choice-vinyl-label > i { width: 4px; height: 4px; border-radius: 50%; background: #08090b; box-shadow: 0 0 0 1px #867d6e; }
+.choice-vinyl-label { position: relative; width: 32%; aspect-ratio: 1; border-radius: 50%; border: 1px solid #807667; background: #b5a690; color: #29251f; box-shadow: inset 0 0 7px #0002; }
+.choice-vinyl-label > span { position: absolute; top: 20%; left: 0; width: 100%; text-align: center; font-size: 8px; font-weight: 700; line-height: 1.2; letter-spacing: .12em; }
+.choice-vinyl-label > i { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 4px; height: 4px; border-radius: 50%; background: #08090b; box-shadow: 0 0 0 1px #867d6e; }
 .choice-new { position: absolute; top: 18px; right: 18px; z-index: 1; border: 1px solid #82b8dd55; background: #17273780; color: #c4d8e7; border-radius: 30px; padding: 6px 13px; font-size: 10px; text-transform: uppercase; letter-spacing: .15em; }
 .arena-choice-copy { padding: 28px 30px 30px; }
 .arena-choice-copy h2 { font-size: 32px; margin: 10px 0; letter-spacing: -.04em; }
