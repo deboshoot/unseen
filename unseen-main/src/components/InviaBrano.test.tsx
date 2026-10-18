@@ -98,6 +98,7 @@ describe("music submissions", () => {
   it('rebuilds the exact selected clip and persists normalized optional links instead of a story', async () => {
     const { container } = render(<InviaBrano />); fillSubmission();
     await waitFor(() => expect(screen.getByRole('button', { name: 'Invia il brano' })).toBeEnabled());
+    fireEvent.click(screen.getByText('Regola i secondi esatti'));
     fireEvent.change(screen.getByLabelText('Inizio (secondi)'), { target: { value: '25.25' } });
     expect(screen.getByRole('button', { name: 'Invia il brano' })).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Fine (secondi)'), { target: { value: '60.25' } });
