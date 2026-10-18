@@ -132,18 +132,18 @@
     ]
   },
   "rules": {
-    "title": "R?glement",
-    "eyebrow": "UNSEEN ? Photographie et musique",
-    "intro": "Deux championnats ind?pendants. Seize participants par cat?gorie. Le public d?cide, duel apr?s duel, qui atteint la finale.",
-    "index": "Sommaire du r?glement",
+    "title": "Règlement",
+    "eyebrow": "UNSEEN · Photographie et musique",
+    "intro": "Deux championnats indépendants. Seize participants par catégorie. Le public décide, duel après duel, qui atteint la finale.",
+    "index": "Sommaire du règlement",
     "articleLabel": "Article",
     "bracket": "Explorer le championnat",
     "statsLabel": "Le championnat en chiffres",
-    "flowEyebrow": "Du premier duel ? la finale",
+    "flowEyebrow": "Du premier duel à la finale",
     "flowTitle": "Un parcours. Un seul champion.",
-    "flowText": "Photographie et musique suivent le m?me tableau, avec des ?uvres, votes et vainqueurs distincts. Chaque cat?gorie dispute un seul duel ? la fois.",
+    "flowText": "Photographie et musique suivent le même tableau, avec des œuvres, votes et vainqueurs distincts. Chaque catégorie dispute un seul duel à la fois.",
     "secretNote": "Les votes restent secrets pendant le duel. Les scores deviennent publics seulement après sa conclusion.",
-    "ctaTitle": "La prochaine ?uvre pourrait ?tre la v?tre.",
+    "ctaTitle": "La prochaine œuvre pourrait être la vôtre.",
     "ctaText": "Envoyez une photographie ou un morceau avec sa pochette.",
     "sendPhoto": "Envoyer une photographie",
     "sendMusic": "Envoyer un morceau",
@@ -155,7 +155,7 @@
       },
       {
         "value": "15",
-        "label": "duels ? ?limination directe"
+        "label": "duels à élimination directe"
       },
       {
         "value": "48h",
@@ -168,7 +168,7 @@
     ],
     "rounds": [
       {
-        "title": "Huiti?mes",
+        "title": "Huitièmes",
         "participants": "16 → 8",
         "matches": "8 duels",
         "duration": "16 jours"
@@ -194,23 +194,23 @@
     ],
     "articles": [
       {
-        "title": "Deux championnats ind?pendants",
-        "intro": "UNSEEN organise des championnats photographiques et musicaux distincts. La participation est gratuite. Connectez-vous pour envoyer une ?uvre ou voter."
+        "title": "Deux championnats indépendants",
+        "intro": "UNSEEN organise des championnats photographiques et musicaux distincts. La participation est gratuite. Connectez-vous pour envoyer une œuvre ou voter."
       },
       {
         "title": "Envoyer une photographie",
         "rules": [
           {
             "label": "Fichiers",
-            "text": "JPG, PNG ou WEBP, jusqu?? 5 Mo. Les images sont optimis?es pour leur publication."
+            "text": "JPG, PNG ou WEBP, jusqu’à 5 Mo. Les images sont optimisées pour leur publication."
           },
           {
-            "label": "Pr?sentation",
-            "text": "Indiquez le titre et l?auteur. Vous pouvez ajouter une description et votre nom Instagram avec un lien direct vers votre profil."
+            "label": "Présentation",
+            "text": "Indiquez le titre et l’auteur. Vous pouvez ajouter une description et votre nom Instagram avec un lien direct vers votre profil."
           },
           {
-            "label": "Paternit?",
-            "text": "Envoyez une photographie dont vous ?tes l?auteur et d?tenez les droits. Les contenus offensants ou portant atteinte ? la vie priv?e ou aux droits d?autrui sont interdits."
+            "label": "Paternité",
+            "text": "Envoyez une photographie dont vous êtes l’auteur et détenez les droits. Les contenus offensants ou portant atteinte à la vie privée ou aux droits d’autrui sont interdits."
           }
         ]
       },
@@ -219,61 +219,61 @@
         "rules": [
           {
             "label": "Audio et pochette",
-            "text": "Choisissez un MP3 ou WAV jusqu?? 30 Mo et une pochette JPG, PNG ou WEBP jusqu?? 5 Mo. La pochette accompagne le disque dans l?ar?ne musicale."
+            "text": "Choisissez un MP3 ou WAV jusqu’à 30 Mo et une pochette JPG, PNG ou WEBP jusqu’à 5 Mo. La pochette accompagne le disque dans l’arène musicale."
           },
           {
-            "label": "Extrait en comp?tition",
-            "text": "S?lectionnez pr?cis?ment le d?but et la fin dans le formulaire, pour un maximum de 40 secondes. ?coutez l?aper?u avant l?envoi. Seul l?extrait choisi est envoy? pour la comp?tition."
+            "label": "Extrait en compétition",
+            "text": "Sélectionnez précisément le début et la fin dans le formulaire, pour un maximum de 40 secondes. Écoutez l’aperçu avant l’envoi. Seul l’extrait choisi est envoyé pour la compétition."
           },
           {
             "label": "Profil et liens facultatifs",
-            "text": "Indiquez le titre et l?artiste. Vous pouvez ajouter Instagram et les liens du morceau sur YouTube, en Reel Instagram ou sur Spotify. Les liens ne remplacent pas l?audio et la pochette requis."
+            "text": "Indiquez le titre et l’artiste. Vous pouvez ajouter Instagram et les liens du morceau sur YouTube, en Reel Instagram ou sur Spotify. Les liens ne remplacent pas l’audio et la pochette requis."
           },
           {
             "label": "Droits",
-            "text": "Vous devez ?tre l?auteur du morceau et disposer des droits n?cessaires sur la pochette. Ne soumettez aucun contenu portant atteinte aux droits d?autrui."
+            "text": "Vous devez être l’auteur du morceau et disposer des droits nécessaires sur la pochette. Ne soumettez aucun contenu portant atteinte aux droits d’autrui."
           }
         ]
       },
       {
-        "title": "R?vision et s?lection",
+        "title": "Révision et sélection",
         "rules": [
           {
-            "label": "R?vision pr?alable",
-            "text": "L??quipe examine les candidatures. L?envoi ou l?approbation ne garantit pas une place au prochain championnat."
+            "label": "Révision préalable",
+            "text": "L’équipe examine les candidatures. L’envoi ou l’approbation ne garantit pas une place au prochain championnat."
           },
           {
             "label": "Seize auteurs distincts",
-            "text": "Les administrateurs s?lectionnent 16 ?uvres approuv?es par cat?gorie, une par participant dans chaque championnat. L?ancienne limite d?une photographie par mois ne s?applique plus."
+            "text": "Les administrateurs sélectionnent 16 œuvres approuvées par catégorie, une par participant dans chaque championnat. L’ancienne limite d’une photographie par mois ne s’applique plus."
           },
           {
             "label": "Positions et duels",
-            "text": "Les positions #1 ? #16 sont attribu?es avant le d?but : #1 affronte #2, #3 affronte #4, etc. Le tableau programm? est visible dans Championnat."
+            "text": "Les positions #1 à #16 sont attribuées avant le début : #1 affronte #2, #3 affronte #4, etc. Le tableau programmé est visible dans Championnat."
           },
           {
-            "label": "Envois r?p?t?s",
-            "text": "Chaque compte peut commencer jusqu?? 5 tentatives d?envoi par p?riode de 24 heures, pour les photos et morceaux ensemble. Un envoi commenc? mais non termin? peut compter. Le formulaire signale la limite atteinte."
+            "label": "Envois répétés",
+            "text": "Chaque compte peut commencer jusqu’à 5 tentatives d’envoi par période de 24 heures, pour les photos et morceaux ensemble. Un envoi commencé mais non terminé peut compter. Le formulaire signale la limite atteinte."
           }
         ]
       },
       {
-        "title": "Calendrier et dur?e",
+        "title": "Calendrier et durée",
         "rules": [
           {
-            "label": "Date de d?but",
-            "text": "Les administrateurs fixent le jour et l?heure du d?but. Les anciennes phases commen?ant le 1er ou le 15 du mois n?existent plus."
+            "label": "Date de début",
+            "text": "Les administrateurs fixent le jour et l’heure du début. Les anciennes phases commençant le 1er ou le 15 du mois n’existent plus."
           },
           {
             "label": "Un duel toutes les 48 heures",
-            "text": "8 huiti?mes, 4 quarts, 2 demi-finales et 1 finale se d?roulent successivement. Chaque duel dure 48 heures ; le championnat se termine apr?s exactement 720 heures, soit 30 jours, m?me lors du changement d?heure."
+            "text": "8 huitièmes, 4 quarts, 2 demi-finales et 1 finale se déroulent successivement. Chaque duel dure 48 heures ; le championnat se termine après exactement 720 heures, soit 30 jours, même lors du changement d’heure."
           },
           {
             "label": "Progression automatique",
-            "text": "Apr?s chaque duel, le syst?me d?termine le vainqueur et remplit le tour suivant sans modifier le calendrier."
+            "text": "Après chaque duel, le système détermine le vainqueur et remplit le tour suivant sans modifier le calendrier."
           },
           {
-            "label": "Championnat annul?",
-            "text": "Un championnat annul? par les administrateurs s?arr?te, conserve son historique et ne publie pas de champion dans la galerie."
+            "label": "Championnat annulé",
+            "text": "Un championnat annulé par les administrateurs s’arrête, conserve son historique et ne publie pas de champion dans la galerie."
           }
         ]
       },
@@ -282,19 +282,19 @@
         "rules": [
           {
             "label": "Connexion et vote unique",
-            "text": "Connectez-vous et votez pendant les 48 heures du duel. Chaque compte dispose d?un seul vote par duel, sans possibilit? de le modifier."
+            "text": "Connectez-vous et votez pendant les 48 heures du duel. Chaque compte dispose d’un seul vote par duel, sans possibilité de le modifier."
           },
           {
-            "label": "R?sultats ? la fin",
-            "text": "Le public ne voit pas les scores en cours. Ils apparaissent dans le tableau une fois le r?sultat ?tabli. Les administrateurs peuvent consulter les scores et le registre pendant la comp?tition."
+            "label": "Résultats à la fin",
+            "text": "Le public ne voit pas les scores en cours. Ils apparaissent dans le tableau une fois le résultat établi. Les administrateurs peuvent consulter les scores et le registre pendant la compétition."
           },
           {
             "label": "Qualification",
-            "text": "L??uvre ayant le plus de votes passe automatiquement. Les votes des duels pr?c?dents ne sont pas report?s."
+            "text": "L’œuvre ayant le plus de votes passe automatiquement. Les votes des duels précédents ne sont pas reportés."
           },
           {
-            "label": "?galit?, m?me sans vote",
-            "text": "La meilleure position initiale, le num?ro le plus bas, passe. Elle reste valable ? chaque tour : #3 pr?c?de par exemple #12. Cela s?applique aussi si les deux ?uvres ont z?ro vote."
+            "label": "Égalité, même sans vote",
+            "text": "La meilleure position initiale, le numéro le plus bas, passe. Elle reste valable à chaque tour : #3 précède par exemple #12. Cela s’applique aussi si les deux œuvres ont zéro vote."
           }
         ]
       },
@@ -303,19 +303,19 @@
         "rules": [
           {
             "label": "Suivre le parcours",
-            "text": "Championnat affiche ?uvres, duels, calendrier et r?sultats conclus. Les vainqueurs remplissent les blocs suivants ; les ?uvres ?limin?es sont assombries et marqu?es d?une X."
+            "text": "Championnat affiche œuvres, duels, calendrier et résultats conclus. Les vainqueurs remplissent les blocs suivants ; les œuvres éliminées sont assombries et marquées d’une X."
           },
           {
-            "label": "Un champion par cat?gorie",
-            "text": "Le vainqueur de la finale est le champion de cette comp?tition. Il entre automatiquement dans la galerie avec sa photographie, ou sa pochette et son morceau."
+            "label": "Un champion par catégorie",
+            "text": "Le vainqueur de la finale est le champion de cette compétition. Il entre automatiquement dans la galerie avec sa photographie, ou sa pochette et son morceau."
           },
           {
             "label": "Le mois du vainqueur",
-            "text": "Le champion est associ? au mois du d?but, dans le fuseau Europe/Rome. Un championnat commen?ant en octobre et finissant en novembre a un vainqueur d?octobre."
+            "text": "Le champion est associé au mois du début, dans le fuseau Europe/Rome. Un championnat commençant en octobre et finissant en novembre a un vainqueur d’octobre."
           },
           {
             "label": "Archives",
-            "text": "Les collections pr?c?dentes restent disponibles. Les anciens prix et l?Ar?ne des Champions ne sont pas des phases du nouveau championnat."
+            "text": "Les collections précédentes restent disponibles. Les anciens prix et l’Arène des Champions ne sont pas des phases du nouveau championnat."
           }
         ]
       },

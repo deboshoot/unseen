@@ -133,20 +133,20 @@
   },
   "rules": {
     "title": "Reglamento",
-    "eyebrow": "UNSEEN ? Fotograf?a y m?sica",
-    "intro": "Dos campeonatos independientes. Diecis?is participantes por categor?a. El p?blico decide, duelo a duelo, qui?n llega a la final.",
-    "index": "?ndice del reglamento",
-    "articleLabel": "Art?culo",
+    "eyebrow": "UNSEEN · Fotografía y música",
+    "intro": "Dos campeonatos independientes. Dieciséis participantes por categoría. El público decide, duelo a duelo, quién llega a la final.",
+    "index": "Índice del reglamento",
+    "articleLabel": "Artículo",
     "bracket": "Explora el campeonato",
-    "statsLabel": "El campeonato en n?meros",
+    "statsLabel": "El campeonato en números",
     "flowEyebrow": "Del primer duelo a la final",
-    "flowTitle": "Un recorrido. Un solo campe?n.",
-    "flowText": "Fotograf?a y m?sica siguen el mismo cuadro, con obras, votos y ganadores independientes. Cada categor?a celebra un ?nico duelo a la vez.",
+    "flowTitle": "Un recorrido. Un solo campeón.",
+    "flowText": "Fotografía y música siguen el mismo cuadro, con obras, votos y ganadores independientes. Cada categoría celebra un único duelo a la vez.",
     "secretNote": "Los votos son secretos durante el duelo. Los recuentos solo se hacen públicos después de su conclusión.",
-    "ctaTitle": "La pr?xima obra podr?a ser la tuya.",
-    "ctaText": "Env?a una fotograf?a o una canci?n con su portada.",
-    "sendPhoto": "Enviar una fotograf?a",
-    "sendMusic": "Enviar una canci?n",
+    "ctaTitle": "La próxima obra podría ser la tuya.",
+    "ctaText": "Envía una fotografía o una canción con su portada.",
+    "sendPhoto": "Enviar una fotografía",
+    "sendMusic": "Enviar una canción",
     "accepted": "Al participar en Unseen declaras que has leído y aceptado este reglamento.",
     "stats": [
       {
@@ -155,7 +155,7 @@
       },
       {
         "value": "15",
-        "label": "duelos de eliminaci?n directa"
+        "label": "duelos de eliminación directa"
       },
       {
         "value": "48h",
@@ -171,147 +171,147 @@
         "title": "Octavos",
         "participants": "16 → 8",
         "matches": "8 duelos",
-        "duration": "16 d?as"
+        "duration": "16 días"
       },
       {
         "title": "Cuartos",
         "participants": "8 → 4",
         "matches": "4 duelos",
-        "duration": "8 d?as"
+        "duration": "8 días"
       },
       {
         "title": "Semifinales",
         "participants": "4 → 2",
         "matches": "2 duelos",
-        "duration": "4 d?as"
+        "duration": "4 días"
       },
       {
         "title": "Final",
         "participants": "2 → 1",
         "matches": "1 duelo",
-        "duration": "2 d?as"
+        "duration": "2 días"
       }
     ],
     "articles": [
       {
         "title": "Dos campeonatos independientes",
-        "intro": "UNSEEN organiza campeonatos fotogr?ficos y musicales separados. Participar es gratuito. Inicia sesi?n para enviar una obra o votar."
+        "intro": "UNSEEN organiza campeonatos fotográficos y musicales separados. Participar es gratuito. Inicia sesión para enviar una obra o votar."
       },
       {
-        "title": "Enviar una fotograf?a",
+        "title": "Enviar una fotografía",
         "rules": [
           {
             "label": "Archivos",
-            "text": "JPG, PNG o WEBP, hasta 5 MB. Las im?genes se optimizan para su publicaci?n."
+            "text": "JPG, PNG o WEBP, hasta 5 MB. Las imágenes se optimizan para su publicación."
           },
           {
-            "label": "Presentaci?n",
-            "text": "Indica t?tulo y autor. Puedes a?adir una descripci?n y tu nombre de Instagram con un enlace directo al perfil."
+            "label": "Presentación",
+            "text": "Indica título y autor. Puedes añadir una descripción y tu nombre de Instagram con un enlace directo al perfil."
           },
           {
-            "label": "Autor?a",
-            "text": "Env?a una fotograf?a de tu autor?a y sobre la que tengas los derechos. No se permiten contenidos ofensivos o que vulneren la privacidad o los derechos de otras personas."
+            "label": "Autoría",
+            "text": "Envía una fotografía de tu autoría y sobre la que tengas los derechos. No se permiten contenidos ofensivos o que vulneren la privacidad o los derechos de otras personas."
           }
         ]
       },
       {
-        "title": "Enviar una canci?n",
+        "title": "Enviar una canción",
         "rules": [
           {
             "label": "Audio y portada",
-            "text": "Elige un MP3 o WAV de hasta 30 MB y una portada JPG, PNG o WEBP de hasta 5 MB. La portada acompa?a al disco en la arena musical."
+            "text": "Elige un MP3 o WAV de hasta 30 MB y una portada JPG, PNG o WEBP de hasta 5 MB. La portada acompaña al disco en la arena musical."
           },
           {
-            "label": "Fragmento en competici?n",
-            "text": "Selecciona el inicio y el final precisos en el formulario, con un m?ximo de 40 segundos. Escucha la vista previa antes de enviar. Solo se sube el fragmento elegido para la competici?n."
+            "label": "Fragmento en competición",
+            "text": "Selecciona el inicio y el final precisos en el formulario, con un máximo de 40 segundos. Escucha la vista previa antes de enviar. Solo se sube el fragmento elegido para la competición."
           },
           {
             "label": "Perfil y enlaces opcionales",
-            "text": "Indica t?tulo y artista. Puedes a?adir Instagram y los enlaces de tu canci?n en YouTube, como Reel de Instagram o en Spotify. No sustituyen al audio y la portada obligatorios."
+            "text": "Indica título y artista. Puedes añadir Instagram y los enlaces de tu canción en YouTube, como Reel de Instagram o en Spotify. No sustituyen al audio y la portada obligatorios."
           },
           {
             "label": "Derechos",
-            "text": "Debes ser autor de la canci?n y disponer tambi?n de los derechos necesarios sobre la portada. No env?es contenido que vulnere derechos de terceros."
+            "text": "Debes ser autor de la canción y disponer también de los derechos necesarios sobre la portada. No envíes contenido que vulnere derechos de terceros."
           }
         ]
       },
       {
-        "title": "Revisi?n y selecci?n",
+        "title": "Revisión y selección",
         "rules": [
           {
-            "label": "Revisi?n previa",
-            "text": "El equipo revisa las candidaturas. Enviar una obra o recibir aprobaci?n no garantiza un puesto en el pr?ximo campeonato."
+            "label": "Revisión previa",
+            "text": "El equipo revisa las candidaturas. Enviar una obra o recibir aprobación no garantiza un puesto en el próximo campeonato."
           },
           {
-            "label": "Diecis?is autores distintos",
-            "text": "Los administradores eligen 16 obras aprobadas por categor?a, una por participante en cada campeonato. Ya no se aplica el antiguo l?mite de una fotograf?a al mes."
+            "label": "Dieciséis autores distintos",
+            "text": "Los administradores eligen 16 obras aprobadas por categoría, una por participante en cada campeonato. Ya no se aplica el antiguo límite de una fotografía al mes."
           },
           {
             "label": "Posiciones y duelos",
             "text": "Las posiciones #1 a #16 se asignan antes del inicio: #1 se enfrenta a #2, #3 a #4, etc. El cuadro programado se puede consultar en Campeonato."
           },
           {
-            "label": "Env?os repetidos",
-            "text": "Cada cuenta puede iniciar hasta 5 intentos de subida cada 24 horas, compartidos entre fotograf?as y canciones. Una subida iniciada pero no completada puede contar. El formulario indica cu?ndo se alcanza el l?mite."
+            "label": "Envíos repetidos",
+            "text": "Cada cuenta puede iniciar hasta 5 intentos de subida cada 24 horas, compartidos entre fotografías y canciones. Una subida iniciada pero no completada puede contar. El formulario indica cuándo se alcanza el límite."
           }
         ]
       },
       {
-        "title": "Calendario y duraci?n",
+        "title": "Calendario y duración",
         "rules": [
           {
             "label": "Fecha de inicio",
-            "text": "Los administradores fijan el d?a y la hora de inicio. Ya no existen fases fijas desde el d?a 1 o el 15 del mes."
+            "text": "Los administradores fijan el día y la hora de inicio. Ya no existen fases fijas desde el día 1 o el 15 del mes."
           },
           {
             "label": "Un duelo cada 48 horas",
-            "text": "Se celebran consecutivamente 8 octavos, 4 cuartos, 2 semifinales y 1 final. Cada duelo dura 48 horas. El campeonato termina tras exactamente 720 horas, o 30 d?as, incluso con cambios de hora."
+            "text": "Se celebran consecutivamente 8 octavos, 4 cuartos, 2 semifinales y 1 final. Cada duelo dura 48 horas. El campeonato termina tras exactamente 720 horas, o 30 días, incluso con cambios de hora."
           },
           {
-            "label": "Avance autom?tico",
+            "label": "Avance automático",
             "text": "Al cerrar cada duelo, el sistema determina al ganador y completa la siguiente ronda sin cambiar el calendario."
           },
           {
             "label": "Campeonato cancelado",
-            "text": "Un campeonato cancelado por los administradores se detiene, conserva su historial y no publica un campe?n en la galer?a."
+            "text": "Un campeonato cancelado por los administradores se detiene, conserva su historial y no publica un campeón en la galería."
           }
         ]
       },
       {
-        "title": "Voto secreto y clasificaci?n",
+        "title": "Voto secreto y clasificación",
         "rules": [
           {
-            "label": "Inicio de sesi?n y voto ?nico",
-            "text": "Inicia sesi?n y vota durante las 48 horas del duelo. Cada cuenta tiene un solo voto por duelo; un voto registrado no se puede cambiar."
+            "label": "Inicio de sesión y voto único",
+            "text": "Inicia sesión y vota durante las 48 horas del duelo. Cada cuenta tiene un solo voto por duelo; un voto registrado no se puede cambiar."
           },
           {
             "label": "Resultados al final",
-            "text": "El p?blico no ve los recuentos en directo. Los votos aparecen en el cuadro cuando el resultado est? cerrado. Los administradores pueden consultar recuentos y registro durante la competici?n."
+            "text": "El público no ve los recuentos en directo. Los votos aparecen en el cuadro cuando el resultado está cerrado. Los administradores pueden consultar recuentos y registro durante la competición."
           },
           {
-            "label": "Qui?n avanza",
-            "text": "La obra con m?s votos se clasifica autom?ticamente. Los votos de duelos anteriores no se acumulan."
+            "label": "Quién avanza",
+            "text": "La obra con más votos se clasifica automáticamente. Los votos de duelos anteriores no se acumulan."
           },
           {
             "label": "Empate, incluso sin votos",
-            "text": "Avanza la mejor posici?n inicial, el n?mero m?s bajo. Se mantiene en todas las rondas: por ejemplo #3 precede a #12. Tambi?n se aplica si ambas obras reciben cero votos."
+            "text": "Avanza la mejor posición inicial, el número más bajo. Se mantiene en todas las rondas: por ejemplo #3 precede a #12. También se aplica si ambas obras reciben cero votos."
           }
         ]
       },
       {
-        "title": "Cuadro, ganador y galer?a",
+        "title": "Cuadro, ganador y galería",
         "rules": [
           {
             "label": "Sigue el recorrido",
             "text": "Campeonato muestra obras, duelos, calendario y resultados cerrados. Los ganadores completan los siguientes bloques; las obras eliminadas se oscurecen y se marcan con una X."
           },
           {
-            "label": "Un campe?n por categor?a",
-            "text": "El ganador de la final es el campe?n de esa competici?n. Se publica autom?ticamente en la galer?a con su fotograf?a, o su portada y canci?n."
+            "label": "Un campeón por categoría",
+            "text": "El ganador de la final es el campeón de esa competición. Se publica automáticamente en la galería con su fotografía, o su portada y canción."
           },
           {
             "label": "El mes del ganador",
-            "text": "El campe?n pertenece al mes de inicio del campeonato, en el huso Europa/Roma. Si comienza en octubre y termina en noviembre, el ganador corresponde a octubre."
+            "text": "El campeón pertenece al mes de inicio del campeonato, en el huso Europa/Roma. Si comienza en octubre y termina en noviembre, el ganador corresponde a octubre."
           },
           {
             "label": "Archivo",

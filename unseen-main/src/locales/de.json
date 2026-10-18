@@ -133,8 +133,8 @@
   },
   "rules": {
     "title": "Regeln",
-    "eyebrow": "UNSEEN ? Fotografie und Musik",
-    "intro": "Zwei unabh?ngige Meisterschaften. Sechzehn Teilnehmer pro Kategorie. Das Publikum entscheidet Duell f?r Duell, wer das Finale erreicht.",
+    "eyebrow": "UNSEEN · Fotografie und Musik",
+    "intro": "Zwei unabhängige Meisterschaften. Sechzehn Teilnehmer pro Kategorie. Das Publikum entscheidet Duell für Duell, wer das Finale erreicht.",
     "index": "Inhaltsverzeichnis",
     "articleLabel": "Artikel",
     "bracket": "Meisterschaft ansehen",
@@ -143,7 +143,7 @@
     "flowTitle": "Ein Weg. Ein Champion.",
     "flowText": "Fotografie und Musik folgen demselben Turnierbaum, mit getrennten Werken, Stimmen und Gewinnern. Jede Kategorie spielt jeweils ein Duell.",
     "secretNote": "Stimmen bleiben während des Duells geheim. Die Zahlen werden erst nach Abschluss des jeweiligen Duells öffentlich.",
-    "ctaTitle": "Das n?chste Werk k?nnte deines sein.",
+    "ctaTitle": "Das nächste Werk könnte deines sein.",
     "ctaText": "Reiche ein Foto oder einen Song mit seinem Cover ein.",
     "sendPhoto": "Foto einreichen",
     "sendMusic": "Song einreichen",
@@ -159,7 +159,7 @@
       },
       {
         "value": "48h",
-        "label": "f?r jedes Duell"
+        "label": "für jedes Duell"
       },
       {
         "value": "30",
@@ -194,7 +194,7 @@
     ],
     "articles": [
       {
-        "title": "Zwei unabh?ngige Meisterschaften",
+        "title": "Zwei unabhängige Meisterschaften",
         "intro": "UNSEEN veranstaltet getrennte Foto- und Musikmeisterschaften. Die Teilnahme ist kostenlos. Zum Einreichen oder Abstimmen musst du angemeldet sein."
       },
       {
@@ -202,15 +202,15 @@
         "rules": [
           {
             "label": "Dateien",
-            "text": "JPG, PNG oder WEBP bis 5 MB. Bilder werden f?r die Ver?ffentlichung optimiert."
+            "text": "JPG, PNG oder WEBP bis 5 MB. Bilder werden für die Veröffentlichung optimiert."
           },
           {
-            "label": "Pr?sentation",
-            "text": "Gib Titel und Autor an. Optional kannst du eine Beschreibung und deinen Instagram-Namen mit direktem Profillink erg?nzen."
+            "label": "Präsentation",
+            "text": "Gib Titel und Autor an. Optional kannst du eine Beschreibung und deinen Instagram-Namen mit direktem Profillink ergänzen."
           },
           {
             "label": "Urheberschaft",
-            "text": "Reiche ein eigenes Foto ein, an dem du die n?tigen Rechte besitzt. Beleidigende Inhalte sowie Verletzungen der Privatsph?re oder Rechte anderer sind nicht erlaubt."
+            "text": "Reiche ein eigenes Foto ein, an dem du die nötigen Rechte besitzt. Beleidigende Inhalte sowie Verletzungen der Privatsphäre oder Rechte anderer sind nicht erlaubt."
           }
         ]
       },
@@ -219,40 +219,40 @@
         "rules": [
           {
             "label": "Audio und Cover",
-            "text": "W?hle MP3 oder WAV bis 30 MB sowie ein JPG-, PNG- oder WEBP-Cover bis 5 MB. Das Cover begleitet die Schallplatte in der Musikarena."
+            "text": "Wähle MP3 oder WAV bis 30 MB sowie ein JPG-, PNG- oder WEBP-Cover bis 5 MB. Das Cover begleitet die Schallplatte in der Musikarena."
           },
           {
             "label": "Wettbewerbsausschnitt",
-            "text": "W?hle im Formular genaue Start- und Endpunkte f?r maximal 40 Sekunden. H?re die Vorschau vor dem Absenden an. Nur der gew?hlte Ausschnitt wird f?r den Wettbewerb hochgeladen."
+            "text": "Wähle im Formular genaue Start- und Endpunkte für maximal 40 Sekunden. Höre die Vorschau vor dem Absenden an. Nur der gewählte Ausschnitt wird für den Wettbewerb hochgeladen."
           },
           {
             "label": "Optionale Links",
-            "text": "Gib Titel und K?nstler an. Optional sind Instagram sowie Links zum Song auf YouTube, als Instagram-Reel oder auf Spotify m?glich. Sie ersetzen Audio und Cover nicht."
+            "text": "Gib Titel und Künstler an. Optional sind Instagram sowie Links zum Song auf YouTube, als Instagram-Reel oder auf Spotify möglich. Sie ersetzen Audio und Cover nicht."
           },
           {
             "label": "Rechte",
-            "text": "Du musst Autor des Songs sein und auch die n?tigen Rechte am Cover besitzen. Reiche keine Inhalte ein, die Rechte Dritter verletzen."
+            "text": "Du musst Autor des Songs sein und auch die nötigen Rechte am Cover besitzen. Reiche keine Inhalte ein, die Rechte Dritter verletzen."
           }
         ]
       },
       {
-        "title": "Pr?fung und Auswahl",
+        "title": "Prüfung und Auswahl",
         "rules": [
           {
-            "label": "Pr?fung zuerst",
-            "text": "Das Team pr?ft die Einreichungen. Einreichen oder Freigabe garantiert keinen Platz in der n?chsten Meisterschaft."
+            "label": "Prüfung zuerst",
+            "text": "Das Team prüft die Einreichungen. Einreichen oder Freigabe garantiert keinen Platz in der nächsten Meisterschaft."
           },
           {
             "label": "Sechzehn verschiedene Autoren",
-            "text": "Administratoren w?hlen 16 freigegebene Werke pro Kategorie, eines pro Teilnehmer in jeder Meisterschaft. Die fr?here Beschr?nkung auf ein Foto pro Monat gilt nicht mehr."
+            "text": "Administratoren wählen 16 freigegebene Werke pro Kategorie, eines pro Teilnehmer in jeder Meisterschaft. Die frühere Beschränkung auf ein Foto pro Monat gilt nicht mehr."
           },
           {
-            "label": "Startpl?tze und Paarungen",
-            "text": "Die Startpl?tze #1?#16 werden vor Beginn festgelegt: #1 spielt gegen #2, #3 gegen #4 usw. Der geplante Turnierbaum ist unter Meisterschaft sichtbar."
+            "label": "Startplätze und Paarungen",
+            "text": "Die Startplätze #1–#16 werden vor Beginn festgelegt: #1 spielt gegen #2, #3 gegen #4 usw. Der geplante Turnierbaum ist unter Meisterschaft sichtbar."
           },
           {
             "label": "Wiederholte Uploads",
-            "text": "Jedes Konto kann innerhalb von 24 Stunden bis zu 5 Uploadversuche f?r Fotos und Songs zusammen starten. Auch ein begonnener, nicht abgeschlossener Upload kann z?hlen. Das Formular zeigt das Erreichen des Limits an."
+            "text": "Jedes Konto kann innerhalb von 24 Stunden bis zu 5 Uploadversuche für Fotos und Songs zusammen starten. Auch ein begonnener, nicht abgeschlossener Upload kann zählen. Das Formular zeigt das Erreichen des Limits an."
           }
         ]
       },
@@ -269,11 +269,11 @@
           },
           {
             "label": "Automatisches Weiterkommen",
-            "text": "Nach jedem Duell bestimmt das System den Gewinner und f?llt die n?chste Runde, ohne den Zeitplan zu ver?ndern."
+            "text": "Nach jedem Duell bestimmt das System den Gewinner und füllt die nächste Runde, ohne den Zeitplan zu verändern."
           },
           {
             "label": "Abgebrochene Meisterschaft",
-            "text": "Eine von Administratoren abgebrochene Meisterschaft stoppt, beh?lt ihre Historie und ver?ffentlicht keinen Galerie-Champion."
+            "text": "Eine von Administratoren abgebrochene Meisterschaft stoppt, behält ihre Historie und veröffentlicht keinen Galerie-Champion."
           }
         ]
       },
@@ -282,19 +282,19 @@
         "rules": [
           {
             "label": "Anmeldung und eine Stimme",
-            "text": "Melde dich an und stimme innerhalb der 48 Stunden des Duells ab. Jedes Konto hat eine Stimme pro Duell; abgegebene Stimmen lassen sich nicht ?ndern."
+            "text": "Melde dich an und stimme innerhalb der 48 Stunden des Duells ab. Jedes Konto hat eine Stimme pro Duell; abgegebene Stimmen lassen sich nicht ändern."
           },
           {
             "label": "Ergebnis am Ende",
-            "text": "Das Publikum sieht keine laufenden Zahlen. Stimmen erscheinen im Turnierbaum nach Abschluss des Ergebnisses. Administratoren k?nnen Zahlen und Register w?hrend des Wettbewerbs einsehen."
+            "text": "Das Publikum sieht keine laufenden Zahlen. Stimmen erscheinen im Turnierbaum nach Abschluss des Ergebnisses. Administratoren können Zahlen und Register während des Wettbewerbs einsehen."
           },
           {
             "label": "Wer weiterkommt",
-            "text": "Das Werk mit mehr Stimmen kommt automatisch weiter. Stimmen aus fr?heren Duellen werden nicht ?bernommen."
+            "text": "Das Werk mit mehr Stimmen kommt automatisch weiter. Stimmen aus früheren Duellen werden nicht übernommen."
           },
           {
             "label": "Gleichstand, auch ohne Stimmen",
-            "text": "Der bessere urspr?ngliche Startplatz, die kleinere Nummer, kommt weiter. Er gilt in jeder Runde: #3 steht etwa vor #12. Das gilt auch bei null Stimmen f?r beide Werke."
+            "text": "Der bessere ursprüngliche Startplatz, die kleinere Nummer, kommt weiter. Er gilt in jeder Runde: #3 steht etwa vor #12. Das gilt auch bei null Stimmen für beide Werke."
           }
         ]
       },
@@ -303,7 +303,7 @@
         "rules": [
           {
             "label": "Verfolge den Verlauf",
-            "text": "Meisterschaft zeigt Werke, Paarungen, Zeitplan und abgeschlossene Ergebnisse. Gewinner f?llen die n?chsten Felder; ausgeschiedene Werke werden abgedunkelt und mit einem X markiert."
+            "text": "Meisterschaft zeigt Werke, Paarungen, Zeitplan und abgeschlossene Ergebnisse. Gewinner füllen die nächsten Felder; ausgeschiedene Werke werden abgedunkelt und mit einem X markiert."
           },
           {
             "label": "Ein Champion pro Kategorie",
@@ -311,11 +311,11 @@
           },
           {
             "label": "Der Monat des Gewinners",
-            "text": "Der Champion geh?rt zum Startmonat der Meisterschaft in der Zeitzone Europa/Rom. Beginnt sie im Oktober und endet im November, ist es ein Oktober-Gewinner."
+            "text": "Der Champion gehört zum Startmonat der Meisterschaft in der Zeitzone Europa/Rom. Beginnt sie im Oktober und endet im November, ist es ein Oktober-Gewinner."
           },
           {
             "label": "Archiv",
-            "text": "Fr?here Sammlungen bleiben verf?gbar. Historische Preise und die Arena der Champions sind keine Phasen der neuen Meisterschaft."
+            "text": "Frühere Sammlungen bleiben verfügbar. Historische Preise und die Arena der Champions sind keine Phasen der neuen Meisterschaft."
           }
         ]
       },

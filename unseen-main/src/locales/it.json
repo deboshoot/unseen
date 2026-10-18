@@ -133,7 +133,7 @@
   },
   "rules": {
     "title": "Regolamento",
-    "eyebrow": "UNSEEN ? Fotografia e musica",
+    "eyebrow": "UNSEEN · Fotografia e musica",
     "intro": "Due campionati indipendenti. Sedici partecipanti per categoria. Il pubblico sceglie, un duello alla volta, chi arriva fino alla finale.",
     "index": "Indice del regolamento",
     "articleLabel": "Articolo",
@@ -195,21 +195,21 @@
     "articles": [
       {
         "title": "Due campionati, due percorsi",
-        "intro": "UNSEEN ospita un campionato fotografico e uno musicale, indipendenti e aperti alla community. La partecipazione ? gratuita. Per inviare un?opera o votare devi accedere al tuo account."
+        "intro": "UNSEEN ospita un campionato fotografico e uno musicale, indipendenti e aperti alla community. La partecipazione è gratuita. Per inviare un’opera o votare devi accedere al tuo account."
       },
       {
         "title": "Inviare una fotografia",
         "rules": [
           {
             "label": "File e dimensioni",
-            "text": "Sono accettate fotografie JPG, PNG o WEBP fino a 5 MB. L?immagine viene ottimizzata per la pubblicazione."
+            "text": "Sono accettate fotografie JPG, PNG o WEBP fino a 5 MB. L’immagine viene ottimizzata per la pubblicazione."
           },
           {
             "label": "Presentazione",
-            "text": "Indica titolo e autore. Puoi aggiungere la descrizione e il nome Instagram: il profilo sar? raggiungibile dall?opera."
+            "text": "Indica titolo e autore. Puoi aggiungere la descrizione e il nome Instagram: il profilo sarà raggiungibile dall’opera."
           },
           {
-            "label": "Paternit? dell?opera",
+            "label": "Paternità dell’opera",
             "text": "Invia una fotografia di cui sei autore e possiedi i diritti. Non sono ammessi contenuti offensivi o che violino la privacy o i diritti di altre persone."
           }
         ]
@@ -219,15 +219,15 @@
         "rules": [
           {
             "label": "Audio e copertina",
-            "text": "Scegli un file MP3 o WAV fino a 30 MB e una copertina JPG, PNG o WEBP fino a 5 MB. La copertina accompagna il disco nell?arena musicale."
+            "text": "Scegli un file MP3 o WAV fino a 30 MB e una copertina JPG, PNG o WEBP fino a 5 MB. La copertina accompagna il disco nell’arena musicale."
           },
           {
-            "label": "L?estratto in gara",
-            "text": "Seleziona il punto preciso di inizio e fine nel modulo: l?estratto pu? durare al massimo 40 secondi. Ascolta l?anteprima prima di inviare. In gara viene caricato soltanto l?estratto scelto."
+            "label": "L’estratto in gara",
+            "text": "Seleziona il punto preciso di inizio e fine nel modulo: l’estratto può durare al massimo 40 secondi. Ascolta l’anteprima prima di inviare. In gara viene caricato soltanto l’estratto scelto."
           },
           {
             "label": "Profilo e link facoltativi",
-            "text": "Indica titolo e artista. Puoi aggiungere Instagram e i link del tuo brano su YouTube, come Reel Instagram o su Spotify. Questi link non sostituiscono l?audio e la copertina da inviare."
+            "text": "Indica titolo e artista. Puoi aggiungere Instagram e i link del tuo brano su YouTube, come Reel Instagram o su Spotify. Questi link non sostituiscono l’audio e la copertina da inviare."
           },
           {
             "label": "Diritti",
@@ -240,7 +240,7 @@
         "rules": [
           {
             "label": "Prima la revisione",
-            "text": "Il team esamina le candidature e approva quelle ammesse. L?invio o l?approvazione non garantiscono un posto nel prossimo campionato."
+            "text": "Il team esamina le candidature e approva quelle ammesse. L’invio o l’approvazione non garantiscono un posto nel prossimo campionato."
           },
           {
             "label": "Sedici autori diversi",
@@ -248,11 +248,11 @@
           },
           {
             "label": "Posizioni e abbinamenti",
-            "text": "Le posizioni iniziali, da #1 a #16, sono assegnate prima dell?inizio: #1 sfida #2, #3 sfida #4 e cos? via. Il tabellone programmato ? consultabile nella sezione Campionato."
+            "text": "Le posizioni iniziali, da #1 a #16, sono assegnate prima dell’inizio: #1 sfida #2, #3 sfida #4 e così via. Il tabellone programmato è consultabile nella sezione Campionato."
           },
           {
             "label": "Invii ripetuti",
-            "text": "Sono consentiti fino a 5 tentativi di caricamento ogni 24 ore per account, condivisi tra fotografie e brani. Anche un caricamento iniziato ma non completato pu? contare. Il modulo segnala quando il limite ? raggiunto."
+            "text": "Sono consentiti fino a 5 tentativi di caricamento ogni 24 ore per account, condivisi tra fotografie e brani. Anche un caricamento iniziato ma non completato può contare. Il modulo segnala quando il limite è raggiunto."
           }
         ]
       },
@@ -261,11 +261,11 @@
         "rules": [
           {
             "label": "Data di inizio",
-            "text": "Gli amministratori scelgono giorno e ora di partenza. Non esistono pi? fasi fisse dal giorno 1 o dal giorno 15 del mese."
+            "text": "Gli amministratori scelgono giorno e ora di partenza. Non esistono più fasi fisse dal giorno 1 o dal giorno 15 del mese."
           },
           {
             "label": "Una sfida ogni 48 ore",
-            "text": "Si disputano in sequenza 8 ottavi, 4 quarti, 2 semifinali e 1 finale. Ogni duello dura 48 ore. Il campionato termina dopo esattamente 720 ore, cio? 30 giorni, anche al cambio dell?ora."
+            "text": "Si disputano in sequenza 8 ottavi, 4 quarti, 2 semifinali e 1 finale. Ogni duello dura 48 ore. Il campionato termina dopo esattamente 720 ore, cioè 30 giorni, anche al cambio dell’ora."
           },
           {
             "label": "Avanzamento automatico",
@@ -282,7 +282,7 @@
         "rules": [
           {
             "label": "Accesso e voto unico",
-            "text": "Puoi votare solo dopo il login, durante le 48 ore del duello. Ogni account ha un solo voto per sfida: il voto registrato non si pu? cambiare."
+            "text": "Puoi votare solo dopo il login, durante le 48 ore del duello. Ogni account ha un solo voto per sfida: il voto registrato non si può cambiare."
           },
           {
             "label": "Risultati alla chiusura",
@@ -290,11 +290,11 @@
           },
           {
             "label": "Chi passa",
-            "text": "L?opera con pi? voti si qualifica automaticamente. Non contano i voti accumulati nei duelli precedenti."
+            "text": "L’opera con più voti si qualifica automaticamente. Non contano i voti accumulati nei duelli precedenti."
           },
           {
-            "label": "Parit?, anche senza voti",
-            "text": "Passa il partecipante con la posizione iniziale migliore, cio? il numero pi? basso. Questa posizione resta valida per tutti i turni: per esempio #3 precede #12. La regola vale anche se entrambe le opere ricevono zero voti."
+            "label": "Parità, anche senza voti",
+            "text": "Passa il partecipante con la posizione iniziale migliore, cioè il numero più basso. Questa posizione resta valida per tutti i turni: per esempio #3 precede #12. La regola vale anche se entrambe le opere ricevono zero voti."
           }
         ]
       },
@@ -307,15 +307,15 @@
           },
           {
             "label": "Un campione per categoria",
-            "text": "Chi vince la finale ? il vincitore di quel campionato. Alla conclusione viene esposto automaticamente in galleria, con fotografia oppure copertina e brano."
+            "text": "Chi vince la finale è il vincitore di quel campionato. Alla conclusione viene esposto automaticamente in galleria, con fotografia oppure copertina e brano."
           },
           {
             "label": "Il mese del vincitore",
-            "text": "Il campione ? associato al mese in cui ? iniziato il campionato, nel fuso Europa/Roma. Se la gara inizia a ottobre e finisce a novembre, il vincitore appartiene a ottobre."
+            "text": "Il campione è associato al mese in cui è iniziato il campionato, nel fuso Europa/Roma. Se la gara inizia a ottobre e finisce a novembre, il vincitore appartiene a ottobre."
           },
           {
             "label": "Archivio",
-            "text": "Le precedenti collezioni restano consultabili. I vecchi premi e l?Arena dei Campioni non sono fasi del nuovo campionato."
+            "text": "Le precedenti collezioni restano consultabili. I vecchi premi e l’Arena dei Campioni non sono fasi del nuovo campionato."
           }
         ]
       },

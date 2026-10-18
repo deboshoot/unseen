@@ -133,7 +133,7 @@
   },
   "rules": {
     "title": "Rules",
-    "eyebrow": "UNSEEN ? Photography and music",
+    "eyebrow": "UNSEEN · Photography and music",
     "intro": "Two independent championships. Sixteen participants per category. The audience decides, one match at a time, who reaches the final.",
     "index": "Rules contents",
     "articleLabel": "Article",
@@ -210,7 +210,7 @@
           },
           {
             "label": "Authorship",
-            "text": "Submit your own photograph and hold the necessary rights. Offensive material and content that violates privacy or others? rights are not allowed."
+            "text": "Submit your own photograph and hold the necessary rights. Offensive material and content that violates privacy or others’ rights are not allowed."
           }
         ]
       },
@@ -231,7 +231,7 @@
           },
           {
             "label": "Rights",
-            "text": "You must be the song?s author and hold the necessary rights to the cover too. Do not submit material that infringes others? rights."
+            "text": "You must be the song’s author and hold the necessary rights to the cover too. Do not submit material that infringes others’ rights."
           }
         ]
       },
@@ -248,7 +248,7 @@
           },
           {
             "label": "Seeds and pairings",
-            "text": "Initial seeds #1?#16 are assigned before the start: #1 faces #2, #3 faces #4, and so on. The scheduled bracket is visible in Championship."
+            "text": "Initial seeds #1–#16 are assigned before the start: #1 faces #2, #3 faces #4, and so on. The scheduled bracket is visible in Championship."
           },
           {
             "label": "Repeated uploads",
@@ -282,7 +282,7 @@
         "rules": [
           {
             "label": "Sign-in and one vote",
-            "text": "You must sign in and vote within the match?s 48-hour window. Each account has one vote per match; a recorded vote cannot be changed."
+            "text": "You must sign in and vote within the match’s 48-hour window. Each account has one vote per match; a recorded vote cannot be changed."
           },
           {
             "label": "Results at the end",
@@ -307,11 +307,11 @@
           },
           {
             "label": "One champion per category",
-            "text": "The final winner is that championship?s champion. It automatically enters the gallery with its photograph, or cover and song."
+            "text": "The final winner is that championship’s champion. It automatically enters the gallery with its photograph, or cover and song."
           },
           {
-            "label": "The winner?s month",
-            "text": "The champion belongs to the championship?s starting month in Europe/Rome time. A competition starting in October and ending in November has an October winner."
+            "label": "The winner’s month",
+            "text": "The champion belongs to the championship’s starting month in Europe/Rome time. A competition starting in October and ending in November has an October winner."
           },
           {
             "label": "Archive",
