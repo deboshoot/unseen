@@ -1,4 +1,4 @@
-import { ArrowUpRight, Camera } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import Arena from "./Arena";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -22,7 +22,7 @@ export default function ArenaChoice() {
         </header>
         <div className="grid gap-5 sm:grid-cols-2">
           <Link to="/arena/fotografica" className="arena-choice-card arena-choice-photo group">
-            <div className="arena-choice-art photo-choice-art" aria-hidden="true"><Camera size={76} strokeWidth={1} /><span className="choice-frame" /></div>
+            <div className="arena-choice-art photo-choice-art" aria-hidden="true"><img className="choice-camera" src="/photography/camera-unseen.png" alt="" width={1280} height={1280} draggable={false} /></div>
             <div className="arena-choice-copy"><p className="arena-eyebrow">01 / {photoArtworkCopy[locale].category}</p><h2>{copy.photography}</h2><p>{copy.photoDescription}</p><span className="arena-choice-enter">{copy.enter}<ArrowUpRight size={19} /></span></div>
           </Link>
           <Link to="/arena/musicale" className="arena-choice-card arena-choice-music group">
