@@ -66,14 +66,16 @@
 /* The physical grooves and label spin; the softbox reflection stays in place. */
 .vinyl-record {
   position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; border-radius: 50%;
-  background: #08090b url("/music/vinyl-surface-matte.png") center / 100% 100% no-repeat;
+  background: #777 url("/music/vinyl-surface-matte.png") center / 100% 100% no-repeat;
+  background-blend-mode: multiply;
   box-shadow: 0 2px 3px #0009;
   animation: vinyl-spin 1.8s linear infinite;
   will-change: transform; backface-visibility: hidden;
 }
 .vinyl-reflection {
   position: absolute; inset: 0; z-index: 2; border-radius: 50%; pointer-events: none;
-  background: conic-gradient(from -65deg, transparent, #ffffff12 9deg, #ffffff59 20deg, #ffffff24 31deg, transparent 47deg 180deg, #ffffff12 189deg, #ffffff4d 200deg, #ffffff1a 213deg, transparent 227deg);
+  background: url("/music/vinyl-photoreal.png") center / 100% 100% no-repeat;
+  mix-blend-mode: screen;
   -webkit-mask-image: radial-gradient(circle closest-side, transparent 33%, #000 36% 96%, transparent 100%);
   mask-image: radial-gradient(circle closest-side, transparent 33%, #000 36% 96%, transparent 100%);
 }
