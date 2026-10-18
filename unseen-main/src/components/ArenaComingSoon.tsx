@@ -31,6 +31,7 @@ export default function ArenaComingSoon({ kind, startsAt }: { kind: Championship
           {startsAt && <p className="music-coming-date">{copy.starts} {new Date(startsAt).toLocaleString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p>}
         </div>
         {isMusic ? <div className="music-coming-art" aria-hidden="true">
+          <div className="music-coming-art-object">
           <span className="music-coming-orbit" />
           <div className="music-coming-disc"><div className="music-coming-disc-label"><span>UNSEEN</span><small>SOUND / VOL. 01</small><i /></div></div>
           <div className="music-coming-sleeve">
@@ -38,11 +39,14 @@ export default function ArenaComingSoon({ kind, startsAt }: { kind: Championship
             <div className="music-coming-sleeve-design"><span /><span /><span /><span /><span /></div>
             <div className="music-coming-sleeve-bottom"><strong>YOUR<br />NEXT SOUND.</strong><span>16 ARTISTS<br />ONE STAGE</span></div>
           </div>
+          </div>
           <p>UNSEEN / INDEPENDENT SOUND</p>
         </div> : <div className="music-coming-art photo-coming-art" aria-hidden="true">
+          <div className="music-coming-art-object">
           <span className="music-coming-orbit" />
           <div className="photo-coming-print photo-coming-print-back"><img src={photoWindow} alt="" /><span>UNSEEN / CITY STUDIES</span></div>
           <div className="photo-coming-print photo-coming-print-front"><div className="photo-coming-print-top"><span>UNSEEN</span><span>PHOTO SERIES / 01</span></div><img src={photoShoes} alt="" /><div className="photo-coming-print-bottom"><strong>YOUR<br />NEXT FRAME.</strong><span>16 ARTISTS<br />ONE PERSPECTIVE</span></div></div>
+          </div>
           <p>UNSEEN / INDEPENDENT VISION</p>
         </div>}
       </section>
