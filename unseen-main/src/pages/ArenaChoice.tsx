@@ -1,8 +1,9 @@
-import { ArrowUpRight, Camera, Disc3 } from "lucide-react";
+import { ArrowUpRight, Camera } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import Arena from "./Arena";
 import { useI18n } from "@/i18n/I18nProvider";
 import { musicCopy } from "@/i18n/music-copy";
+import { musicArtworkCopy, photoArtworkCopy } from "@/i18n/arena-artwork-copy";
 
 export default function ArenaChoice() {
   const [params] = useSearchParams();
@@ -22,12 +23,12 @@ export default function ArenaChoice() {
         <div className="grid gap-5 sm:grid-cols-2">
           <Link to="/arena/fotografica" className="arena-choice-card arena-choice-photo group">
             <div className="arena-choice-art photo-choice-art" aria-hidden="true"><Camera size={76} strokeWidth={1} /><span className="choice-frame" /></div>
-            <div className="arena-choice-copy"><p className="arena-eyebrow">01 / VISUAL</p><h2>{copy.photography}</h2><p>{copy.photoDescription}</p><span className="arena-choice-enter">{copy.enter}<ArrowUpRight size={19} /></span></div>
+            <div className="arena-choice-copy"><p className="arena-eyebrow">01 / {photoArtworkCopy[locale].category}</p><h2>{copy.photography}</h2><p>{copy.photoDescription}</p><span className="arena-choice-enter">{copy.enter}<ArrowUpRight size={19} /></span></div>
           </Link>
           <Link to="/arena/musicale" className="arena-choice-card arena-choice-music group">
             <span className="choice-new">{copy.new}</span>
-            <div className="arena-choice-art music-choice-art" aria-hidden="true"><div className="choice-vinyl"><Disc3 size={62} strokeWidth={1} /></div></div>
-            <div className="arena-choice-copy"><p className="arena-eyebrow">02 / SOUND</p><h2>{copy.music}</h2><p>{copy.musicDescription}</p><span className="arena-choice-enter">{copy.enter}<ArrowUpRight size={19} /></span></div>
+            <div className="arena-choice-art music-choice-art" aria-hidden="true"><div className="choice-vinyl"><div className="choice-vinyl-label"><span>UNSEEN</span><small>{musicArtworkCopy[locale].category} / 01</small><i /></div></div></div>
+            <div className="arena-choice-copy"><p className="arena-eyebrow">02 / {musicArtworkCopy[locale].category}</p><h2>{copy.music}</h2><p>{copy.musicDescription}</p><span className="arena-choice-enter">{copy.enter}<ArrowUpRight size={19} /></span></div>
           </Link>
         </div>
       </div>
