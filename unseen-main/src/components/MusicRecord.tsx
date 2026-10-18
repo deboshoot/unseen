@@ -92,6 +92,7 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
             <span className="vinyl-record" style={{ animationPlayState: playing ? "running" : "paused" }}>
               <span className="vinyl-label" style={{ backgroundImage: `url("${track.cover_url}")` }}><span className="vinyl-label-name">{track.artist}</span><span className="vinyl-label-edition" aria-hidden="true">UNSEEN · 33⅓ RPM</span><span className="vinyl-spindle" /></span>
             </span>
+            <span className="vinyl-reflection" aria-hidden="true" />
             <span className="vinyl-play-icon">{loading ? <LoaderCircle size={24} className="animate-spin" /> : playing ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}</span>
           </button>
           <div className="music-sleeve-front">

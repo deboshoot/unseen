@@ -63,16 +63,19 @@
 }
 .music-track.is-playing .vinyl-button { transform: translate(-50%, -50%) translateY(0%); z-index: 6; }
 .vinyl-button:hover { filter: drop-shadow(0 8px 7px #0008) brightness(1.08); }
-/* Lighting stays fixed while the printed record rotates beneath it. */
-.vinyl-button::before {
-  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
-  background: #08090b url("/music/vinyl-photoreal.png") center / 100% 100% no-repeat;
-  box-shadow: 0 2px 3px #0009;
-}
+/* The physical grooves and label spin; the softbox reflection stays in place. */
 .vinyl-record {
   position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; border-radius: 50%;
+  background: #08090b url("/music/vinyl-surface-matte.png") center / 100% 100% no-repeat;
+  box-shadow: 0 2px 3px #0009;
   animation: vinyl-spin 1.8s linear infinite;
   will-change: transform; backface-visibility: hidden;
+}
+.vinyl-reflection {
+  position: absolute; inset: 0; z-index: 2; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from -65deg, transparent, #ffffff12 9deg, #ffffff59 20deg, #ffffff24 31deg, transparent 47deg 180deg, #ffffff12 189deg, #ffffff4d 200deg, #ffffff1a 213deg, transparent 227deg);
+  -webkit-mask-image: radial-gradient(circle closest-side, transparent 33%, #000 36% 96%, transparent 100%);
+  mask-image: radial-gradient(circle closest-side, transparent 33%, #000 36% 96%, transparent 100%);
 }
 @keyframes vinyl-spin { to { transform: rotate(360deg); } }
 .vinyl-label { display: flex; align-items: center; justify-content: center; flex-direction: column; width: 34%; aspect-ratio: 1; border-radius: 50%; border: 1px solid #252525; background-color: #202020; background-position: center; background-size: cover; position: relative; overflow: hidden; box-shadow: 0 0 0 1px #08090b, inset 0 0 4px #0005; }
@@ -80,7 +83,7 @@
 .vinyl-label-name { position: absolute; top: 17%; font-size: clamp(6px, 1vw, 10px); letter-spacing: .12em; font-weight: 600; color: #f6eee2; text-shadow: 0 1px 3px #000; }
 .vinyl-label-edition { position: absolute; bottom: 19%; font-size: clamp(3px, .5vw, 5px); letter-spacing: .08em; color: #e2dfd7; }
 .vinyl-spindle { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #020304; border: 1px solid #656565; box-shadow: inset 0 1px 2px #000; left: calc(50% - 3px); top: calc(50% - 3px); }
-.vinyl-play-icon { position: absolute; top: 50%; left: 50%; z-index: 2; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ffffff28; background: #090c12d9; color: #f0eef7; box-shadow: 0 3px 16px #0005; transform: translate(-50%, -50%); opacity: 0; transition: opacity .2s, background .2s; }
+.vinyl-play-icon { position: absolute; top: 50%; left: 50%; z-index: 3; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ffffff28; background: #090c12d9; color: #f0eef7; box-shadow: 0 3px 16px #0005; transform: translate(-50%, -50%); opacity: 0; transition: opacity .2s, background .2s; }
 .music-track.is-playing .vinyl-button:hover .vinyl-play-icon, .music-track.is-playing .vinyl-button:focus-visible .vinyl-play-icon { opacity: 1; }
 .music-cover-status { position: absolute; bottom: -8px; left: 10px; right: 10px; z-index: 6; text-align: center; color: #a7a1b9; font-size: 8px; letter-spacing: .12em; text-transform: uppercase; pointer-events: none; }
 .music-track-info { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 17px 0 8px; }

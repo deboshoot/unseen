@@ -1,0 +1,8 @@
+Built-in ImageGen edit of vinyl-photoreal.png for a rotating diffuse vinyl surface.
+Preserve the centered orthographic circular LP, transparent outside, opaque black
+PVC inside, fine concentric grooves, track bands, blank central label and hole.
+Remove the two baked-in bright silver reflected wedges and all directional
+lighting. Use uniform deep charcoal illumination across every angular direction.
+Retain subtle asymmetric physical hairlines and tiny surface imperfections so
+rotation is visible beneath an independent stationary CSS softbox reflection.
+No text, props, cast shadows, directional gradients or specular light bands.
