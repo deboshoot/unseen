@@ -52,8 +52,13 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) toast.error(copy.error); }
   };
   if (params.get('duelId')) return <Navigate replace to={`/archivio${arenaPath(kind)}?${params.toString()}`} />;
+  // Resolve loading and errors before mounting the arena layout.
+  if (isLoading || error) return <main className="champ-page" aria-busy={isLoading}><div className="champ-container champ-arena-container">
+    <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
+    {isLoading ? <p role="status" className="champ-notice">{copy.loading}</p> : <div role="alert" className="champ-notice"><p>{copy.error}</p><button className="champ-button" onClick={() => void refetch()}>{copy.retry}</button></div>}
+  </div></main>;
   const showOpening = kind === 'music' ? !championship || championship.status === 'scheduled' : !match;
-  if (!isLoading && !error && !requested && showOpening) return <ArenaComingSoon kind={kind} startsAt={championship?.status === 'scheduled' ? championship.start_at : undefined} />;
+  if (!requested && showOpening) return <ArenaComingSoon kind={kind} startsAt={championship?.status === 'scheduled' ? championship.start_at : undefined} />;
   return <main className={`champ-page ${kind === 'music' ? 'music-arena' : ''}`}><div className="champ-container champ-arena-container">
     <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
     <header className="champ-hero"><p className="champ-eyebrow">UNSEEN · {kind === 'music' ? copy.music : copy.photo} · {copy.title}</p><h1>ARENA<span>.</span></h1><p>{championship?.name ?? copy.intro}</p>
@@ -61,7 +66,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
       {kind === 'music' && <MusicWaveform signal={signal} />}
       <div className="champ-arena-actions"><Link className="champ-button" to={bracketUrl}><Trophy size={16} />{copy.bracket}</Link>{match && <button className="music-share" onClick={() => void share()}><Share2 size={15} />{copy.share}</button>}</div>
     </header>
-    {isLoading ? <p role="status" className="champ-notice">{copy.loading}</p> : error ? <div role="alert" className="champ-notice"><p>{copy.error}</p><button className="champ-button" onClick={() => void refetch()}>{copy.retry}</button></div> : !match ? <section className="champ-empty"><Trophy size={30} /><h2>{championship?.status === 'scheduled' ? copy.scheduled : copy.noMatch}</h2><p>{championship?.status === 'scheduled' ? `${copy.starts} ${new Date(championship.start_at).toLocaleString(locale)}` : championship ? copy[championship.status] : copy.emptyText}</p><Link to={bracketUrl} className="champ-button">{copy.title}</Link>{live && <Link to={`${arenaPath(kind)}?campionato=${championship?.id}`}>{copy.live}</Link>}</section> : <>
+    {!match ? <section className="champ-empty"><Trophy size={30} /><h2>{championship?.status === 'scheduled' ? copy.scheduled : copy.noMatch}</h2><p>{championship?.status === 'scheduled' ? `${copy.starts} ${new Date(championship.start_at).toLocaleString(locale)}` : championship ? copy[championship.status] : copy.emptyText}</p><Link to={bracketUrl} className="champ-button">{copy.title}</Link>{live && <Link to={`${arenaPath(kind)}?campionato=${championship?.id}`}>{copy.live}</Link>}</section> : <>
       <section className={kind === 'music' ? 'music-duel' : 'champ-photo-duel'}>
         {[match.entry_1_id, match.entry_2_id].map((id, index) => {
           const entry = data.entries.find(entry => entry.id === id);

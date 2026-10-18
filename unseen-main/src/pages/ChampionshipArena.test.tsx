@@ -9,8 +9,10 @@ let state: ReturnType<typeof championshipFixture>;
 let userId: string | null;
 let now: number;
 let empty: boolean;
+let loading: boolean;
+let loadError: Error | null;
 vi.mock('@/supabaseClient', () => ({ supabase: { rpc: mocks.rpc, auth: { getSession: mocks.getSession } } }));
-vi.mock('@/hooks/useChampionship', () => ({ useChampionship: () => ({ data: empty ? { ...state, championship: null, matches: [], entries: [], my_votes: [] } : state, now, userId, isLoading: false, error: null, refetch: mocks.refetch }) }));
+vi.mock('@/hooks/useChampionship', () => ({ useChampionship: () => ({ data: empty ? { ...state, championship: null, matches: [], entries: [], my_votes: [] } : state, now, userId, isLoading: loading, error: loadError, refetch: mocks.refetch }) }));
 vi.mock('@/i18n/I18nProvider', () => ({ useI18n: () => ({ locale: 'it' }) }));
 vi.mock('@/hooks/useMusicAnalyser', () => ({ useMusicAnalyser: () => ({ signal: null, prepareAudio: vi.fn() }) }));
 vi.mock('@/components/MusicRecord', () => ({ default: ({ track }: { track: { title: string } }) => <div>{track.title}</div> }));
@@ -18,8 +20,57 @@ vi.mock('@/components/MusicWaveform', () => ({ default: () => <div /> }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 function Location() { return <p data-testid="location">{useLocation().pathname}{useLocation().search}</p>; }
 function mount(url = '/arena/fotografica') { return render(<MemoryRouter initialEntries={[url]}><ChampionshipArena kind="photo" /><Location /></MemoryRouter>); }
-beforeEach(() => { vi.clearAllMocks(); empty = false; state = championshipFixture(); userId = 'user'; now = fixtureNow; mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'user' } } } }); mocks.rpc.mockResolvedValue({ error: null }); mocks.refetch.mockResolvedValue({}); });
+beforeEach(() => { vi.clearAllMocks(); empty = false; loading = false; loadError = null; state = championshipFixture(); userId = 'user'; now = fixtureNow; mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'user' } } } }); mocks.rpc.mockResolvedValue({ error: null }); mocks.refetch.mockResolvedValue({}); });
 afterEach(cleanup);
+describe('arena loading', () => {
+  function musicArena(url = '/arena/musicale') {
+    return <MemoryRouter initialEntries={[url]}><ChampionshipArena kind="music" /></MemoryRouter>;
+  }
+
+  it('never flashes the arena while loading before showing the music opening page', () => {
+    empty = true; loading = true;
+    const { container, rerender } = render(musicArena());
+    expect(screen.getByRole('status')).toHaveTextContent('Caricamento campionato…');
+    expect(container.querySelector('.champ-hero')).toBeNull();
+    expect(container.querySelector('.champ-arena-actions')).toBeNull();
+    expect(screen.queryByText('Arena musicale in arrivo')).not.toBeInTheDocument();
+    loading = false; rerender(musicArena());
+    expect(screen.getByText('Arena musicale in arrivo')).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(container.querySelector('.champ-hero')).toBeNull();
+  });
+
+  it('shows a scheduled championship opening after loading without exposing the duel', () => {
+    state.championship.status = 'scheduled'; loading = true;
+    const { container, rerender } = render(musicArena());
+    expect(container.querySelector('.champ-hero')).toBeNull();
+    loading = false; rerender(musicArena());
+    expect(screen.getByText('Arena musicale in arrivo')).toBeInTheDocument();
+    expect(container.querySelector('.music-coming-date')).toBeInTheDocument();
+    expect(container.querySelector('.music-duel')).toBeNull();
+  });
+
+  it('shows a requested live duel only when loading has finished', () => {
+    loading = true;
+    const { container, rerender } = render(musicArena('/arena/musicale?match=match-1'));
+    expect(container.querySelector('.champ-hero')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Vota questa opera' })).not.toBeInTheDocument();
+    loading = false; rerender(musicArena('/arena/musicale?match=match-1'));
+    expect(container.querySelector('.music-duel')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Vota questa opera' })).toHaveLength(2);
+  });
+
+  it('keeps load errors outside the arena and allows retrying', () => {
+    loadError = new Error('Network unavailable');
+    const { container } = render(musicArena());
+    expect(screen.getByRole('alert')).toHaveTextContent('Non riesco a caricare il campionato.');
+    expect(container.querySelector('.champ-hero')).toBeNull();
+    expect(screen.queryByText('Arena musicale in arrivo')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Riprova' }));
+    expect(mocks.refetch).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('championship arena voting', () => {
   it('keeps live totals secret and reveals scores only after the match has been resolved', () => {
     state.matches[0].votes_1 = 532; state.matches[0].votes_2 = 341;
