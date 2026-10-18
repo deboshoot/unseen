@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useI18n } from '@/i18n/I18nProvider';
 import { musicComingCopy } from '@/i18n/music-coming-copy';
 import { photoComingCopy } from '@/i18n/photo-coming-copy';
+import { musicArtworkCopy, photoArtworkCopy } from '@/i18n/arena-artwork-copy';
 import type { ChampionshipKind } from '@/lib/championship';
 import photoShoes from '@/assets/photo-coming-shoes.jpg';
 import photoWindow from '@/assets/photo-coming-window.jpg';
@@ -12,6 +13,8 @@ export default function ArenaComingSoon({ kind, startsAt }: { kind: Championship
   const { locale } = useI18n();
   const isMusic = kind === 'music';
   const copy = (isMusic ? musicComingCopy : photoComingCopy)[locale];
+  const musicArtwork = musicArtworkCopy[locale];
+  const photoArtwork = photoArtworkCopy[locale];
   const submissionType = isMusic ? 'musica' : 'foto';
   const SubmitIcon = isMusic ? Music2 : Camera;
   return <main className="music-coming-page">
@@ -20,7 +23,7 @@ export default function ArenaComingSoon({ kind, startsAt }: { kind: Championship
       <section className="music-coming-hero">
         <div className="music-coming-content">
           <p className="music-coming-status"><span />{copy.status}</p>
-          <p className="music-coming-eyebrow">{copy.eyebrow}</p>
+          <p className="music-coming-eyebrow">UNSEEN / {(isMusic ? musicArtwork : photoArtwork).category}</p>
           <h1 className="font-display">{copy.title}<br /><span>{copy.accent}</span></h1>
           <p className="music-coming-intro">{copy.intro}</p>
           <div className="music-coming-actions">
@@ -33,21 +36,21 @@ export default function ArenaComingSoon({ kind, startsAt }: { kind: Championship
         {isMusic ? <div className="music-coming-art" aria-hidden="true">
           <div className="music-coming-art-object">
           <span className="music-coming-orbit" />
-          <div className="music-coming-disc"><div className="music-coming-disc-label"><span>UNSEEN</span><small>SOUND / VOL. 01</small><i /></div></div>
+          <div className="music-coming-disc"><div className="music-coming-disc-label"><span>UNSEEN</span><small>{musicArtwork.category} / VOL. 01</small><i /></div></div>
           <div className="music-coming-sleeve">
-            <div className="music-coming-sleeve-top"><span>UNSEEN</span><span>SOUND SERIES</span></div>
+            <div className="music-coming-sleeve-top"><span>UNSEEN</span><span>{musicArtwork.series}</span></div>
             <div className="music-coming-sleeve-design"><span /><span /><span /><span /><span /></div>
-            <div className="music-coming-sleeve-bottom"><strong>YOUR<br />NEXT SOUND.</strong><span>16 ARTISTS<br />ONE STAGE</span></div>
+            <div className="music-coming-sleeve-bottom"><strong>{musicArtwork.title.map(line => <span key={line}>{line}</span>)}</strong><span>{musicArtwork.artists}<br />{musicArtwork.stage}</span></div>
           </div>
           </div>
-          <p>UNSEEN / INDEPENDENT SOUND</p>
+          <p>UNSEEN / {musicArtwork.caption}</p>
         </div> : <div className="music-coming-art photo-coming-art" aria-hidden="true">
           <div className="music-coming-art-object">
           <span className="music-coming-orbit" />
-          <div className="photo-coming-print photo-coming-print-back"><img src={photoWindow} alt="" /><span>UNSEEN / CITY STUDIES</span></div>
-          <div className="photo-coming-print photo-coming-print-front"><div className="photo-coming-print-top"><span>UNSEEN</span><span>PHOTO SERIES / 01</span></div><img src={photoShoes} alt="" /><div className="photo-coming-print-bottom"><strong>YOUR<br />NEXT FRAME.</strong><span>16 ARTISTS<br />ONE PERSPECTIVE</span></div></div>
+          <div className="photo-coming-print photo-coming-print-back"><img src={photoWindow} alt="" /><span>UNSEEN / {photoArtwork.study}</span></div>
+          <div className="photo-coming-print photo-coming-print-front"><div className="photo-coming-print-top"><span>UNSEEN</span><span>{photoArtwork.series} / 01</span></div><img src={photoShoes} alt="" /><div className="photo-coming-print-bottom"><strong>{photoArtwork.title.map(line => <span key={line}>{line}</span>)}</strong><span>{photoArtwork.artists}<br />{photoArtwork.stage}</span></div></div>
           </div>
-          <p>UNSEEN / INDEPENDENT VISION</p>
+          <p>UNSEEN / {photoArtwork.caption}</p>
         </div>}
       </section>
       <section className="music-coming-facts" aria-label={copy.bracket}>

@@ -11,3 +11,5 @@
 .photo-coming-print-back{top:6%;right:1%;transform:rotate(12deg);background:#ebe5d8}.photo-coming-print-back>span{display:block;margin-top:12%;font-size:7px;letter-spacing:.13em}
 .photo-coming-print-front{top:18%;left:3%;width:62%;padding:5%;transform:rotate(-9deg)}.photo-coming-print-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:8%;font-size:6px;letter-spacing:.1em}.photo-coming-print-top>span:first-child{font-weight:700}
 .photo-coming-print-bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-top:9%}.photo-coming-print-bottom>strong{font-size:clamp(15px,2vw,24px);font-weight:600;line-height:1;letter-spacing:-.03em}.photo-coming-print-bottom>span{font-size:5px;line-height:1.7;letter-spacing:.08em;text-align:right}
+
+.music-coming-art{text-transform:uppercase}.music-coming-sleeve-bottom>strong>span,.photo-coming-print-bottom>strong>span{display:block}.music-coming-sleeve-bottom>strong,.photo-coming-print-bottom>strong{min-width:0}.music-coming-sleeve-bottom>span,.photo-coming-print-bottom>span{flex-shrink:0}
