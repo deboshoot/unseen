@@ -9,6 +9,10 @@ type Props = { buffer: AudioSource; start: number; end: number; onChange: (start
 type DragMode = 'move' | 'start' | 'end';
 type Drag = { mode: DragMode; pointerId: number; x: number; width: number; start: number; end: number };
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
+// Closed details still participate in native form validation. Bounds must use
+// the same centisecond precision as the displayed values, including after a drag.
+// The change handlers and clip renderer enforce the exact audio boundaries.
+const inputSeconds = (value: number) => Number(value.toFixed(2));
 
 export default function AudioClipEditor({ buffer, start, end, onChange, clipUrl, activeId, onActiveChange, disabled }: Props) {
   const { locale } = useI18n(); const copy = musicSubmitCopy[locale];
@@ -121,8 +125,8 @@ export default function AudioClipEditor({ buffer, start, end, onChange, clipUrl,
     <div className="audio-clip-gesture-hint"><ArrowLeftRight size={13} aria-hidden="true" /><span>{copy.dragClip}</span></div>
     <div className="audio-clip-preview"><button type="button" onClick={() => void toggle()} disabled={disabled || !clipUrl}>{!clipUrl ? <LoaderCircle size={15} className="animate-spin" /> : playing ? <Pause size={15} /> : <Play size={15} />}{!clipUrl ? copy.preparing : playing ? copy.pauseClip : copy.previewClip}</button><span aria-label={copy.selected}>{rangeText}</span></div>
     <details className="audio-clip-precision"><summary>{copy.exactTiming}<ChevronDown size={13} aria-hidden="true" /></summary><div className="audio-clip-inputs">
-      <div><label htmlFor="clip-start">{copy.start}</label><input id="clip-start" type="number" min="0" max={Math.max(0, buffer.duration - minimum)} step="0.01" value={Number(start.toFixed(2))} onChange={event => changeStart(event.target.valueAsNumber)} disabled={disabled} /></div>
-      <div><label htmlFor="clip-end">{copy.end}</label><input id="clip-end" type="number" min={start + minimum} max={Math.min(buffer.duration, start + MAX_CLIP_SECONDS)} step="0.01" value={Number(end.toFixed(2))} onChange={event => changeEnd(event.target.valueAsNumber)} disabled={disabled} /></div>
+      <div><label htmlFor="clip-start">{copy.start}</label><input id="clip-start" type="number" min="0" max={inputSeconds(Math.max(0, buffer.duration - minimum))} step="0.01" value={inputSeconds(start)} onChange={event => changeStart(event.target.valueAsNumber)} disabled={disabled} /></div>
+      <div><label htmlFor="clip-end">{copy.end}</label><input id="clip-end" type="number" min={inputSeconds(start + minimum)} max={inputSeconds(Math.min(buffer.duration, start + MAX_CLIP_SECONDS))} step="0.01" value={inputSeconds(end)} onChange={event => changeEnd(event.target.valueAsNumber)} disabled={disabled} /></div>
     </div></details>
     <audio ref={audioRef} src={clipUrl || undefined} preload="metadata" onTimeUpdate={event => setPosition(event.currentTarget.currentTime)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); setPosition(0); onActiveChange(null); }} onError={() => { setPlaying(false); onActiveChange(null); }} />
   </section>;

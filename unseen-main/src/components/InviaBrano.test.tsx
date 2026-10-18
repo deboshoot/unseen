@@ -38,6 +38,31 @@ function fillSubmission() {
 }
 
 describe("music submissions", () => {
+  it.each([12.34567, 0.03456])('submits a short clip of %s seconds through the actual submit button', async duration => {
+    mocks.decode.mockResolvedValueOnce({ duration, numberOfChannels: 2 });
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    const button = screen.getByRole('button', { name: 'Invia il brano' });
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(container.querySelector('form')!.checkValidity()).toBe(true);
+    fireEvent.click(button);
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalled());
+  });
+
+  it('submits after moving the excerpt to a fractional audio position', async () => {
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    const button = screen.getByRole('button', { name: 'Invia il brano' });
+    await waitFor(() => expect(button).toBeEnabled());
+    const waveform = container.querySelector('.audio-clip-waveform')!;
+    Object.defineProperty(waveform, 'clientWidth', { value: 673 });
+    fireEvent.wheel(waveform, { deltaX: 37 });
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(container.querySelector('form')!.checkValidity()).toBe(true);
+    fireEvent.click(button);
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalled());
+  });
+
   it('accepts a WAV original over 30 MB without MIME and uploads only the prepared clip', async () => {
     const { container } = render(<InviaBrano />);
     fillSubmission();
