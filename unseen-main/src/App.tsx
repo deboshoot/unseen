@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Arena from "./pages/Arena";
 import ArenaChoice from "./pages/ArenaChoice";
 import MusicArena from "./pages/MusicArena";
+import AdminMusicArenaDemo from "./pages/AdminMusicArenaDemo";
 import Championship from "./pages/Championship";
 import ChampionshipArena from "./pages/ChampionshipArena";
 import Gallery from "./pages/Gallery";
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/arena" element={<ArenaChoice />} />
           <Route path="/arena/fotografica" element={<ChampionshipArena kind="photo" />} />
           <Route path="/arena/musicale" element={<ChampionshipArena kind="music" />} />
+          <Route path="/arena/musicale/demo" element={<AdminMusicArenaDemo />} />
           <Route path="/campionato" element={<Championship />} />
           <Route path="/archivio/arena/fotografica" element={<Arena />} />
           <Route path="/archivio/arena/musicale" element={<MusicArena />} />
