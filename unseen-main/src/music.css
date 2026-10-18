@@ -63,15 +63,11 @@
 }
 .music-track.is-playing .vinyl-button { top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 6; }
 .vinyl-button:hover { filter: drop-shadow(0 3px 3px #0005) brightness(1.08); }
-/* Photographic PVC replaces procedural grooves, which alias at small sizes.
-   The studio reflections stay in place while the printed label rotates. */
-.vinyl-button::before {
-  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
-  background: #08090b url("/music/vinyl-photoreal.png") center / 100% 100% no-repeat;
-  box-shadow: 0 2px 3px #0009;
-}
+/* The PVC surface and printed label rotate together as one physical record. */
 .vinyl-record {
   position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; border-radius: 50%;
+  background: #08090b url("/music/vinyl-photoreal.png") center / 100% 100% no-repeat;
+  box-shadow: 0 2px 3px #0009;
   animation: vinyl-spin 1.2s linear infinite;
 }
 @keyframes vinyl-spin { to { transform: rotate(360deg); } }
