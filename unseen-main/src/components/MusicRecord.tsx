@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LoaderCircle, Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -28,30 +28,33 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
   }, []);
   useEffect(() => { if (activeId !== track.id) audioRef.current?.pause(); }, [activeId, track.id]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const vinyl = vinylRef.current;
     const sleeve = sleeveRef.current;
     if (!vinyl?.animate || !sleeve?.animate || (!playing && !motionRef.current.length)) return;
     if (!motionRef.current.length) {
       const right = slot === 2;
-      const rest = "translate(-50%, -50%) rotate(0deg)";
-      const withdrawn = "translate(-50%, -50%) rotate(-3deg)";
+      // The disc is 94% as wide as its sleeve. Convert sleeve positions to
+      // disc-relative transforms so extraction never animates layout or filters.
+      const recordPosition = (top: number, angle = 0) => `translate(-50%, -50%) translateY(${(top - 50) / .94}%) rotate(${angle}deg)`;
+      const rest = recordPosition(2);
+      const withdrawn = recordPosition(-54, -3);
       const jacket = `translate(-50%, -50%) rotateX(7deg) rotateY(${right ? -12 : 12}deg)`;
       const jacketFinal = `translate(-50%, -50%) rotateX(7deg) rotateY(${right ? -10 : 10}deg)`;
-      const timing = { duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 1200 : 1900, easing: "cubic-bezier(.4, 0, .2, 1)", fill: "both" as const };
+      const easing = "cubic-bezier(.45, 0, .2, 1)";
+      const timing = { duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 1200 : 1900, easing: "linear", fill: "both" as const };
       // The record lives between the rear and front panels of the top-open pocket.
       // Only raise it above the front once its bottom edge has cleared the mouth.
       motionRef.current = [
         vinyl.animate([
-          { offset: 0, left: "50%", top: "2%", transform: rest, zIndex: 2, filter: "drop-shadow(0 3px 3px #0005)" },
-          { offset: .44, left: "50%", top: "-54%", transform: withdrawn, zIndex: 2, filter: "drop-shadow(0 8px 7px #0008)" },
-          { offset: .51, left: "50%", top: "-54%", transform: withdrawn, zIndex: 2, filter: "drop-shadow(0 8px 7px #0008)" },
-          { offset: .52, left: "50%", top: "-54%", transform: withdrawn, zIndex: 6, filter: "drop-shadow(0 15px 12px #000b)" },
-          { offset: 1, left: "50%", top: "50%", transform: rest, zIndex: 6, filter: "drop-shadow(0 15px 12px #000b)" },
+          { offset: 0, transform: rest, zIndex: 2, easing },
+          { offset: .5, transform: withdrawn, zIndex: 2 },
+          { offset: .501, transform: withdrawn, zIndex: 6, easing },
+          { offset: 1, transform: recordPosition(50), zIndex: 6 },
         ], timing),
         sleeve.animate([
           { offset: 0, transform: jacket },
-          { offset: .52, transform: jacket },
+          { offset: .501, transform: jacket, easing },
           { offset: 1, transform: jacketFinal },
         ], timing),
       ];

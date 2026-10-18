@@ -52,9 +52,10 @@ describe("music playback", () => {
       const path = animate.mock.calls[0][0];
       // A 94%-diameter LP clears the top opening before it crosses the front lip.
       const raised = path.find((frame) => Number(frame.zIndex) > 4)!;
-      expect(parseFloat(String(raised.top)) + 47).toBeLessThan(0);
-      expect(path.every((frame) => frame.left === "50%")).toBe(true);
-      expect(path[path.length - 1].top).toBe("50%");
+      const lift = Number(String(raised.transform).match(/translateY\(([-\d.]+)%\)/)![1]);
+      expect(50 + lift * .94 + 47).toBeLessThan(0);
+      expect(path.every((frame) => frame.top === undefined && frame.left === undefined && frame.filter === undefined)).toBe(true);
+      expect(path[path.length - 1].transform).toBe("translate(-50%, -50%) translateY(0%) rotate(0deg)");
       animations.forEach((animation) => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(1));
       fireEvent.click(screen.getAllByRole("button", { name: "Pausa Afterhours — NOVA" })[0]);
       animations.forEach((animation) => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(-1));
