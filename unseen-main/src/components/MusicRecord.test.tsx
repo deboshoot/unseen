@@ -48,20 +48,26 @@ describe("music playback", () => {
       const { unmount } = render(<Duel />);
       expect(animate).not.toHaveBeenCalled();
       fireEvent.click(screen.getAllByRole("button", { name: "Ascolta Afterhours — NOVA" })[0]);
-      await waitFor(() => expect(animate).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(animate).toHaveBeenCalledTimes(3));
       const path = animate.mock.calls[0][0];
-      // A 94%-diameter LP clears the top opening before it crosses the front lip.
-      const raised = path.find((frame) => Number(frame.zIndex) > 4)!;
-      const lift = Number(String(raised.transform).match(/translateY\(([-\d.]+)%\)/)![1]);
-      expect(50 + lift * .94 + 47).toBeLessThan(0);
-      expect(path.every((frame) => frame.top === undefined && frame.left === undefined && frame.filter === undefined)).toBe(true);
+      const stacking = animate.mock.calls[1][0];
+      // Include the shadow when checking clearance on narrow mobile sleeves.
+      const withdrawn = path.find(frame => frame.offset === .5)!;
+      const [, lift, gap] = String(withdrawn.transform).match(/translateY\(calc\(([-\d.]+)% - ([\d.]+)px\)\)/)!;
+      for (const sleeveWidth of [100, 180, 320]) {
+        const bottomWithShadow = (50 + Number(lift) * .94 + 47) * sleeveWidth / 100 - Number(gap) + 15;
+        expect(bottomWithShadow).toBeLessThan(-8);
+      }
+      expect(stacking[0]).toMatchObject({ zIndex: 2, easing: "steps(1, end)" });
+      expect(stacking.find(frame => frame.offset === .5)).toMatchObject({ zIndex: 6 });
+      expect(path.every((frame) => frame.zIndex === undefined && frame.top === undefined && frame.left === undefined && frame.filter === undefined)).toBe(true);
       expect(path[path.length - 1].transform).toBe("translate(-50%, -50%) translateY(0%) rotate(0deg)");
       animations.forEach((animation) => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(1));
       fireEvent.click(screen.getAllByRole("button", { name: "Pausa Afterhours — NOVA" })[0]);
       animations.forEach((animation) => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(-1));
       fireEvent.click(screen.getAllByRole("button", { name: "Ascolta Afterhours — NOVA" })[0]);
       await waitFor(() => animations.forEach((animation) => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(1)));
-      expect(animate).toHaveBeenCalledTimes(2);
+      expect(animate).toHaveBeenCalledTimes(3);
       unmount();
       animations.forEach((animation) => expect(animation.cancel).toHaveBeenCalledTimes(1));
     } finally {

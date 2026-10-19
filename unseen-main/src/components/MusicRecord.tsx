@@ -36,9 +36,11 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
       const right = slot === 2;
       // The disc is 94% as wide as its sleeve. Convert sleeve positions to
       // disc-relative transforms so extraction never animates layout or filters.
-      const recordPosition = (top: number, angle = 0) => `translate(-50%, -50%) translateY(${(top - 50) / .94}%) rotate(${angle}deg)`;
+      const recordPosition = (top: number, angle = 0, clearance = 0) => `translate(-50%, -50%) translateY(${clearance ? `calc(${(top - 50) / .94}% - ${clearance}px)` : `${(top - 50) / .94}%`}) rotate(${angle}deg)`;
       const rest = recordPosition(2);
-      const withdrawn = recordPosition(-54, -3);
+      // Clear the mouth AND the 15px shadow at every sleeve size before
+      // changing layers; a percentage-only gap lets the shadow pop on mobile.
+      const withdrawn = recordPosition(-47, -3, 24);
       const jacket = `translate(-50%, -50%) rotateX(7deg) rotateY(${right ? -12 : 12}deg)`;
       const jacketFinal = `translate(-50%, -50%) rotateX(7deg) rotateY(${right ? -10 : 10}deg)`;
       const easing = "cubic-bezier(.45, 0, .2, 1)";
@@ -47,10 +49,17 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
       // Only raise it above the front once its bottom edge has cleared the mouth.
       motionRef.current = [
         vinyl.animate([
-          { offset: 0, transform: rest, zIndex: 2, easing },
-          { offset: .5, transform: withdrawn, zIndex: 2 },
-          { offset: .501, transform: withdrawn, zIndex: 6, easing },
-          { offset: 1, transform: recordPosition(50), zIndex: 6 },
+          { offset: 0, transform: rest, easing },
+          { offset: .5, transform: withdrawn },
+          { offset: .501, transform: withdrawn, easing },
+          { offset: 1, transform: recordPosition(50) },
+        ], timing),
+        // Keep the one-off stacking change out of the transform animation.
+        // Its timeline is reversed together with extraction on Pause.
+        vinyl.animate([
+          { offset: 0, zIndex: 2, easing: "steps(1, end)" },
+          { offset: .5, zIndex: 6 },
+          { offset: 1, zIndex: 6 },
         ], timing),
         sleeve.animate([
           { offset: 0, transform: jacket },
