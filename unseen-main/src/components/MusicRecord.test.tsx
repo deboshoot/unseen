@@ -55,7 +55,7 @@ describe("music playback", () => {
       const withdrawn = path.find(frame => frame.offset === .5)!;
       const [, lift, gap] = String(withdrawn.transform).match(/translateY\(calc\(([-\d.]+)% - ([\d.]+)px\)\)/)!;
       for (const sleeveWidth of [100, 180, 320]) {
-        const bottomWithShadow = (50 + Number(lift) * .94 + 47) * sleeveWidth / 100 - Number(gap) + 15;
+        const bottomWithShadow = (50 + Number(lift) * .94 + 47) * sleeveWidth / 100 - Number(gap) + 8 + 3 * 7;
         expect(bottomWithShadow).toBeLessThan(-8);
       }
       expect(stacking[0]).toMatchObject({ zIndex: 2, easing: "steps(1, end)" });

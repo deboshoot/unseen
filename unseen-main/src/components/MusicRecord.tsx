@@ -38,9 +38,9 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
       // disc-relative transforms so extraction never animates layout or filters.
       const recordPosition = (top: number, angle = 0, clearance = 0) => `translate(-50%, -50%) translateY(${clearance ? `calc(${(top - 50) / .94}% - ${clearance}px)` : `${(top - 50) / .94}%`}) rotate(${angle}deg)`;
       const rest = recordPosition(2);
-      // Clear the mouth AND the 15px shadow at every sleeve size before
+      // Clear the mouth AND the shadow (8px offset + 3 * 7px blur) before
       // changing layers; a percentage-only gap lets the shadow pop on mobile.
-      const withdrawn = recordPosition(-47, -3, 24);
+      const withdrawn = recordPosition(-47, -3, 40);
       const jacket = `translate(-50%, -50%) rotateX(7deg) rotateY(${right ? -12 : 12}deg)`;
       const jacketFinal = `translate(-50%, -50%) rotateX(7deg) rotateY(${right ? -10 : 10}deg)`;
       const easing = "cubic-bezier(.45, 0, .2, 1)";
