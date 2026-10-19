@@ -23,3 +23,4 @@ div.admin-picker{width:calc(100vw - 36px);max-width:880px;max-height:86dvh;overf
 .admin-more-delete{display:flex;align-items:center;gap:7px;width:100%;padding:12px 14px;border-radius:0 0 8px 8px;color:#ed8692;font-size:12px;text-align:left}
 .admin-more-delete:hover{background:hsl(var(--muted)/.6)}
 .admin-sender-retry{min-height:32px;font-size:12px;color:hsl(var(--primary));text-decoration:underline}
+.admin-studio .vinyl-button:disabled{opacity:1}
