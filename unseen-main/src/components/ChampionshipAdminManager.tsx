@@ -35,7 +35,7 @@ export default function ChampionshipAdminManager({ accountId }: { accountId?: st
   const [busy, setBusy] = useState(false); const busyRef = useRef(false);
   const [draft, setDraft] = useState(false); const [selectedId, setSelectedId] = useState<string | null>(null);
   const [view, setView] = useState<'bracket' | 'votes' | 'calendar'>('bracket');
-  const { data, now, refetch, error, isLoading } = useChampionship(kind, selectedId);
+  const { data, now, refetch, error, isLoading } = useChampionship(kind, selectedId, { refetchOnWindowFocus: false });
   const history = useQuery({ queryKey: ['admin', 'championship-history', kind], queryFn: async ({ signal }) => {
     const { data, error } = await supabase.from('championships').select('id,kind,name,status,start_at,end_at,winner_id').eq('kind', kind).order('start_at', { ascending: false }).limit(48).abortSignal(signal);
     if (error) throw error; return (data ?? []) as Championship[];

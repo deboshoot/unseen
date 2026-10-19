@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/supabaseClient';
 import { type ChampionshipData, type ChampionshipKind } from '@/lib/championship';
 
-export function useChampionship(kind: ChampionshipKind, id?: string | null) {
+export function useChampionship(kind: ChampionshipKind, id?: string | null, options: { refetchOnWindowFocus?: boolean } = {}) {
   const queryClient = useQueryClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
@@ -32,6 +32,7 @@ export function useChampionship(kind: ChampionshipKind, id?: string | null) {
       return { ...result, clockOffset: Date.parse(result.server_now) - Date.now() };
     },
     staleTime: 30000, refetchInterval: 60000, refetchIntervalInBackground: false,
+    refetchOnWindowFocus: options.refetchOnWindowFocus,
   });
   const now = clock + (query.data?.clockOffset ?? 0);
   const { refetch } = query;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Camera, ChevronRight, CircleCheck, Image, LayoutGrid, LockKeyhole, Music2, Trophy, Users } from 'lucide-react';
@@ -18,27 +18,47 @@ export default function AdminDashboard() {
   const navigate = useNavigate(); const queryClient = useQueryClient();
   const [authorized, setAuthorized] = useState(false); const [checking, setChecking] = useState(true); const [authError, setAuthError] = useState(false); const [retry, setRetry] = useState(0);
   const [userId, setUserId] = useState(''); const [email, setEmail] = useState('');
+  const activeAccount = useRef<string | null>(null);
+  const authRevision = useRef(0);
   const [tab, setTab] = useState<Tab>('championships'); const [submissionKind, setSubmissionKind] = useState<ChampionshipKind>('photo');
   useEffect(() => {
     let alive = true;
+    const clearAccountData = () => {
+      setAuthorized(false); setUserId(''); setEmail('');
+      queryClient.removeQueries({ queryKey: ['admin'] });
+      queryClient.removeQueries({ queryKey: ['championship'] });
+    };
     const check = async () => {
+      const revision = authRevision.current;
       setChecking(true); setAuthError(false);
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
+        if (!alive || revision !== authRevision.current) return;
         if (error) throw error;
-        if (!user) { if (alive) navigate('/auth?redirect=%2Fadmin', { replace: true }); return; }
+        if (!user) { activeAccount.current = null; clearAccountData(); navigate('/auth?redirect=%2Fadmin', { replace: true }); return; }
+        activeAccount.current = user.id;
         const { data: admin, error: roleError } = await supabase.rpc('is_unseen_admin');
+        if (!alive || revision !== authRevision.current) return;
         if (roleError) throw roleError;
-        if (!admin) { if (alive) navigate('/', { replace: true }); return; }
-        if (alive) { setAuthorized(true); setUserId(user.id); setEmail(user.email ?? ''); }
-      } catch { if (alive) { setAuthorized(false); setAuthError(true); } }
-      finally { if (alive) setChecking(false); }
+        if (!admin) { clearAccountData(); navigate('/', { replace: true }); return; }
+        setAuthorized(true); setUserId(user.id); setEmail(user.email ?? '');
+      } catch { if (alive && revision === authRevision.current) { setAuthorized(false); setAuthError(true); } }
+      finally { if (alive && revision === authRevision.current) setChecking(false); }
     };
     void check();
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) { setAuthorized(false); queryClient.removeQueries({ queryKey: ['admin'] }); queryClient.removeQueries({ queryKey: ['championship'] }); navigate('/auth?redirect=%2Fadmin', { replace: true }); }
-      // Recheck a different account; never carry over the former admin's data.
-      if (event === 'SIGNED_IN') { setAuthorized(false); queryClient.removeQueries({ queryKey: ['admin'] }); queryClient.removeQueries({ queryKey: ['championship'] }); setRetry(value => value + 1); }
+      if (!alive) return;
+      const nextAccount = session?.user.id ?? null;
+      if (event === 'SIGNED_OUT' || !nextAccount) {
+        authRevision.current++; activeAccount.current = null; clearAccountData();
+        navigate('/auth?redirect=%2Fadmin', { replace: true }); return;
+      }
+      // Supabase also emits SIGNED_IN when a tab becomes visible again.
+      // Preserve the workspace for the same account; recheck actual account changes.
+      if (nextAccount !== activeAccount.current) {
+        authRevision.current++; activeAccount.current = nextAccount; clearAccountData();
+        setChecking(true); setRetry(value => value + 1);
+      } else setEmail(session.user.email ?? '');
     });
     return () => { alive = false; data.subscription.unsubscribe(); };
   }, [navigate, queryClient, retry]);
