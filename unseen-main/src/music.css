@@ -59,7 +59,6 @@
   transition: filter .25s;
   filter: drop-shadow(0 8px 7px #0008); will-change: transform;
 }
-.music-track.is-playing .vinyl-button { transform: translate(-50%, -50%) translateY(0%); z-index: 6; }
 .vinyl-button:hover { filter: drop-shadow(0 8px 7px #0008) brightness(1.08); }
 /* The physical grooves and label spin; the softbox reflection stays in place. */
 .vinyl-record {

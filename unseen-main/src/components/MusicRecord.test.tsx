@@ -35,18 +35,23 @@ describe("music playback", () => {
     expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
   });
 
-  it("reverses the existing sleeve extraction when paused, then reuses it on replay", async () => {
+  it("prepares extraction at rest before the first play and preserves its position on pause and replay", async () => {
     const originalAnimate = Object.getOwnPropertyDescriptor(Element.prototype, "animate");
-    const animations: { updatePlaybackRate: ReturnType<typeof vi.fn>; play: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> }[] = [];
+    const animations: { currentTime: number | null; updatePlaybackRate: ReturnType<typeof vi.fn>; play: ReturnType<typeof vi.fn>; pause: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> }[] = [];
     const animate = vi.fn((_frames: Keyframe[], _timing: KeyframeAnimationOptions) => {
-      const animation = { updatePlaybackRate: vi.fn(), play: vi.fn(), cancel: vi.fn() };
+      const animation = { currentTime: null, updatePlaybackRate: vi.fn(), play: vi.fn(), pause: vi.fn(), cancel: vi.fn() };
       animations.push(animation);
       return animation;
     });
     Object.defineProperty(Element.prototype, "animate", { configurable: true, value: animate });
     try {
-      const { unmount } = render(<Duel />);
-      expect(animate).not.toHaveBeenCalled();
+      const { unmount } = render(<MusicRecord track={demoTracks[0]} activeId={demoTracks[0].id} onActiveChange={vi.fn()} />);
+      expect(animate).toHaveBeenCalledTimes(3);
+      animations.forEach((animation) => {
+        expect(animation.pause).toHaveBeenCalled();
+        expect(animation.currentTime).toBe(0);
+        expect(animation.play).not.toHaveBeenCalled();
+      });
       fireEvent.click(screen.getAllByRole("button", { name: "Ascolta Afterhours — NOVA" })[0]);
       await waitFor(() => expect(animate).toHaveBeenCalledTimes(3));
       const path = animate.mock.calls[0][0];
@@ -63,11 +68,25 @@ describe("music playback", () => {
       expect(path.every((frame) => frame.zIndex === undefined && frame.top === undefined && frame.left === undefined && frame.filter === undefined)).toBe(true);
       expect(path[path.length - 1].transform).toBe("translate(-50%, -50%) translateY(0%) rotate(0deg)");
       animations.forEach((animation) => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(1));
+      // Pause before the first frame must not leave pending playback running,
+      // or play backwards from the far endpoint of an animation still at zero.
+      const priorPauses = animations.map(animation => animation.pause.mock.calls.length);
+      fireEvent.click(screen.getAllByRole("button", { name: "Pausa Afterhours — NOVA" })[0]);
+      animations.forEach((animation, index) => {
+        expect(animation.currentTime).toBe(0);
+        expect(animation.pause).toHaveBeenCalledTimes(priorPauses[index] + 1);
+        expect(animation.play).toHaveBeenCalledOnce();
+        expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(1);
+      });
+      fireEvent.click(screen.getAllByRole("button", { name: "Ascolta Afterhours — NOVA" })[0]);
+      await waitFor(() => expect(screen.getAllByRole("button", { name: "Pausa Afterhours — NOVA" })[0]).toBeEnabled());
+      animations.forEach((animation) => { animation.currentTime = 400; });
       fireEvent.click(screen.getAllByRole("button", { name: "Pausa Afterhours — NOVA" })[0]);
       animations.forEach((animation) => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(-1));
       fireEvent.click(screen.getAllByRole("button", { name: "Ascolta Afterhours — NOVA" })[0]);
       await waitFor(() => animations.forEach((animation) => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(1)));
       expect(animate).toHaveBeenCalledTimes(3);
+      animations.forEach((animation) => expect(animation.currentTime).toBe(400));
       unmount();
       animations.forEach((animation) => expect(animation.cancel).toHaveBeenCalledTimes(1));
     } finally {
