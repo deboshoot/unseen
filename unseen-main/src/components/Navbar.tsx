@@ -4,7 +4,6 @@ import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User, LogOut } from "lucide-react";
 import { supabase } from "@/supabaseClient";
-import ThemeToggle from "./ThemeToggle";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
 import { championshipCopy } from "@/i18n/championship-copy";
@@ -75,7 +74,6 @@ const Navbar = () => {
               )}
             </Link>
           ))}
-          <ThemeToggle />
           <LanguageSwitcher />
           {user ? (
             <div className="relative">
@@ -116,7 +114,6 @@ const Navbar = () => {
           )}
         </div>
         <div className="site-mobile-actions flex shrink-0 items-center gap-1.5 sm:gap-3 lg:hidden">
-          <ThemeToggle />
           <LanguageSwitcher />
           <MobileMenu user={user} onSignOut={handleSignOut} navItems={navItems} />
         </div>

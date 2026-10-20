@@ -58,7 +58,6 @@ export default function MusicArenaDemo({ startsAt }: { startsAt?: string }) {
             setActiveId(previous => id ?? (previous === track.id ? null : previous));
           }} />
         </article>)}
-        <span className="music-vs" aria-hidden="true">VS</span>
       </section>
       <div className="music-demo-vote-area">
         {!voteOpen

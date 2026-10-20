@@ -5,6 +5,8 @@ import "./music.css";
 import { Analytics } from "@vercel/analytics/react";
 import { I18nProvider, resolveInitialI18n } from "./i18n/I18nProvider";
 
+document.documentElement.classList.remove("light-mode");
+
 const bootstrap = async () => {
 	const { locale, dictionary } = await resolveInitialI18n();
 	createRoot(document.getElementById("root")!).render(
