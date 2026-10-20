@@ -1,32 +1,85 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { LoaderCircle, Pause, Play } from "lucide-react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { LoaderCircle, Pause, Play, SkipBack, SkipForward, UserRound, X } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/I18nProvider";
 import { musicCopy } from "@/i18n/music-copy";
+import { musicDemoCopy } from "@/i18n/music-demo-copy";
 import { formatAudioTime, type MusicTrack } from "@/lib/music";
+import { normalizeInstagram } from "@/lib/music-links";
 import MusicSocialLinks from './MusicSocialLinks';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 
-type Props = { track: MusicTrack; activeId: string | null; onActiveChange: (id: string | null) => void; slot?: number; onPrepareAudio?: (audio: HTMLAudioElement) => void };
+type Props = { track: MusicTrack; activeId: string | null; onActiveChange: (id: string | null) => void; slot?: number; onPrepareAudio?: (audio: HTMLAudioElement) => void; demoTransport?: boolean };
 
-export default function MusicRecord({ track, activeId, onActiveChange, slot, onPrepareAudio }: Props) {
+export default function MusicRecord({ track, activeId, onActiveChange, slot, onPrepareAudio, demoTransport = false }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const vinylRef = useRef<HTMLButtonElement>(null);
   const sleeveRef = useRef<HTMLDivElement>(null);
   const motionRef = useRef<Animation[]>([]);
   const mountedRef = useRef(true);
+  const socialExitTimerRef = useRef<number | null>(null);
+  const progressInputRef = useRef<HTMLInputElement>(null);
   const [playing, setPlaying] = useState(false);
+  const [socialsVisible, setSocialsVisible] = useState(false);
+  const [socialsExiting, setSocialsExiting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [profileExpanded, setProfileExpanded] = useState(false);
   const { locale } = useI18n();
   const copy = musicCopy[locale];
+  const demoText = musicDemoCopy[locale];
+  const instagramUsername = demoTransport ? normalizeInstagram(track.instagram_username ?? '') : null;
+  const syncProgress = useCallback((audio: HTMLAudioElement) => {
+    const input = progressInputRef.current;
+    if (input && Number.isFinite(audio.duration) && audio.duration > 0) {
+      input.style.setProperty('--music-progress', `${(audio.currentTime / audio.duration) * 100}%`);
+    }
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
     const audio = audioRef.current;
-    return () => { mountedRef.current = false; audio?.pause(); };
+    return () => {
+      mountedRef.current = false;
+      audio?.pause();
+      if (socialExitTimerRef.current !== null) window.clearTimeout(socialExitTimerRef.current);
+    };
   }, []);
   useEffect(() => { if (activeId !== track.id) audioRef.current?.pause(); }, [activeId, track.id]);
+  useEffect(() => {
+    if (!demoTransport) return;
+    if (playing) {
+      if (socialExitTimerRef.current !== null) window.clearTimeout(socialExitTimerRef.current);
+      socialExitTimerRef.current = null;
+      setSocialsVisible(true);
+      setSocialsExiting(false);
+      return;
+    }
+    if (!socialsVisible) return;
+    setSocialsExiting(true);
+    const exitDelay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 420;
+    socialExitTimerRef.current = window.setTimeout(() => {
+      setSocialsVisible(false);
+      setSocialsExiting(false);
+      socialExitTimerRef.current = null;
+    }, exitDelay);
+    return () => {
+      if (socialExitTimerRef.current !== null) window.clearTimeout(socialExitTimerRef.current);
+      socialExitTimerRef.current = null;
+    };
+  }, [demoTransport, playing, socialsVisible]);
+  useEffect(() => {
+    if (!demoTransport || !playing) return;
+    let frame = 0;
+    const update = () => {
+      const audio = audioRef.current;
+      if (audio) syncProgress(audio);
+      frame = window.requestAnimationFrame(update);
+    };
+    frame = window.requestAnimationFrame(update);
+    return () => window.cancelAnimationFrame(frame);
+  }, [demoTransport, playing, syncProgress]);
 
   useLayoutEffect(() => {
     const vinyl = vinylRef.current;
@@ -102,10 +155,21 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
   };
 
   const playLabel = `${playing ? copy.pause : copy.play} ${track.title} — ${track.artist}`;
+  const skip = (seconds: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const end = Number.isFinite(audio.duration) ? audio.duration : duration;
+    audio.currentTime = Math.max(0, Math.min(end, audio.currentTime + seconds));
+    setCurrentTime(audio.currentTime);
+  };
   return (
     <article className={`music-track ${playing ? "is-playing" : ""}`} data-track-id={track.id} data-vinyl-side={slot === 2 ? "right" : "left"}>
-      {slot && <p className="music-slot">{copy.challenger} {String(slot).padStart(2, "0")}</p>}
+      {slot && !demoTransport && <p className="music-slot">{copy.challenger} {String(slot).padStart(2, "0")}</p>}
       <div className="music-cover">
+        {demoTransport && socialsVisible && <div className={`music-demo-side-socials music-demo-side-socials-${slot === 2 ? 'right' : 'left'}${socialsExiting ? ' is-exiting' : ''}`} role="group" aria-label={`${demoText.socialLinks}: ${track.artist}`}>
+          {instagramUsername && <a className="music-demo-side-profile" aria-label={demoText.profileOpen} href={`https://www.instagram.com/${instagramUsername}/`} target="_blank" rel="noopener noreferrer"><UserRound size={17} /></a>}
+          <MusicSocialLinks track={track} className="music-demo-social-drop" includeProfile={false} />
+        </div>}
         <div ref={sleeveRef} className="music-sleeve">
           <div className="music-sleeve-back" aria-hidden="true" />
           <span className="music-sleeve-mouth" aria-hidden="true" />
@@ -114,9 +178,11 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
               <span className="vinyl-label" style={{ backgroundImage: `url("${track.cover_url}")` }}><span className="vinyl-label-name">{track.artist}</span><span className="vinyl-label-edition" aria-hidden="true">UNSEEN · 33⅓ RPM</span><span className="vinyl-spindle" /></span>
             </span>
             <span className="vinyl-reflection" aria-hidden="true" />
-            <span className="vinyl-play-icon">{loading ? <LoaderCircle size={24} className="animate-spin" /> : playing ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}</span>
+            {!demoTransport && <span className="vinyl-play-icon">{loading ? <LoaderCircle size={24} className="animate-spin" /> : playing ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}</span>}
           </button>
-          <div className="music-sleeve-front">
+          <div className="music-sleeve-front" role={demoTransport ? 'button' : undefined} tabIndex={demoTransport ? 0 : undefined} aria-label={demoTransport ? `${demoText.openTrackLinks}: ${track.artist}` : undefined} aria-haspopup={demoTransport ? 'dialog' : undefined} onClick={demoTransport ? () => setProfileExpanded(true) : undefined} onKeyDown={demoTransport ? event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setProfileExpanded(true); }
+          } : undefined}>
             <img className="music-cover-image" src={track.cover_url} alt={`${copy.cover}: ${track.artist}`} />
             <div className="music-cover-shade" />
             <span className="music-sleeve-paper" aria-hidden="true" />
@@ -125,19 +191,41 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
           </div>
           <span className="music-sleeve-lip" aria-hidden="true" />
         </div>
-        <span className="music-cover-status">{playing ? copy.playing : copy.listen}</span>
+        {!demoTransport && <span className="music-cover-status">{playing ? copy.playing : copy.listen}</span>}
       </div>
-      <div className="music-track-info"><div><h2>{track.title}</h2><p>{track.artist}</p></div><button type="button" onClick={() => void toggle()} aria-label={playLabel} aria-pressed={playing} disabled={loading || !track.audio_url} className="music-small-play">{playing ? <Pause size={18} /> : <Play size={18} />}</button></div>
-      <MusicSocialLinks track={track} />
+      {demoTransport && <div className="music-demo-transport" role="group" aria-label={`${copy.play}: ${track.title}`}>
+        <button type="button" aria-label={`${copy.seek} -5s: ${track.title}`} onClick={() => skip(-5)} disabled={!duration}><SkipBack size={17} /></button>
+        <button type="button" onClick={() => void toggle()} aria-label={playLabel} aria-pressed={playing} disabled={loading || !track.audio_url} className="music-demo-transport-play">{loading ? <LoaderCircle size={19} className="animate-spin" /> : playing ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}</button>
+        <button type="button" aria-label={`${copy.seek} +5s: ${track.title}`} onClick={() => skip(5)} disabled={!duration}><SkipForward size={17} /></button>
+      </div>}
+      <div className="music-track-info"><div><div className="music-track-heading"><h2>{track.title}</h2></div><p>{track.artist}</p></div>{!demoTransport && <button type="button" onClick={() => void toggle()} aria-label={playLabel} aria-pressed={playing} disabled={loading || !track.audio_url} className="music-small-play">{playing ? <Pause size={18} /> : <Play size={18} />}</button>}</div>
+      {!demoTransport && <MusicSocialLinks track={track} />}
+      {demoTransport &&
+        <Dialog open={profileExpanded} onOpenChange={setProfileExpanded}>
+          <DialogContent id={`music-demo-profile-${track.id}`} className="music-demo-profile-dialog">
+            <DialogDescription className="sr-only">{demoText.profileDescription}</DialogDescription>
+            <div className="music-demo-profile-expanded">
+              <img src={track.cover_url} alt={`${copy.cover}: ${track.artist}`} />
+              <div className="music-demo-profile-expanded-details">
+                <span>{demoText.profileTitle}</span>
+                <DialogTitle>{track.artist}</DialogTitle>
+                {instagramUsername && <p><a href={`https://www.instagram.com/${instagramUsername}/`} target="_blank" rel="noopener noreferrer">@{instagramUsername}</a></p>}
+                <MusicSocialLinks track={track} includeProfile={false} />
+              </div>
+              <DialogClose className="music-demo-profile-close" aria-label={demoText.profileClose}><X size={20} /></DialogClose>
+            </div>
+          </DialogContent>
+        </Dialog>
+      }
       <audio ref={audioRef} crossOrigin="anonymous" src={track.audio_url || undefined} preload="metadata"
-        onLoadedMetadata={(event) => setDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : 0)}
-        onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+        onLoadedMetadata={(event) => { setDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : 0); syncProgress(event.currentTarget); }}
+        onTimeUpdate={(event) => { setCurrentTime(event.currentTarget.currentTime); syncProgress(event.currentTarget); }}
         onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
         onEnded={() => { setPlaying(false); onActiveChange(null); }}
         onError={() => { setPlaying(false); setLoading(false); onActiveChange(null); }}
       />
-      <input type="range" className="music-progress" min={0} max={duration || 1} step={0.1} value={Math.min(currentTime, duration || 1)} disabled={!duration} aria-label={`${copy.seek}: ${track.title}`}
-        onChange={(event) => { if (audioRef.current) { const value = Number(event.target.value); audioRef.current.currentTime = value; setCurrentTime(value); } }} />
+      <input ref={progressInputRef} type="range" className="music-progress" min={0} max={duration || 1} step={0.1} value={Math.min(currentTime, duration || 1)} disabled={!duration} aria-label={`${copy.seek}: ${track.title}`}
+        onChange={(event) => { if (audioRef.current) { const value = Number(event.target.value); audioRef.current.currentTime = value; setCurrentTime(value); syncProgress(audioRef.current); } }} />
       <div className="music-time"><span>{formatAudioTime(currentTime)}</span><span>{formatAudioTime(duration)}</span></div>
     </article>
   );

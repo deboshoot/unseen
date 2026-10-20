@@ -10,8 +10,8 @@ export type MusicTrack = MusicSocials & {
 };
 
 export const demoTracks: MusicTrack[] = [
-  { id: "demo-1", title: "Afterhours", artist: "NOVA", cover_url: "/music/demo-nova.png", audio_url: "/music/afterhours.wav" },
-  { id: "demo-2", title: "Neon Bloom", artist: "LYRA", cover_url: "/music/demo-lyra.png", audio_url: "/music/neon-bloom.wav" },
+  { id: "demo-1", title: "Afterhours", artist: "NOVA", cover_url: "/music/demo-nova.png", audio_url: "/music/afterhours.wav", instagram_username: "nova.music.demo", youtube_url: "https://youtu.be/dQw4w9WgXcQ", instagram_reel_url: "https://www.instagram.com/reel/C0FFEE12345/", spotify_url: "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC" },
+  { id: "demo-2", title: "Neon Bloom", artist: "LYRA", cover_url: "/music/demo-lyra.png", audio_url: "/music/neon-bloom.wav", instagram_username: "lyra.wav", instagram_reel_url: "https://www.instagram.com/reel/C0FFEE12345/" },
 ];
 
 export const formatAudioTime = (seconds: number) => {
