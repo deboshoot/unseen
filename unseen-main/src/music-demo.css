@@ -11,11 +11,7 @@
   background: transparent;
   box-shadow: none;
 }
-.music-demo-page .music-vs { top: min(31vw, 338px); z-index: 5; display: grid; width: 48px; height: 48px; place-items: center; transform: translateX(-50%); border: 1px solid #ff66725c; border-radius: 50%; color: #ffd9dc; background: radial-gradient(circle at 35% 25%, #ff56674a, transparent 62%), linear-gradient(150deg, #34181e, #171219 78%); box-shadow: inset 0 1px 0 #ffffff1a, 0 0 0 5px #ff36420a, 0 6px 18px #0008, 0 0 24px #f324381c; font-family: var(--font-display, sans-serif); font-size: 12px; font-style: normal; font-weight: 600; letter-spacing: .1em; text-shadow: 0 0 12px #ff394d72; }
-.music-demo-page .music-vs::before,
-.music-demo-page .music-vs::after { position: absolute; top: 50%; width: clamp(10px, 2vw, 24px); height: 1px; background: linear-gradient(90deg, transparent, #ff58676b); content: ""; }
-.music-demo-page .music-vs::before { right: calc(100% + 6px); transform: rotate(-12deg); }
-.music-demo-page .music-vs::after { left: calc(100% + 6px); transform: rotate(12deg) scaleX(-1); }
+.music-demo-page .music-vs { top: min(31vw, 338px); z-index: 5; transform: translateX(-50%); color: #ff2638; font-family: var(--font-display, sans-serif); font-size: 17px; font-style: normal; font-weight: 700; letter-spacing: .08em; text-shadow: 0 0 8px #ff1e32ad, 0 0 22px #ff1e326b; }
 .music-demo-page .music-track { position: relative; }
 .music-demo-page .music-demo-transport {
   display: flex;
@@ -24,11 +20,11 @@
   gap: 23px;
   margin: 22px 0 17px;
 }
-.music-demo-countdown { position: relative; display: flex; width: fit-content; min-width: min(100%, 290px); min-height: 76px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin: 8px auto 12px; overflow: hidden; border: 1px solid #ff43534a; border-radius: 14px; padding: 9px 26px; color: #ff7882; text-align: center; background: radial-gradient(ellipse at 50% 0%, #ff29331c, transparent 72%), linear-gradient(180deg, #241116, #171117); box-shadow: inset 0 1px 0 #ffffff0b, 0 8px 28px #0005, 0 0 28px #ff24340d; }
-.music-demo-countdown::before { position: absolute; inset: 0 auto 0 0; width: 2px; background: linear-gradient(180deg, transparent, #ff3b49 30% 70%, transparent); content: ""; }
-.music-demo-countdown > span { color: #d89a9e; font-size: 8px; font-weight: 600; letter-spacing: .19em; text-transform: uppercase; }
-.music-demo-countdown > strong { color: #ff626d; font-size: clamp(24px, 4vw, 30px); font-variant-numeric: tabular-nums; font-weight: 500; letter-spacing: .1em; line-height: 1.15; text-shadow: 0 0 18px #ff263a38; }
-.music-demo-countdown > small { color: #bd777d; font-size: 8px; letter-spacing: .12em; }
+.music-demo-countdown { position: relative; display: flex; width: fit-content; min-width: min(100%, 300px); min-height: 0; flex-direction: column; align-items: center; justify-content: center; gap: 5px; margin: 2px auto 8px; overflow: hidden; border: 1px solid #85858a; border-radius: 9px; padding: 7px 9px; color: #ff7882; text-align: center; background: linear-gradient(180deg, #77787c 0%, #34353a 10%, #17181c 25%, #24252a 86%, #77787c 100%); box-shadow: inset 0 1px 1px #ffffff9c, inset 0 -2px 3px #000c, 0 7px 18px #0007; }
+.music-demo-countdown::before { position: absolute; inset: 3px 5px auto; height: 1px; background: #ffffff30; content: ""; }
+.music-demo-countdown > span { color: #c5a5a7; font-size: 7px; font-weight: 600; letter-spacing: .17em; text-transform: uppercase; }
+.music-demo-countdown > strong { display: block; min-width: 274px; border: 1px solid #090a0c; border-radius: 4px; padding: 2px 13px 4px; color: #f02535; background: linear-gradient(180deg, #08090b, #111114 52%, #08090b); box-shadow: inset 0 2px 7px #000, inset 0 0 0 1px #ffffff0b, 0 1px 0 #ffffff4a; font-family: "Courier New", monospace; font-size: clamp(25px, 4vw, 31px); font-variant-numeric: tabular-nums; font-style: italic; font-weight: 700; letter-spacing: .045em; line-height: 1.05; text-shadow: 0 0 3px #ff2939, 0 0 10px #ef172b99; }
+.music-demo-countdown > small { color: #c58b8f; font-size: 7px; letter-spacing: .12em; }
 .music-demo-countdown > [role="alert"] { display: flex; align-items: center; gap: 12px; color: #e4adb1; font-size: 10px; }
 .music-demo-countdown > [role="alert"] button { color: #ff8991; text-decoration: underline; text-underline-offset: 3px; }
 .music-demo-page .music-demo-transport > button {
@@ -157,8 +153,11 @@
 @media (max-width: 600px) {
   .music-demo-page .music-challenger { padding: 0; }
   .music-demo-page { padding-top: 22px; }
-  .music-demo-countdown { min-height: 70px; margin: 6px auto 8px; padding-inline: 22px; }
-  .music-demo-page .music-vs { top: calc(42vw + 22px); width: 34px; height: 34px; font-size: 9px; letter-spacing: .06em; }
+  .music-demo-countdown { min-width: 0; gap: 3px; margin: 0 auto 5px; padding: 4px 5px; border-radius: 6px; }
+  .music-demo-countdown > span { font-size: 6px; letter-spacing: .14em; }
+  .music-demo-countdown > strong { min-width: 184px; padding: 1px 6px 2px; font-size: 19px; letter-spacing: .025em; }
+  .music-demo-countdown > small { font-size: 6px; }
+  .music-demo-page .music-vs { top: calc(42vw + 22px); font-size: 12px; letter-spacing: .05em; }
   .music-demo-page .music-demo-transport { gap: 14px; margin: 16px 0 11px; }
   .music-demo-page .music-demo-transport > .music-demo-transport-play { width: 46px; height: 46px; }
   .music-demo-page .vinyl-button .vinyl-play-icon { width: 36px; height: 36px; }

@@ -39,21 +39,19 @@ export default function MusicArenaDemo({ startsAt }: { startsAt?: string }) {
         <Link to="/arena/musicale/demo">{text.permanentLink}<ArrowUpRight size={13} /></Link>
       </nav>
       <header className="champ-hero music-demo-hero">
-        <p className="champ-eyebrow">{text.eyebrow}</p>
         <h1>ARENA<span>.</span></h1>
-        <p>{text.tagline}</p>
-        <MusicWaveform signal={signal} />
+        <section className="music-demo-countdown" aria-label={text.duelDeadline}>
+          <span>{timerLabel}</span>
+          <strong role="timer" aria-label={`${timerLabel}: ${timerTarget ? countdown(timerTarget, now) : '00 : 00 : 00'}`}>
+            {timerTarget ? countdown(timerTarget, now) : '00 : 00 : 00'}
+          </strong>
+          {timerMatch && <small>#{timerMatch.number} / 15</small>}
+          {scheduleLoading && <span className="sr-only" role="status">{text.scheduleLoading}</span>}
+          {scheduleError && <div role="alert"><span>{text.scheduleError}</span><button type="button" onClick={() => void refetch()}>{text.retry}</button></div>}
+        </section>
         {startsAt && <p className="music-demo-starts">{text.starts} {new Date(startsAt).toLocaleString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p>}
       </header>
-      <section className="music-demo-countdown" aria-label={text.duelDeadline}>
-        <span>{timerLabel}</span>
-        <strong role="timer" aria-label={`${timerLabel}: ${timerTarget ? countdown(timerTarget, now) : '00 : 00 : 00'}`}>
-          {timerTarget ? countdown(timerTarget, now) : '00 : 00 : 00'}
-        </strong>
-        {timerMatch && <small>#{timerMatch.number} / 15</small>}
-        {scheduleLoading && <span className="sr-only" role="status">{text.scheduleLoading}</span>}
-        {scheduleError && <div role="alert"><span>{text.scheduleError}</span><button type="button" onClick={() => void refetch()}>{text.retry}</button></div>}
-      </section>
+      <MusicWaveform signal={signal} />
       <section className="music-duel" aria-label={copy.demo}>
         {demoTracks.map((track, index) => <article className={`music-challenger music-challenger-${index + 1}`} key={track.id}>
           <MusicRecord track={track} slot={index + 1} activeId={activeId} demoTransport onPrepareAudio={prepareAudio} onActiveChange={id => {
