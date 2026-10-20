@@ -114,12 +114,37 @@ export default function PortalScene({ light, label }: Props) {
         reflection.matrixAutoUpdate = false;
         const mirror = new T.Matrix4().makeScale(1, -1, 1);
         mirror.setPosition(0, floorY * 2, 0); scene.add(reflection);
-        const floorMaterial = new T.MeshStandardMaterial({ roughness: 0.95, envMapIntensity: 0.16, transparent: true, opacity: 0.72, depthWrite: false });
+        // Keep the ground in the background palette: environment lighting on a
+        // huge standard-material plane produced a bright rectangular horizon.
+        const floorMaterial = new T.MeshBasicMaterial({ transparent: true, opacity: 0.88, depthWrite: false, toneMapped: false });
         const floor = new T.Mesh(new T.PlaneGeometry(65, 65), floorMaterial);
         floor.rotation.x = -Math.PI / 2; floor.position.y = floorY; floor.renderOrder = 2; scene.add(floor);
-        const stone = new T.MeshStandardMaterial({ roughness: 0.94, envMapIntensity: 0.18 });
-        const plinth = new T.Mesh(new T.CylinderGeometry(1.3, 1.37, 0.13, 64), stone);
+        const stone = new T.MeshStandardMaterial({ roughness: 0.94, envMapIntensity: 0.18, transparent: true });
+        stone.onBeforeCompile = shader => {
+          shader.vertexShader = `varying float vWallHeight;\n${shader.vertexShader}`.replace(
+            '#include <worldpos_vertex>',
+            '#include <worldpos_vertex>\nvWallHeight = (modelMatrix * vec4(transformed, 1.0)).y;',
+          );
+          shader.fragmentShader = `varying float vWallHeight;\n${shader.fragmentShader}`.replace(
+            '#include <dithering_fragment>',
+            `gl_FragColor.a *= smoothstep(${floorY.toFixed(2)}, ${(floorY + 0.85).toFixed(2)}, vWallHeight);\n#include <dithering_fragment>`,
+          );
+        };
+        const plinthMaterial = new T.MeshStandardMaterial({ roughness: 1, envMapIntensity: 0.06 });
+        const plinth = new T.Mesh(new T.CylinderGeometry(1.3, 1.33, 0.13, 64), plinthMaterial);
         plinth.position.set(0, -2.08, 0); scene.add(plinth);
+
+        // A soft contact shadow anchors the base without real-time shadow maps.
+        const shadowSize = 64, shadowPixels = new Uint8Array(shadowSize * shadowSize * 4);
+        for (let y = 0; y < shadowSize; y++) for (let x = 0; x < shadowSize; x++) {
+          const radius = Math.hypot((x + 0.5) / shadowSize * 2 - 1, (y + 0.5) / shadowSize * 2 - 1);
+          shadowPixels[(y * shadowSize + x) * 4 + 3] = Math.round((1 - T.MathUtils.smoothstep(radius, 0.25, 1)) * 255);
+        }
+        const shadowMap = new T.DataTexture(shadowPixels, shadowSize, shadowSize);
+        shadowMap.magFilter = T.LinearFilter; shadowMap.minFilter = T.LinearFilter; shadowMap.needsUpdate = true;
+        const shadowMaterial = new T.MeshBasicMaterial({ color: 0x000000, map: shadowMap, transparent: true, depthWrite: false, toneMapped: false });
+        const shadow = new T.Mesh(new T.PlaneGeometry(4.4, 3.8), shadowMaterial);
+        shadow.rotation.x = -Math.PI / 2; shadow.position.y = floorY + 0.002; shadow.renderOrder = 3; scene.add(shadow);
 
         const wallShape = new T.Shape();
         wallShape.moveTo(-11, -2.2); wallShape.lineTo(11, -2.2); wallShape.lineTo(11, 9); wallShape.lineTo(-11, 9); wallShape.closePath();
@@ -178,7 +203,9 @@ export default function PortalScene({ light, label }: Props) {
         const syncTheme = () => {
           background.set(getComputedStyle(element).backgroundColor);
           stone.color.set(theme.current ? 0xaaa497 : 0x020304);
-          floorMaterial.color.set(theme.current ? 0x96968d : 0x040507);
+          floorMaterial.color.copy(background);
+          plinthMaterial.color.set(theme.current ? 0x777970 : 0x010203);
+          shadowMaterial.opacity = theme.current ? 0.18 : 0.38;
           renderer!.toneMappingExposure = theme.current ? 1.15 : 0.95;
           start();
         };
@@ -260,7 +287,7 @@ export default function PortalScene({ light, label }: Props) {
           });
           for (const geometry of geometries) geometry.dispose();
           for (const material of materials) material.dispose();
-          environment.dispose(); renderer!.dispose(); canvas.remove();
+          shadowMap.dispose(); environment.dispose(); renderer!.dispose(); canvas.remove();
         };
         syncTheme(); resize(); setReady(true);
       } catch {
