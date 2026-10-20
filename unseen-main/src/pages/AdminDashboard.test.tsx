@@ -5,13 +5,14 @@ import { useState } from 'react';
 import AdminDashboard from './AdminDashboard';
 const mocks = vi.hoisted(() => ({ getUser: vi.fn(), rpc: vi.fn(), remove: vi.fn(), unsubscribe: vi.fn(), onChange: vi.fn() }));
 vi.mock('@/supabaseClient', () => ({ supabase: { rpc: mocks.rpc, auth: { getUser: mocks.getUser, onAuthStateChange: mocks.onChange } } }));
+vi.mock('@/i18n/I18nProvider', () => ({ useI18n: () => ({ t: () => 'Accesso in corso…' }) }));
 vi.mock('@tanstack/react-query', () => { const client = { removeQueries: mocks.remove }; return { useQueryClient: () => client, useQuery: () => ({ data: { pending_photos: 3, pending_music: 2, approved_photos: 16, approved_music: 16, open_championships: 0, championship_votes: 0, users: 500 }, refetch: vi.fn() }) }; });
 vi.mock('@/components/ChampionshipAdminManager', () => ({ default: () => <p>Championship panel</p> }));
 vi.mock('@/components/admin/AdminSubmissions', () => ({ default: function ReviewPanel({ initialKind }: { initialKind: string }) { const [search, setSearch] = useState(''); return <div><p>Review {initialKind}</p><input aria-label="Cerca candidature" value={search} onChange={event => setSearch(event.target.value)} /></div>; } }));
 vi.mock('@/components/admin/AdminGallery', () => ({ default: () => <p>Gallery panel</p> }));
 vi.mock('@/components/admin/AdminCommunity', () => ({ default: () => <p>Community panel</p> }));
 beforeEach(() => { vi.clearAllMocks(); mocks.getUser.mockResolvedValue({ data: { user: { id: 'admin', email: 'admin@example.test' } }, error: null }); mocks.rpc.mockResolvedValue({ data: true, error: null }); mocks.onChange.mockReturnValue({ data: { subscription: { unsubscribe: mocks.unsubscribe } } }); });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 function mount() { return render(<MemoryRouter initialEntries={['/admin']}><Routes><Route path="/admin" element={<AdminDashboard />} /><Route path="/" element={<p>Public home</p>} /><Route path="/auth" element={<p>Login</p>} /></Routes></MemoryRouter>); }
 describe('dashboard access and navigation', () => {
   it('checks the backend role before exposing controls, lazily switches sections, and clears data on logout', async () => {
@@ -34,12 +35,28 @@ describe('dashboard access and navigation', () => {
     await screen.findByText('Public home');
     expect(screen.queryByText('Championship panel')).not.toBeInTheDocument();
   });
-  it('offers a retry when role verification fails', async () => {
+  it('returns to the public site without mentioning admin when role verification fails', async () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: new Error('Unavailable') }); mount();
-    await screen.findByRole('alert');
+    expect(screen.getByRole('status')).toHaveTextContent('Accesso in corso…');
+    expect(screen.queryByText(/studio|amministratore/i)).not.toBeInTheDocument();
+    await screen.findByText('Public home');
     expect(screen.queryByText('Championship panel')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Riprova' }));
-    await waitFor(() => expect(screen.getByText('Championship panel')).toBeInTheDocument());
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+  it('does not accept a truthy value as server authorization', async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: 'true', error: null }); mount();
+    await screen.findByText('Public home');
+    expect(screen.queryByText('Championship panel')).not.toBeInTheDocument();
+  });
+  it('leaves a stalled access check and ignores late approval', async () => {
+    vi.useFakeTimers();
+    let approve!: (result: { data: boolean; error: null }) => void;
+    mocks.rpc.mockReturnValueOnce(new Promise(resolve => { approve = resolve; }));
+    mount();
+    await act(async () => { await vi.advanceTimersByTimeAsync(10000); });
+    expect(screen.getByText('Public home')).toBeInTheDocument();
+    await act(async () => approve({ data: true, error: null }));
+    expect(screen.queryByText('Championship panel')).not.toBeInTheDocument();
   });
   it('preserves the mounted panel and entered filters when the same account returns to the tab', async () => {
     mount(); await screen.findByText('Championship panel');

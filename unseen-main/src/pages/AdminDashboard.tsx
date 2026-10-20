@@ -9,6 +9,7 @@ import AdminSubmissions from '@/components/admin/AdminSubmissions';
 import AdminGallery from '@/components/admin/AdminGallery';
 import AdminCommunity from '@/components/admin/AdminCommunity';
 import '@/admin-studio.css';
+import { useI18n } from '@/i18n/I18nProvider';
 
 type Tab = 'championships' | 'submissions' | 'gallery' | 'community';
 type Overview = { pending_photos: number; pending_music: number; approved_photos: number; approved_music: number; open_championships: number; championship_votes: number; users: number; gallery_champions: number };
@@ -16,13 +17,15 @@ const tabs = [{ id: 'championships' as const, text: 'Campionati', hint: 'Tabello
 
 export default function AdminDashboard() {
   const navigate = useNavigate(); const queryClient = useQueryClient();
-  const [authorized, setAuthorized] = useState(false); const [checking, setChecking] = useState(true); const [authError, setAuthError] = useState(false); const [retry, setRetry] = useState(0);
+  const { t } = useI18n();
+  const [authorized, setAuthorized] = useState(false); const [retry, setRetry] = useState(0);
   const [userId, setUserId] = useState(''); const [email, setEmail] = useState('');
   const activeAccount = useRef<string | null>(null);
   const authRevision = useRef(0);
   const [tab, setTab] = useState<Tab>('championships'); const [submissionKind, setSubmissionKind] = useState<ChampionshipKind>('photo');
   useEffect(() => {
     let alive = true;
+    let timeout: number | undefined;
     const clearAccountData = () => {
       setAuthorized(false); setUserId(''); setEmail('');
       queryClient.removeQueries({ queryKey: ['admin'] });
@@ -30,7 +33,10 @@ export default function AdminDashboard() {
     };
     const check = async () => {
       const revision = authRevision.current;
-      setChecking(true); setAuthError(false);
+      timeout = window.setTimeout(() => {
+        if (!alive || revision !== authRevision.current) return;
+        authRevision.current++; clearAccountData(); navigate('/', { replace: true });
+      }, 10000);
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (!alive || revision !== authRevision.current) return;
@@ -40,10 +46,10 @@ export default function AdminDashboard() {
         const { data: admin, error: roleError } = await supabase.rpc('is_unseen_admin');
         if (!alive || revision !== authRevision.current) return;
         if (roleError) throw roleError;
-        if (!admin) { clearAccountData(); navigate('/', { replace: true }); return; }
+        if (admin !== true) { clearAccountData(); navigate('/', { replace: true }); return; }
         setAuthorized(true); setUserId(user.id); setEmail(user.email ?? '');
-      } catch { if (alive && revision === authRevision.current) { setAuthorized(false); setAuthError(true); } }
-      finally { if (alive && revision === authRevision.current) setChecking(false); }
+      } catch { if (alive && revision === authRevision.current) { clearAccountData(); navigate('/', { replace: true }); } }
+      finally { window.clearTimeout(timeout); }
     };
     void check();
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
@@ -57,18 +63,16 @@ export default function AdminDashboard() {
       // Preserve the workspace for the same account; recheck actual account changes.
       if (nextAccount !== activeAccount.current) {
         authRevision.current++; activeAccount.current = nextAccount; clearAccountData();
-        setChecking(true); setRetry(value => value + 1);
+        setRetry(value => value + 1);
       } else setEmail(session.user.email ?? '');
     });
-    return () => { alive = false; data.subscription.unsubscribe(); };
+    return () => { alive = false; window.clearTimeout(timeout); data.subscription.unsubscribe(); };
   }, [navigate, queryClient, retry]);
   const overview = useQuery({ queryKey: ['admin', 'overview', userId], enabled: authorized && Boolean(userId), queryFn: async ({ signal }) => {
     const { data, error } = await supabase.rpc('get_admin_overview').abortSignal(signal); if (error) throw error; return data as Overview;
   }, staleTime: 30000, refetchInterval: 60000 });
   const review = (kind: ChampionshipKind) => { setSubmissionKind(kind); setTab('submissions'); };
-  if (checking) return <main className="admin-studio admin-auth-state"><p role="status">Apertura del tuo studio…</p></main>;
-  if (authError) return <main className="admin-studio admin-auth-state"><p role="alert">Non riesco a verificare l’accesso amministratore.</p><button className="admin-primary" onClick={() => setRetry(value => value + 1)}>Riprova</button></main>;
-  if (!authorized) return null;
+  if (!authorized) return <main className="min-h-screen flex items-center justify-center"><p role="status">{t('auth.loading')}</p></main>;
   return <main className="admin-studio"><div className="admin-studio-container">
     <header className="admin-studio-header"><div><span className="admin-eyebrow">UNSEEN / CONTROL ROOM</span><h1>Il tuo studio<span>.</span></h1><p>Due campionati. Un flusso semplice, dalla candidatura alla galleria.</p></div><div className="admin-account"><span><LockKeyhole size={13} />Amministratore</span><small>{email}</small><Link to="/arena/musicale/demo">Demo musicale<ArrowUpRight size={13} /></Link><Link to="/campionato">Apri il sito<ArrowUpRight size={13} /></Link></div></header>
     <div className="admin-overview"><button onClick={() => review('photo')}><span><Camera size={16} />Fotografie da revisionare</span><strong>{overview.data?.pending_photos ?? '—'}</strong><small>{overview.data?.approved_photos ?? '—'} approvate<ChevronRight size={14} /></small></button><button onClick={() => review('music')}><span><Music2 size={16} />Brani da revisionare</span><strong>{overview.data?.pending_music ?? '—'}</strong><small>{overview.data?.approved_music ?? '—'} approvati<ChevronRight size={14} /></small></button><button onClick={() => setTab('championships')}><span><Trophy size={16} />Campionati attivi</span><strong>{overview.data?.open_championships ?? '—'}<em>/2</em></strong><small>{overview.data?.championship_votes.toLocaleString('it-IT') ?? '—'} voti nei campionati<ChevronRight size={14} /></small></button><button onClick={() => setTab('community')}><span><Users size={16} />La community</span><strong>{overview.data?.users.toLocaleString('it-IT') ?? '—'}</strong><small>Utenti registrati<ChevronRight size={14} /></small></button></div>

@@ -16,6 +16,7 @@ import Gallery from "./pages/Gallery";
 import Regolamento from "./pages/Regolamento";
 import Submit from "./pages/Submit";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/regolamento" element={<Regolamento />} />
           <Route path="/submit" element={<Submit />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

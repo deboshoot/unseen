@@ -4,11 +4,12 @@ import { motion } from "framer-motion";
 import { supabase } from "@/supabaseClient";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/I18nProvider";
+import { loginDestination } from "@/lib/auth-redirect";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/arena";
+  const redirectTo = loginDestination(searchParams.get("redirect"));
   const { t } = useI18n();
 
   const handleGoogleSignIn = async () => {
@@ -18,7 +19,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}${redirectTo}`,
+          redirectTo: `${window.location.origin}/auth/callback?${new URLSearchParams({ redirect: redirectTo })}`,
         },
       });
       if (error) throw error;

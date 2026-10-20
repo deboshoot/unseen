@@ -1,5 +1,11 @@
 # Anteprima e debug UNSEEN
 
+## Accesso utenti e area amministrativa
+
+Il login Google rientra su `/auth/callback`, che conserva la destinazione pubblica richiesta e verifica il ruolo sul server prima di aprire `/admin` o la demo musicale. Gli utenti senza permessi tornano all'arena pubblica. Anche aprendo direttamente le pagine riservate, le verifiche mostrano soltanto un caricamento generico: errori, risposte non valide o attese oltre dieci secondi rimandano al sito pubblico. Il cambio di account invalida le verifiche precedenti e rimuove i dati amministrativi dalla cache.
+
+Gli unici amministratori sono i due account confermati già presenti in `unseen_private.admin_accounts`. Il ruolo dipende dall'identificativo dell'account sul server; email o metadati inviati dal browser non concedono permessi. Lo script `unseen-main/scripts/verify-admin-access.mjs` verifica entrambi gli amministratori e il blocco delle letture private per utenti normali e anonimi, in una transazione di sola lettura.
+
 Apri questa cartella in VS Code e premi F5 con la configurazione **UNSEEN: avvia e debug**. Il server parte su http://127.0.0.1:8080 e il browser si apre con il debugger collegato. Puoi mettere breakpoint nei file di `unseen-main/src`.
 
 Per la sola anteprima, fai doppio clic su `avvia-debug.cmd`. Mantieni aperto il terminale; salvataggi a componenti e stili aggiornano automaticamente la pagina. Ctrl+C ferma il server. Il primo avvio installa le dipendenze se necessario.

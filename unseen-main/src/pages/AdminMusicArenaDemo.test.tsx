@@ -1,11 +1,11 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AdminMusicArenaDemo from './AdminMusicArenaDemo';
 
 const mocks = vi.hoisted(() => ({ session: vi.fn(), rpc: vi.fn(), onChange: vi.fn() }));
 vi.mock('@/supabaseClient', () => ({ supabase: { rpc: mocks.rpc, auth: { getSession: mocks.session, onAuthStateChange: mocks.onChange } } }));
-vi.mock('@/i18n/I18nProvider', () => ({ useI18n: () => ({ locale: 'it' }) }));
+vi.mock('@/i18n/I18nProvider', () => ({ useI18n: () => ({ t: () => 'Accesso in corso…' }) }));
 vi.mock('./MusicArenaDemo', () => ({ default: () => <h1>Demo musicale riservata</h1> }));
 
 function Location() { const location = useLocation(); return <p data-testid="location">{location.pathname}{location.search}</p>; }
@@ -22,14 +22,15 @@ beforeEach(() => {
   mocks.rpc.mockResolvedValue({ data: true, error: null });
   mocks.onChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } });
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe('administrator access to the music demo', () => {
   it('waits for server confirmation before mounting the demo', async () => {
     let approve!: (value: { data: boolean; error: null }) => void;
     mocks.rpc.mockReturnValue(new Promise(resolve => { approve = resolve; }));
     mount();
-    expect(screen.getByRole('status')).toHaveTextContent('Verifica dell’accesso amministratore');
+    expect(screen.getByRole('status')).toHaveTextContent('Accesso in corso…');
+    expect(screen.queryByText(/amministratore|riservata/i)).not.toBeInTheDocument();
     await waitFor(() => expect(mocks.rpc).toHaveBeenCalledWith('is_unseen_admin'));
     expect(screen.queryByText('Demo musicale riservata')).not.toBeInTheDocument();
     await act(async () => approve({ data: true, error: null }));
@@ -52,14 +53,22 @@ describe('administrator access to the music demo', () => {
     expect(screen.queryByText('Demo musicale riservata')).not.toBeInTheDocument();
   });
 
-  it('keeps the demo closed if verification fails and permits a fresh retry', async () => {
+  it('silently returns to the public arena if verification fails', async () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: 'Unavailable' } });
     mount();
-    expect(await screen.findByRole('alert')).toHaveTextContent('Non riesco a verificare l’accesso amministratore.');
+    expect(await screen.findByText('Arena pubblica')).toBeInTheDocument();
     expect(screen.queryByText('Demo musicale riservata')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Riprova' }));
-    expect(await screen.findByText('Demo musicale riservata')).toBeInTheDocument();
-    expect(mocks.rpc).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+  it('returns to the public arena if the check stalls and ignores late approval', async () => {
+    vi.useFakeTimers();
+    let approve!: (result: { data: boolean; error: null }) => void;
+    mocks.rpc.mockReturnValueOnce(new Promise(resolve => { approve = resolve; }));
+    mount();
+    await act(async () => { await vi.advanceTimersByTimeAsync(10000); });
+    expect(screen.getByText('Arena pubblica')).toBeInTheDocument();
+    await act(async () => approve({ data: true, error: null }));
+    expect(screen.queryByText('Demo musicale riservata')).not.toBeInTheDocument();
   });
 
   it('removes the demo as soon as the administrator signs out', async () => {
