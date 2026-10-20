@@ -1,16 +1,13 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import type { BufferGeometry, Material, Mesh, WebGLRenderer } from 'three';
 
-type Props = { light: boolean; label: string };
+type Props = { label: string };
 
-/** Renders only during deliberate interaction or a resize/theme update. */
-export default function PortalScene({ light, label }: Props) {
+/** Renders only during deliberate interaction or a resize. */
+export default function PortalScene({ label }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const interaction = useRef<HTMLDivElement>(null);
-  const theme = useRef(light);
-  const updateTheme = useRef(() => {});
   const [ready, setReady] = useState(false);
-  useEffect(() => { theme.current = light; updateTheme.current(); }, [light]);
 
   useEffect(() => {
     const element = host.current;
@@ -119,21 +116,6 @@ export default function PortalScene({ light, label }: Props) {
         const floorMaterial = new T.MeshBasicMaterial({ transparent: true, opacity: 0.88, depthWrite: false, toneMapped: false });
         const floor = new T.Mesh(new T.PlaneGeometry(65, 65), floorMaterial);
         floor.rotation.x = -Math.PI / 2; floor.position.y = floorY; floor.renderOrder = 2; scene.add(floor);
-        const stone = new T.MeshStandardMaterial({ roughness: 0.94, envMapIntensity: 0.18, transparent: true });
-        stone.onBeforeCompile = shader => {
-          shader.vertexShader = `varying float vWallHeight;\n${shader.vertexShader}`.replace(
-            '#include <worldpos_vertex>',
-            '#include <worldpos_vertex>\nvWallHeight = (modelMatrix * vec4(transformed, 1.0)).y;',
-          );
-          shader.fragmentShader = `varying float vWallHeight;\n${shader.fragmentShader}`.replace(
-            '#include <dithering_fragment>',
-            `gl_FragColor.a *= smoothstep(${floorY.toFixed(2)}, ${(floorY + 0.85).toFixed(2)}, vWallHeight);\n#include <dithering_fragment>`,
-          );
-        };
-        const plinthMaterial = new T.MeshStandardMaterial({ roughness: 1, envMapIntensity: 0.06 });
-        const plinth = new T.Mesh(new T.CylinderGeometry(1.3, 1.33, 0.13, 64), plinthMaterial);
-        plinth.position.set(0, -2.08, 0); scene.add(plinth);
-
         // A soft contact shadow anchors the base without real-time shadow maps.
         const shadowSize = 64, shadowPixels = new Uint8Array(shadowSize * shadowSize * 4);
         for (let y = 0; y < shadowSize; y++) for (let x = 0; x < shadowSize; x++) {
@@ -145,17 +127,6 @@ export default function PortalScene({ light, label }: Props) {
         const shadowMaterial = new T.MeshBasicMaterial({ color: 0x000000, map: shadowMap, transparent: true, depthWrite: false, toneMapped: false });
         const shadow = new T.Mesh(new T.PlaneGeometry(4.4, 3.8), shadowMaterial);
         shadow.rotation.x = -Math.PI / 2; shadow.position.y = floorY + 0.002; shadow.renderOrder = 3; scene.add(shadow);
-
-        const wallShape = new T.Shape();
-        wallShape.moveTo(-11, -2.2); wallShape.lineTo(11, -2.2); wallShape.lineTo(11, 9); wallShape.lineTo(-11, 9); wallShape.closePath();
-        const arch = new T.Path();
-        arch.moveTo(-2.6, -2.19); arch.lineTo(2.6, -2.19); arch.lineTo(2.6, 2.3);
-        arch.absarc(0, 2.3, 2.6, 0, Math.PI, false); arch.lineTo(-2.6, -2.19);
-        wallShape.holes.push(arch);
-        const wall = new T.Mesh(new T.ExtrudeGeometry(wallShape, { depth: 0.35, bevelEnabled: false, curveSegments: 32 }), stone);
-        wall.position.set(0.5, 0, -4.5); scene.add(wall);
-        const reveal = new T.Mesh(new T.BoxGeometry(0.18, 8, 7), stone);
-        reveal.position.set(-5.5, 1.6, -0.5); scene.add(reveal);
 
         let frame = 0, last = 0, yaw = 0, pitch = 0, targetYaw = 0, targetPitch = 0;
         let visible = true, dragging = false, previousX = 0, previousY = 0;
@@ -202,14 +173,11 @@ export default function PortalScene({ light, label }: Props) {
         };
         const syncTheme = () => {
           background.set(getComputedStyle(element).backgroundColor);
-          stone.color.set(theme.current ? 0xaaa497 : 0x020304);
           floorMaterial.color.copy(background);
-          plinthMaterial.color.set(theme.current ? 0x777970 : 0x010203);
-          shadowMaterial.opacity = theme.current ? 0.18 : 0.38;
-          renderer!.toneMappingExposure = theme.current ? 1.15 : 0.95;
+          shadowMaterial.opacity = 0.38;
+          renderer!.toneMappingExposure = 0.95;
           start();
         };
-        updateTheme.current = syncTheme;
         const resize = () => {
           const { width, height } = element.getBoundingClientRect();
           if (!width || !height) return;
@@ -218,7 +186,12 @@ export default function PortalScene({ light, label }: Props) {
           camera.aspect = width / height;
           camera.position.z = camera.aspect < 0.7 ? 14 : camera.aspect < 1 ? 11 : 10;
           camera.updateProjectionMatrix(); camera.updateMatrixWorld();
-          const grabSize = 4.3 * height / (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2)) * camera.position.z);
+          const wide = camera.aspect > 1.15;
+          const portrait = camera.aspect <= 1;
+          homePosition.set(wide ? 1.8 : 0, portrait ? 0.9 : -0.65, 0);
+          sculpture.position.copy(homePosition);
+          sculpture.scale.setScalar(wide ? 0.82 : portrait ? 0.78 : 1);
+          const grabSize = 4.3 * sculpture.scale.x * height / (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2)) * camera.position.z);
           const screenPosition = homePosition.clone().project(camera);
           grabZone.style.width = `${grabSize}px`; grabZone.style.height = `${grabSize}px`;
           grabZone.style.transform = `translate3d(${(screenPosition.x + 1) / 2 * width - grabSize / 2}px,${(1 - screenPosition.y) / 2 * height - grabSize / 2}px,0)`;
@@ -272,7 +245,6 @@ export default function PortalScene({ light, label }: Props) {
         intersection.observe(element);
         const size = new ResizeObserver(resize); size.observe(element);
         destroy = () => {
-          updateTheme.current = () => {};
           cancelAnimationFrame(frame); intersection.disconnect(); size.disconnect();
           document.removeEventListener('visibilitychange', visibility);
           element.removeEventListener('keydown', keydown); element.removeEventListener('keyup', keyup);

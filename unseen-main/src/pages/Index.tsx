@@ -1,4 +1,3 @@
-﻿import { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -14,18 +13,9 @@ export default function Index() {
   const { t, locale } = useI18n();
   const copy = homeExperienceCopy[locale];
   const reduce = useHomeReducedMotion();
-  const [light, setLight] = useState(() => document.documentElement.classList.contains('light-mode'));
-  useEffect(() => {
-    const syncTheme = () => setLight(document.documentElement.classList.contains('light-mode'));
-    const observer = new MutationObserver(syncTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    syncTheme();
-    return () => observer.disconnect();
-  }, []);
-
   return <main className="home-experience">
     <section className="home-immersive-hero" aria-labelledby="home-title">
-      <PortalScene light={light} label={copy.scene} />
+      <PortalScene label={copy.scene} />
       <div className="home-scene-vignette" aria-hidden="true" />
       <div className="home-hero-topline"><span><i />{copy.universe}</span><span className="home-edition">UNSEEN / INDEPENDENT CULTURE</span></div>
       <div className="home-hero-center">
