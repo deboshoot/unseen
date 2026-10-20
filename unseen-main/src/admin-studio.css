@@ -24,3 +24,8 @@ div.admin-picker{width:calc(100vw - 36px);max-width:880px;max-height:86dvh;overf
 .admin-more-delete:hover{background:hsl(var(--muted)/.6)}
 .admin-sender-retry{min-height:32px;font-size:12px;color:hsl(var(--primary));text-decoration:underline}
 .admin-studio .vinyl-button:disabled{opacity:1}
+
+.admin-demo-entry{display:flex;align-items:center;gap:15px;padding:18px 22px;margin-bottom:24px;border:1px solid hsl(var(--primary)/.4);border-radius:11px;background:hsl(var(--primary)/.07);color:hsl(var(--primary));transition:background .2s,border-color .2s}
+.admin-demo-entry:hover{background:hsl(var(--primary)/.12);border-color:hsl(var(--primary)/.65)}
+.admin-demo-entry>span{flex:1}.admin-demo-entry strong{display:block;font-size:14px;font-weight:600}.admin-demo-entry small{display:block;font-size:11px;color:hsl(var(--muted-foreground));margin-top:5px}.admin-demo-entry>svg{flex-shrink:0}
+@media(max-width:600px){.admin-demo-entry{padding:15px 16px;gap:12px}.admin-demo-entry strong{font-size:13px}.admin-demo-entry small{font-size:10px}}

@@ -18,6 +18,8 @@ describe('dashboard access and navigation', () => {
   it('checks the backend role before exposing controls, lazily switches sections, and clears data on logout', async () => {
     mount(); expect(screen.queryByText('Championship panel')).not.toBeInTheDocument();
     await screen.findByText('Championship panel');
+    expect(screen.getAllByRole('link', { name: /Demo musicale/ })).toHaveLength(2);
+    for (const link of screen.getAllByRole('link', { name: /Demo musicale/ })) expect(link).toHaveAttribute('href', '/arena/musicale/demo');
     expect(mocks.rpc).toHaveBeenCalledWith('is_unseen_admin');
     expect(screen.queryByText('Review photo')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Brani da revisionare/ }));
@@ -34,6 +36,7 @@ describe('dashboard access and navigation', () => {
     mocks.rpc.mockResolvedValue({ data: false, error: null }); mount();
     await screen.findByText('Public home');
     expect(screen.queryByText('Championship panel')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Demo musicale/ })).not.toBeInTheDocument();
   });
   it('returns to the public site without mentioning admin when role verification fails', async () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: new Error('Unavailable') }); mount();

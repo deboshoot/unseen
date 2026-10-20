@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowUpRight, Camera, ChevronRight, CircleCheck, Image, LayoutGrid, LockKeyhole, Music2, Trophy, Users } from 'lucide-react';
+import { ArrowUpRight, Camera, ChevronRight, CircleCheck, Headphones, Image, LayoutGrid, LockKeyhole, Music2, Trophy, Users } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import type { ChampionshipKind } from '@/lib/championship';
 import ChampionshipAdminManager from '@/components/ChampionshipAdminManager';
@@ -74,6 +74,7 @@ export default function AdminDashboard() {
   const review = (kind: ChampionshipKind) => { setSubmissionKind(kind); setTab('submissions'); };
   if (!authorized) return <main className="min-h-screen flex items-center justify-center"><p role="status">{t('auth.loading')}</p></main>;
   return <main className="admin-studio"><div className="admin-studio-container">
+    <Link className="admin-demo-entry" to="/arena/musicale/demo"><Headphones size={20} /><span><strong>Demo musicale</strong><small>Apri l’anteprima riservata dello studio</small></span><ArrowUpRight size={20} /></Link>
     <header className="admin-studio-header"><div><span className="admin-eyebrow">UNSEEN / CONTROL ROOM</span><h1>Il tuo studio<span>.</span></h1><p>Due campionati. Un flusso semplice, dalla candidatura alla galleria.</p></div><div className="admin-account"><span><LockKeyhole size={13} />Amministratore</span><small>{email}</small><Link to="/arena/musicale/demo">Demo musicale<ArrowUpRight size={13} /></Link><Link to="/campionato">Apri il sito<ArrowUpRight size={13} /></Link></div></header>
     <div className="admin-overview"><button onClick={() => review('photo')}><span><Camera size={16} />Fotografie da revisionare</span><strong>{overview.data?.pending_photos ?? '—'}</strong><small>{overview.data?.approved_photos ?? '—'} approvate<ChevronRight size={14} /></small></button><button onClick={() => review('music')}><span><Music2 size={16} />Brani da revisionare</span><strong>{overview.data?.pending_music ?? '—'}</strong><small>{overview.data?.approved_music ?? '—'} approvati<ChevronRight size={14} /></small></button><button onClick={() => setTab('championships')}><span><Trophy size={16} />Campionati attivi</span><strong>{overview.data?.open_championships ?? '—'}<em>/2</em></strong><small>{overview.data?.championship_votes.toLocaleString('it-IT') ?? '—'} voti nei campionati<ChevronRight size={14} /></small></button><button onClick={() => setTab('community')}><span><Users size={16} />La community</span><strong>{overview.data?.users.toLocaleString('it-IT') ?? '—'}</strong><small>Utenti registrati<ChevronRight size={14} /></small></button></div>
     {overview.error && <p className="admin-error" role="alert">Riepilogo non disponibile. <button onClick={() => void overview.refetch()}>Riprova</button></p>}
