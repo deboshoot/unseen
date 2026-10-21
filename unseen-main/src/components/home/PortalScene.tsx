@@ -184,13 +184,15 @@ export default function PortalScene({ label }: Props) {
           renderer!.setPixelRatio(Math.min(devicePixelRatio, 1.5, Math.sqrt(1300000 / (width * height))));
           renderer!.setSize(width, height, false);
           camera.aspect = width / height;
-          camera.position.z = camera.aspect < 0.7 ? 14 : camera.aspect < 1 ? 11 : 10;
+          // Fit the emblem to its grid cell instead of offsetting it in a
+          // full-screen canvas. Keep room for rotation and the reflection.
+          const halfFov = T.MathUtils.degToRad(camera.fov / 2);
+          camera.position.z = 2.55 / (Math.tan(halfFov) * Math.min(camera.aspect, 1));
+          camera.position.y = 0.45;
+          camera.lookAt(0, 0.12, 0);
           camera.updateProjectionMatrix(); camera.updateMatrixWorld();
-          const wide = camera.aspect > 1.15;
-          const portrait = camera.aspect <= 1;
-          homePosition.set(wide ? 1.8 : 0, portrait ? 0.9 : -0.65, 0);
+          homePosition.set(0, 0.12, 0);
           sculpture.position.copy(homePosition);
-          sculpture.scale.setScalar(wide ? 0.82 : portrait ? 0.78 : 1);
           const grabSize = 4.3 * sculpture.scale.x * height / (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2)) * camera.position.z);
           const screenPosition = homePosition.clone().project(camera);
           grabZone.style.width = `${grabSize}px`; grabZone.style.height = `${grabSize}px`;
