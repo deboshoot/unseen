@@ -13,7 +13,6 @@ html:has(.home-experience) { position:relative; }
 .portal-grab-zone { position:absolute; top:0; left:0; z-index:1; touch-action:none; cursor:grab; pointer-events:none; will-change:transform; }
 .portal-scene.is-ready .portal-grab-zone { pointer-events:auto; }
 .portal-scene[data-dragging=true] .portal-grab-zone { cursor:grabbing; }
-.portal-scene:focus-visible .portal-grab-zone { outline:2px solid var(--home-red); outline-offset:6px; border-radius:50%; }
 .portal-scene canvas { display:block; height:100%; width:100%; opacity:0; transition:opacity .7s ease; }
 .portal-scene.is-ready canvas { opacity:1; }
 .portal-fallback { position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; transition:opacity .5s; }
