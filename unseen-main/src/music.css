@@ -1,4 +1,4 @@
-.arena-choice { background: radial-gradient(ellipse at 80% 30%, hsl(var(--primary) / .1), transparent 55%), hsl(var(--background)); }
+.arena-choice { background: hsl(var(--background)); }
 .arena-eyebrow { color: hsl(var(--primary)); font-size: 10px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; }
 .arena-choice-card { position: relative; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 22px; background: hsl(var(--card) / .6); transition: transform .3s, border-color .3s, box-shadow .3s; }
 .arena-choice-card:hover { transform: translateY(-5px); border-color: hsl(var(--primary) / .65); box-shadow: 0 20px 70px #07121c38; }
@@ -12,7 +12,7 @@
 .arena-choice-copy h2 { font-size: 32px; margin: 10px 0; letter-spacing: -.04em; }
 .arena-choice-copy > p:not(.arena-eyebrow) { min-height: 52px; color: hsl(var(--muted-foreground)); font-size: 13px; line-height: 1.8; }
 .arena-choice-enter { display: flex; align-items: center; justify-content: space-between; margin-top: 28px; padding-top: 18px; border-top: 1px solid hsl(var(--border)); font-size: 12px; }
-.music-arena { position: relative; color: #ecedff; background: radial-gradient(ellipse at 12% 35%, #064e8a38, transparent 50%), radial-gradient(ellipse at 90% 45%, #771bbc38, transparent 50%), linear-gradient(160deg, #070914, #070f23 45%, #150c25); }
+.music-arena { position: relative; color: #ecedff; background: hsl(var(--background)); }
 .music-arena-inner { position: relative; }
 .music-back { display: inline-flex; align-items: center; gap: 9px; color: #b0b5d0; font-size: 11px; padding: 6px 0; transition: color .2s; }
 .music-back:hover { color: white; }
