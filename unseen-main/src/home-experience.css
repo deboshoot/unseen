@@ -59,27 +59,14 @@ html:has(.home-experience) { position:relative; }
 .home-world-item { position:relative; min-width:0; }
 .home-world-item:nth-child(2) { padding-top:125px; }
 .home-world-card { display:block; min-width:0; }
-.home-world-art { position:relative; aspect-ratio:.93; overflow:hidden; isolation:isolate; background:#383631; }
-.home-world-photo img { display:block; width:100%; height:100%; object-fit:cover; will-change:transform; }
-.home-art-reveal { position:absolute; inset:-1px; z-index:4; background:hsl(var(--background)); transform-origin:50% 0; pointer-events:none; }
+.home-world-art { position:relative; aspect-ratio:.93; overflow:hidden; isolation:isolate; background:transparent; }
 .home-art-index { position:absolute; top:23px; left:23px; z-index:3; color:#f3ede3cd; font-size:9px; letter-spacing:.12em; }
 .home-art-corner { position:absolute; right:20px; bottom:20px; z-index:3; display:grid; place-items:center; width:44px; height:44px; border:1px solid #f4eee660; border-radius:50%; color:#f3ede3; transition:transform .5s cubic-bezier(.22,1,.36,1),background .3s; }
-.home-world-photo .home-art-index { color:#252a2c; }
-.home-world-photo .home-art-corner { color:#252a2c; border-color:#252a2c50; background:#eeece440; }
 .home-world-card:hover .home-art-corner { transform:rotate(45deg); background:#ffffff15; }
 .home-world-copy { padding-top:28px; }
 .home-world-copy h3 { font-family:'Instrument Serif',serif; font-size:clamp(29px,3.2vw,45px); line-height:1.15; font-weight:400; letter-spacing:-.025em; }
 .home-world-copy>p { max-width:350px; margin-top:16px; color:hsl(var(--muted-foreground)); font-size:12px; line-height:1.9; }
 .home-world-copy>span { display:inline-flex; align-items:center; gap:16px; margin-top:24px; padding-bottom:9px; border-bottom:1px solid hsl(var(--border)); font-size:10px; letter-spacing:.08em; text-transform:uppercase; }
-.home-world-music .home-world-art { background:radial-gradient(ellipse at 40% 35%,#81766a,#4b4640 80%); }
-.home-record-sleeve { position:absolute; left:11%; top:22%; z-index:2; height:59%; aspect-ratio:1; padding:9%; overflow:hidden; color:#292925; background:#d74d32; box-shadow:5px 15px 35px #0004; transform:rotate(-9deg); will-change:transform; }
-.home-record-sleeve>span { position:relative; z-index:2; font-family:'Outfit',sans-serif; font-size:clamp(18px,3vw,46px); font-weight:500; line-height:.94; letter-spacing:-.065em; }
-.home-record-sleeve em { font-family:'Instrument Serif',serif; font-weight:400; }
-.home-record-sleeve>i { position:absolute; left:35%; top:40%; width:100%; height:100%; border:1px solid #24242470; border-radius:50%; }
-.home-record-disc { position:absolute; top:23%; right:9%; display:grid; place-items:center; width:57%; aspect-ratio:1; border-radius:50%; background:repeating-radial-gradient(circle,#171717 0,#171717 1px,#33322f 1.5px,#191919 2.5px); box-shadow:4px 10px 20px #0005; transform:rotate(12deg); will-change:transform; }
-.home-record-disc:before { content:''; position:absolute; inset:0; border-radius:50%; background:conic-gradient(transparent,#ffffff20 60deg,transparent 100deg,transparent 180deg,#ffffff26 240deg,transparent 290deg); }
-.home-record-disc>span { position:relative; display:flex; align-items:center; justify-content:center; flex-direction:column; width:35%; height:35%; border-radius:50%; background:#c9bfae; color:#242322; font-family:'Instrument Serif',serif; font-size:40px; }
-.home-record-disc>span>span { margin-top:2px; font-family:'Space Grotesk',sans-serif; font-size:6px; letter-spacing:.07em; }
 .home-invitation { padding:95px 7% 0; border-top:1px solid hsl(var(--border)); background:transparent; text-align:center; }
 .home-invitation>.home-section-label { justify-content:center; }
 .home-invitation>h2 { max-width:800px; margin:28px auto 22px; font-family:'Instrument Serif',serif; font-size:clamp(38px,6vw,82px); line-height:1.05; letter-spacing:-.035em; font-weight:400; }
@@ -115,10 +102,8 @@ html:has(.home-experience) { position:relative; }
   .home-world{padding:80px 7%}.home-world-heading{margin-bottom:42px}.home-world-heading h2{max-width:350px;margin-top:20px}
   .home-world-pair{grid-template-columns:1fr;gap:60px}.home-world-item:nth-child(2){padding-top:0}
   .home-world-art{aspect-ratio:1.05}.home-world-copy>p{max-width:100%}.home-world-copy h3{font-size:37px}
-  .home-record-sleeve>span{font-size:8vw}.home-record-disc>span{font-size:46px}
   .home-invitation{padding-top:70px}.home-invitation-footer{margin-top:65px}
 }
 @media(prefers-reduced-motion:reduce) {
   .home-experience *,.home-experience *::before,.home-experience *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-  .home-world-photo img,.home-record-sleeve,.home-record-disc{will-change:auto}
 }

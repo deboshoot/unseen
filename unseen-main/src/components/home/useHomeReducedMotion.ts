@@ -1,10 +1,10 @@
 import { useReducedMotion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
-/** A local preview can opt into motion without changing system preferences. */
+/** Local development previews motion by default; production respects the OS preference. */
 export function useHomeReducedMotion() {
   const reduced = useReducedMotion();
   const { search } = useLocation();
-  const fullPreview = import.meta.env.DEV && new URLSearchParams(search).get('motion') === 'full';
+  const fullPreview = import.meta.env.DEV && new URLSearchParams(search).get('motion') !== 'reduced';
   return Boolean(reduced) && !fullPreview;
 }
