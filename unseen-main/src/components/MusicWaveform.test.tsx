@@ -18,10 +18,14 @@ function sampleSignal() {
   const audio = document.createElement("audio");
   Object.defineProperty(audio, "paused", { configurable: true, value: false });
   Object.defineProperty(audio, "readyState", { value: 4 });
-  const samples = { frequency: 0, waveform: 128 };
+  const samples = { frequency: 0, waveform: 128, frequencyAt: null as ((index: number) => number) | null };
   const analyser = {
     fftSize: 2048, frequencyBinCount: 1024, context: { sampleRate: 48000 },
-    getByteFrequencyData: vi.fn((data: Uint8Array) => data.fill(samples.frequency)),
+    getByteFrequencyData: vi.fn((data: Uint8Array) => {
+      const frequencyAt = samples.frequencyAt;
+      if (frequencyAt) data.forEach((_, index) => { data[index] = frequencyAt(index); });
+      else data.fill(samples.frequency);
+    }),
     getByteTimeDomainData: vi.fn((data: Uint8Array) => data.fill(samples.waveform)),
   } as unknown as AnalyserNode;
   return { signal: { audio, analyser } satisfies MusicSignal, samples };
@@ -36,6 +40,7 @@ describe("live music visualisation", () => {
   it("keeps the demo waveform still when no track is active", () => {
     const { container } = render(<MusicWaveform signal={null} appearance="arena" />);
     const bars = Array.from(container.querySelectorAll("span"));
+    expect(bars).toHaveLength(21);
     expect(container.firstChild).not.toHaveClass("is-active");
     expect(new Set(bars.map((bar) => bar.style.height))).toEqual(new Set(["1px"]));
     expect(new Set(bars.map((bar) => bar.style.opacity))).toEqual(new Set(["0.28"]));
@@ -50,13 +55,26 @@ describe("live music visualisation", () => {
     const bars = Array.from(container.querySelectorAll("span"));
     const heights = bars.map((bar) => parseFloat(bar.style.height));
     expect(container.firstChild).toHaveClass("is-active");
-    expect(Math.max(...heights)).toBeLessThanOrEqual(40);
+    expect(heights).toHaveLength(21);
+    expect(Math.max(...heights)).toBeLessThanOrEqual(42);
     expect(Math.max(...heights)).toBeGreaterThan(2);
     const initialHeight = heights[0];
     tick(16);
     const nextHeight = parseFloat(bars[0].style.height);
     expect(nextHeight).toBeGreaterThan(initialHeight);
     expect(nextHeight - initialHeight).toBeLessThan(5);
+  });
+
+  it("gives each demo bar its own response across the music spectrum", () => {
+    const { signal, samples } = sampleSignal();
+    samples.waveform = 148;
+    samples.frequencyAt = (bin) => (bin % 8 < 2 ? 220 : 24);
+    const { container } = render(<MusicWaveform signal={signal} appearance="arena" />);
+    tick(0);
+    const heights = Array.from(container.querySelectorAll("span"), (bar) => parseFloat(bar.style.height));
+    const changes = heights.slice(1).filter((height, index) => height !== heights[index]).length;
+    expect(new Set(heights).size).toBeGreaterThan(2);
+    expect(changes).toBeGreaterThan(heights.length / 2);
   });
 
   it("uses actual sample energy and stays flat for silence rather than animating a preset", () => {

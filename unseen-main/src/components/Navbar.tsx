@@ -46,10 +46,10 @@ const Navbar = () => {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="site-navbar fixed top-0 left-0 right-0 z-50 glass-strong"
+      className="site-navbar fixed top-0 left-0 right-0 z-50"
     >
       <div className="site-navbar-inner mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-        <Link to="/" className="site-brand flex min-w-0 items-center gap-1.5 font-display text-lg font-black tracking-[0.2em] text-foreground sm:gap-2 sm:text-2xl sm:tracking-[0.3em]">
+        <Link to="/" className="site-brand flex min-w-0 items-center gap-2 font-display text-base font-semibold tracking-[0.18em] text-foreground sm:gap-2.5 sm:text-lg sm:tracking-[0.22em]">
           <img src="/unseen-logo-transparent.png" alt="" className="h-7 w-7 shrink-0 object-contain sm:h-8 sm:w-8" />
           <span>UNSEEN</span>
         </Link>
@@ -130,8 +130,11 @@ const MobileMenu = ({ user, onSignOut, navItems }: { user: SupabaseUser | null; 
   return (
     <div>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className="site-menu-trigger p-2 text-foreground"
+        className={`site-menu-trigger p-2 text-foreground${open ? " is-open" : ""}`}
+        aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+        aria-expanded={open}
       >
         <div className="space-y-1.5">
           <motion.span
@@ -153,19 +156,21 @@ const MobileMenu = ({ user, onSignOut, navItems }: { user: SupabaseUser | null; 
         animate={open ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
         className="site-mobile-panel absolute left-0 right-0 top-full overflow-hidden"
       >
-        <div className="p-6 flex flex-col gap-4">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setOpen(false)}
-              className={`font-body text-sm tracking-wider uppercase ${
-                (location.pathname === item.path || (item.path === "/arena" && location.pathname.startsWith("/arena/"))) ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div className="site-mobile-panel-inner flex flex-col">
+          {navItems.map((item) => {
+            const active = location.pathname === item.path || (item.path === "/arena" && location.pathname.startsWith("/arena/"));
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setOpen(false)}
+                className={`site-mobile-link font-body text-sm tracking-wider uppercase${active ? " is-active" : ""}`}
+                aria-current={active ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
           {user ? (
             <button
               type="button"
@@ -173,7 +178,7 @@ const MobileMenu = ({ user, onSignOut, navItems }: { user: SupabaseUser | null; 
                 setOpen(false);
                 void onSignOut();
               }}
-              className="flex items-center gap-2 border-t border-border/40 pt-4 text-left font-body text-sm tracking-wider uppercase text-muted-foreground hover:text-foreground"
+              className="site-mobile-action flex items-center gap-2 border-t border-border/40 pt-4 text-left font-body text-sm tracking-wider uppercase text-muted-foreground hover:text-foreground"
               aria-label="Logout"
             >
               <LogOut size={16} />
@@ -183,9 +188,8 @@ const MobileMenu = ({ user, onSignOut, navItems }: { user: SupabaseUser | null; 
             <Link
               to="/auth"
               onClick={() => setOpen(false)}
-              className={`flex items-center gap-2 border-t border-border/40 pt-4 font-body text-sm tracking-wider uppercase ${
-                location.pathname === "/auth" ? "text-primary" : "text-muted-foreground"
-              }`}
+              className={`site-mobile-action flex items-center gap-2 border-t border-border/40 pt-4 font-body text-sm tracking-wider uppercase${location.pathname === "/auth" ? " is-active" : ""}`}
+              aria-current={location.pathname === "/auth" ? "page" : undefined}
             >
               <User size={16} />
               <span>{t("nav.loginOrRegister")}</span>

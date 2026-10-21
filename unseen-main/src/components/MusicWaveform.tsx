@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import type { MusicSignal } from "@/hooks/useMusicAnalyser";
 
 const BAR_COUNT = 65;
+const ARENA_BAR_COUNT = 21;
 
 export default function MusicWaveform({ signal, appearance = "default" }: { signal: MusicSignal | null; appearance?: "default" | "arena" }) {
   const barsRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
+  const barCount = appearance === "arena" ? ARENA_BAR_COUNT : BAR_COUNT;
 
   useEffect(() => {
     const bars = Array.from(barsRef.current?.children ?? []) as HTMLElement[];
@@ -25,14 +27,22 @@ export default function MusicWaveform({ signal, appearance = "default" }: { sign
     const { audio, analyser } = signal;
     const frequencies = new Uint8Array(analyser.frequencyBinCount);
     const samples = new Uint8Array(analyser.fftSize);
-    const heights = new Float32Array(BAR_COUNT);
-    const levels = new Float32Array(BAR_COUNT);
+    const heights = new Float32Array(barCount);
+    const levels = new Float32Array(barCount);
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const hzPerBin = analyser.context.sampleRate / analyser.fftSize;
     const maxFrequency = Math.min(16000, analyser.context.sampleRate / 2);
-    // Mirror logarithmic bands: bass at the centre, treble at the outer edges.
-    const middle = (BAR_COUNT - 1) / 2;
+    const firstBin = Math.max(1, Math.floor(40 / hzPerBin));
+    const lastBin = Math.min(frequencies.length, Math.ceil(maxFrequency / hzPerBin));
     const bands = bars.map((_, index) => {
+      if (appearance === "arena") {
+        const range = lastBin / firstBin;
+        const band = (index * 8) % barCount;
+        const start = Math.min(lastBin - 1, Math.floor(firstBin * range ** (band / barCount)));
+        const end = Math.min(lastBin, Math.max(start + 1, Math.floor(firstBin * range ** ((band + 1) / barCount))));
+        return [start, end];
+      }
+      const middle = (BAR_COUNT - 1) / 2;
       const band = Math.abs(index - middle);
       const start = Math.max(1, Math.floor(40 * (maxFrequency / 40) ** (band / (middle + 1)) / hzPerBin));
       const end = Math.min(frequencies.length, Math.max(start + 1, Math.ceil(40 * (maxFrequency / 40) ** ((band + 1) / (middle + 1)) / hzPerBin)));
@@ -64,24 +74,19 @@ export default function MusicWaveform({ signal, appearance = "default" }: { sign
         bars.forEach((_, index) => {
           const [start, end] = bands[index];
           let energy = 0;
-          for (let bin = start; bin < end; bin++) energy += frequencies[bin];
-          levels[index] = (energy / (end - start) / 255) ** .85 * envelope;
+          for (let bin = start; bin < end; bin++) energy += frequencies[bin] ** 2;
+          const bandLevel = Math.sqrt(energy / (end - start)) / 255;
+          levels[index] = Math.min(1, bandLevel ** .72 * 1.2) * envelope;
         });
         bars.forEach((bar, index) => {
-          let level = levels[index];
-          if (appearance === "arena") {
-            const edge = Math.min(index / 9, (BAR_COUNT - 1 - index) / 9, 1);
-            const left = levels[Math.max(0, index - 2)];
-            const nearLeft = levels[Math.max(0, index - 1)];
-            const nearRight = levels[Math.min(BAR_COUNT - 1, index + 1)];
-            const right = levels[Math.min(BAR_COUNT - 1, index + 2)];
-            level = ((left + 2 * nearLeft + 3 * level + 2 * nearRight + right) / 9) * (.18 + .82 * edge);
-          }
+          const level = appearance === "arena"
+            ? levels[Math.max(0, index - 1)] * .2 + levels[index] * .6 + levels[Math.min(barCount - 1, index + 1)] * .2
+            : levels[index];
           const smoothing = appearance === "arena"
-            ? 1 - Math.exp(-elapsed / (level > heights[index] ? .2 : .34))
+            ? 1 - Math.exp(-elapsed / (level > heights[index] ? .18 : .3))
             : (level > heights[index] ? .8 : .35);
           heights[index] += (level - heights[index]) * smoothing;
-          const height = appearance === "arena" ? 2 + heights[index] * 24 : 2 + heights[index] * 62;
+          const height = 2 + heights[index] * (appearance === "arena" ? 40 : 62);
           bar.style.height = `${height.toFixed(2)}px`;
           bar.style.opacity = String(.35 + heights[index] * .65);
         });
@@ -111,7 +116,7 @@ export default function MusicWaveform({ signal, appearance = "default" }: { sign
       document.removeEventListener("visibilitychange", visibility);
       reset();
     };
-  }, [appearance, signal]);
+  }, [appearance, barCount, signal]);
 
-  return <div ref={barsRef} className={`music-waveform${appearance === "arena" ? " music-waveform-arena" : ""}${playing ? " is-active" : ""}`} aria-hidden="true">{Array.from({ length: BAR_COUNT }, (_, index) => <span key={index} />)}</div>;
+  return <div ref={barsRef} className={`music-waveform${appearance === "arena" ? " music-waveform-arena" : ""}${playing ? " is-active" : ""}`} aria-hidden="true">{Array.from({ length: barCount }, (_, index) => <span key={index} />)}</div>;
 }
