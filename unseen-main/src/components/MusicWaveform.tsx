@@ -3,13 +3,21 @@ import type { MusicSignal } from "@/hooks/useMusicAnalyser";
 
 const BAR_COUNT = 65;
 
-export default function MusicWaveform({ signal }: { signal: MusicSignal | null }) {
+export default function MusicWaveform({ signal, appearance = "default" }: { signal: MusicSignal | null; appearance?: "default" | "arena" }) {
   const barsRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     const bars = Array.from(barsRef.current?.children ?? []) as HTMLElement[];
-    const reset = () => bars.forEach((bar) => { bar.style.height = "2px"; bar.style.opacity = ".35"; });
+    const reset = () => bars.forEach((bar) => {
+      if (appearance === "arena") {
+        bar.style.height = "1px";
+        bar.style.opacity = ".28";
+      } else {
+        bar.style.height = "2px";
+        bar.style.opacity = ".35";
+      }
+    });
     reset();
     setPlaying(false);
     if (!signal) return;
@@ -18,6 +26,7 @@ export default function MusicWaveform({ signal }: { signal: MusicSignal | null }
     const frequencies = new Uint8Array(analyser.frequencyBinCount);
     const samples = new Uint8Array(analyser.fftSize);
     const heights = new Float32Array(BAR_COUNT);
+    const levels = new Float32Array(BAR_COUNT);
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const hzPerBin = analyser.context.sampleRate / analyser.fftSize;
     const maxFrequency = Math.min(16000, analyser.context.sampleRate / 2);
@@ -45,19 +54,35 @@ export default function MusicWaveform({ signal }: { signal: MusicSignal | null }
       if (!running || audio.paused || audio.ended) { stop(); return; }
       // Reduce visual motion while still showing measurements from the track.
       if (timestamp - lastDraw >= (reducedMotion.matches ? 100 : 16)) {
+        const elapsed = Number.isFinite(lastDraw) ? Math.min((timestamp - lastDraw) / 1000, .1) : 1 / 60;
         lastDraw = timestamp;
         analyser.getByteFrequencyData(frequencies);
         analyser.getByteTimeDomainData(samples);
         let power = 0;
         for (const sample of samples) power += ((sample - 128) / 128) ** 2;
         const envelope = audio.muted || audio.volume === 0 ? 0 : Math.min(1, Math.sqrt(power / samples.length) * 6);
-        bars.forEach((bar, index) => {
+        bars.forEach((_, index) => {
           const [start, end] = bands[index];
           let energy = 0;
           for (let bin = start; bin < end; bin++) energy += frequencies[bin];
-          const level = (energy / (end - start) / 255) ** .85 * envelope;
-          heights[index] += (level - heights[index]) * (level > heights[index] ? .8 : .35);
-          bar.style.height = `${(2 + heights[index] * 62).toFixed(2)}px`;
+          levels[index] = (energy / (end - start) / 255) ** .85 * envelope;
+        });
+        bars.forEach((bar, index) => {
+          let level = levels[index];
+          if (appearance === "arena") {
+            const edge = Math.min(index / 9, (BAR_COUNT - 1 - index) / 9, 1);
+            const left = levels[Math.max(0, index - 2)];
+            const nearLeft = levels[Math.max(0, index - 1)];
+            const nearRight = levels[Math.min(BAR_COUNT - 1, index + 1)];
+            const right = levels[Math.min(BAR_COUNT - 1, index + 2)];
+            level = ((left + 2 * nearLeft + 3 * level + 2 * nearRight + right) / 9) * (.18 + .82 * edge);
+          }
+          const smoothing = appearance === "arena"
+            ? 1 - Math.exp(-elapsed / (level > heights[index] ? .2 : .34))
+            : (level > heights[index] ? .8 : .35);
+          heights[index] += (level - heights[index]) * smoothing;
+          const height = appearance === "arena" ? 2 + heights[index] * 24 : 2 + heights[index] * 62;
+          bar.style.height = `${height.toFixed(2)}px`;
           bar.style.opacity = String(.35 + heights[index] * .65);
         });
       }
@@ -86,7 +111,7 @@ export default function MusicWaveform({ signal }: { signal: MusicSignal | null }
       document.removeEventListener("visibilitychange", visibility);
       reset();
     };
-  }, [signal]);
+  }, [appearance, signal]);
 
-  return <div ref={barsRef} className={`music-waveform ${playing ? "is-active" : ""}`} aria-hidden="true">{Array.from({ length: BAR_COUNT }, (_, index) => <span key={index} />)}</div>;
+  return <div ref={barsRef} className={`music-waveform${appearance === "arena" ? " music-waveform-arena" : ""}${playing ? " is-active" : ""}`} aria-hidden="true">{Array.from({ length: BAR_COUNT }, (_, index) => <span key={index} />)}</div>;
 }

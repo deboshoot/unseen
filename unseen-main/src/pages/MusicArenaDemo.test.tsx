@@ -44,8 +44,13 @@ describe('music arena demo content', () => {
     expect(screen.queryByText(/Artisti immaginari e loop originali/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Premi “Vota” e scegli/)).not.toBeInTheDocument();
     expect(container.querySelectorAll('.music-slot')).toHaveLength(0);
-    expect(screen.getByText('Scade tra')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ARENA DIGITALE' })).toBeInTheDocument();
+    expect(screen.getByText('framing the unseen')).toBeInTheDocument();
+    expect(screen.getByRole('timer')).toBeInTheDocument();
+    expect(screen.queryByText('ENDS IN')).not.toBeInTheDocument();
     expect(screen.getByRole('timer')).toHaveTextContent('48 : 00 : 00');
+    expect(container.querySelectorAll('.music-demo-clock-digit')).toHaveLength(6);
+    expect(container.querySelector('.music-waveform-arena')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Afterhours' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Neon Bloom' })).toBeInTheDocument();
     expect(container.querySelectorAll('.music-demo-transport')).toHaveLength(2);
@@ -71,7 +76,7 @@ describe('music arena demo content', () => {
     mocks.schedule.data!.matches = [];
     const { container } = mount();
     expect(screen.getByRole('timer')).toHaveTextContent('00 : 00 : 00');
-    expect(screen.getByText('Scade tra')).toBeInTheDocument();
+    expect(screen.queryByText('ENDS IN')).not.toBeInTheDocument();
     expect(container.querySelector('.music-demo-countdown')).toHaveClass('music-demo-countdown');
   });
 
@@ -79,7 +84,8 @@ describe('music arena demo content', () => {
     mocks.schedule.now = fixtureNow - 60 * 60 * 1000;
     mocks.schedule.data!.championship!.status = 'scheduled';
     mount();
-    expect(screen.getByText('Prossimo duello tra')).toBeInTheDocument();
+    expect(screen.queryByText('ENDS IN')).not.toBeInTheDocument();
+    expect(screen.getByRole('timer')).toHaveAttribute('aria-label', expect.stringContaining('Prossimo duello tra'));
     expect(screen.getByRole('timer')).toHaveTextContent('01 : 00 : 00');
   });
 

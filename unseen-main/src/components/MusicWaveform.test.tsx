@@ -33,6 +33,32 @@ function tick(timestamp: number) {
 }
 
 describe("live music visualisation", () => {
+  it("keeps the demo waveform still when no track is active", () => {
+    const { container } = render(<MusicWaveform signal={null} appearance="arena" />);
+    const bars = Array.from(container.querySelectorAll("span"));
+    expect(container.firstChild).not.toHaveClass("is-active");
+    expect(new Set(bars.map((bar) => bar.style.height))).toEqual(new Set(["1px"]));
+    expect(new Set(bars.map((bar) => bar.style.opacity))).toEqual(new Set(["0.28"]));
+  });
+
+  it("keeps the demo waveform compact and smooth while a track is active", () => {
+    const { signal, samples } = sampleSignal();
+    samples.frequency = 220;
+    samples.waveform = 148;
+    const { container } = render(<MusicWaveform signal={signal} appearance="arena" />);
+    tick(0);
+    const bars = Array.from(container.querySelectorAll("span"));
+    const heights = bars.map((bar) => parseFloat(bar.style.height));
+    expect(container.firstChild).toHaveClass("is-active");
+    expect(Math.max(...heights)).toBeLessThanOrEqual(40);
+    expect(Math.max(...heights)).toBeGreaterThan(2);
+    const initialHeight = heights[0];
+    tick(16);
+    const nextHeight = parseFloat(bars[0].style.height);
+    expect(nextHeight).toBeGreaterThan(initialHeight);
+    expect(nextHeight - initialHeight).toBeLessThan(5);
+  });
+
   it("uses actual sample energy and stays flat for silence rather than animating a preset", () => {
     const { signal, samples } = sampleSignal();
     const { container } = render(<MusicWaveform signal={signal} />);
