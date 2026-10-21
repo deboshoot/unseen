@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { ArrowUpRight, Check, Headphones, ImagePlus, Instagram, LoaderCircle, Music2, ShieldCheck, Youtube } from 'lucide-react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { ArrowUpRight, Check, Headphones, ImagePlus, LoaderCircle, Music2, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import MusicRecord from './MusicRecord';
 import AudioClipEditor from './AudioClipEditor';
 import { supabase } from '@/supabaseClient';
-import { musicFileError, AUDIO_FILE_ACCEPT } from '@/lib/music';
+import { musicFileError, AUDIO_FILE_ACCEPT, formatAudioTime } from '@/lib/music';
 import { decodeAudioFile, MAX_CLIP_SECONDS, renderAudioClip, type AudioSource } from '@/lib/audio-clip';
 import { normalizeInstagram, normalizeMusicLink } from '@/lib/music-links';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -16,6 +16,26 @@ import { uploadSubmission } from '@/lib/media-upload';
 import '@/music-submit.css';
 
 type PreparedClip = { source: AudioSource; start: number; end: number; file: File };
+type SocialPlatform = 'instagram' | 'youtube' | 'spotify';
+
+function SocialBrandMark({ platform }: { platform: SocialPlatform }) {
+  const gradientId = `submit-instagram-${useId().replace(/:/g, '')}`;
+  if (platform === 'instagram') return <svg className="music-studio-brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+    <defs><linearGradient id={gradientId} x1="0" x2="1" y1="1" y2="0"><stop stopColor="#ffd776" /><stop offset=".48" stopColor="#ff3d77" /><stop offset="1" stopColor="#a23cff" /></linearGradient></defs>
+    <g fill="none" stroke={`url(#${gradientId})`} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.8">
+      <rect x="3.2" y="3.2" width="25.6" height="25.6" rx="7" /><circle cx="16" cy="16" r="6" /><path d="M23.2 8.8h.01" strokeWidth="3.6" />
+    </g>
+  </svg>;
+  if (platform === 'youtube') return <svg className="music-studio-brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+    <path d="M28.5 10.2a4 4 0 0 0-2.8-2.8C23.2 6.7 16 6.7 16 6.7s-7.2 0-9.7.7a4 4 0 0 0-2.8 2.8A41 41 0 0 0 2.8 16a41 41 0 0 0 .7 5.8 4 4 0 0 0 2.8 2.8c2.5.7 9.7.7 9.7.7s7.2 0 9.7-.7a4 4 0 0 0 2.8-2.8 41 41 0 0 0 .7-5.8 41 41 0 0 0-.7-5.8Z" fill="#ff1738" />
+    <path d="m13 20.2 8.1-4.7-8.1-4.7v9.4Z" fill="#fff" />
+  </svg>;
+  return <svg className="music-studio-brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+    <circle cx="16" cy="16" r="14.5" fill="#1ed760" />
+    <path d="M7.2 11.3c6.3-1.9 13.3-1.3 18.1 1.5M8.3 16c5.2-1.5 11-.9 15.2 1.5M9.4 20.4c4.3-1.1 8.7-.5 12 1.4" fill="none" stroke="#073c24" strokeLinecap="round" strokeWidth="2" />
+  </svg>;
+}
+
 export default function InviaBrano() {
   const { locale } = useI18n(); const copy = musicCopy[locale]; const text = musicSubmitCopy[locale];
   const navigate = useNavigate();
@@ -103,29 +123,57 @@ export default function InviaBrano() {
   };
   if (submitted) return <section className="submit-confirmation mx-auto max-w-3xl text-center" aria-live="polite"><Check size={50} className="mx-auto text-primary" /><h2 className="mt-6 font-display text-3xl">{copy.received}</h2><p className="mt-4 text-muted-foreground">{copy.receivedDescription}</p><button type="button" className="submit-secondary-button mt-8" onClick={() => setSubmitted(false)}>{copy.another}</button></section>;
 
-  const fields = [{ label: text.youtube, value: youtube, set: setYoutube, Icon: Youtube, placeholder: 'https://www.youtube.com/watch?v=…', invalid: youtubeUrl === null }, { label: text.reel, value: reel, set: setReel, Icon: Instagram, placeholder: 'https://www.instagram.com/reel/…', invalid: reelUrl === null }, { label: text.spotify, value: spotify, set: setSpotify, Icon: Music2, placeholder: 'https://open.spotify.com/track/…', invalid: spotifyUrl === null }];
+  const fields: { label: string; value: string; set: (value: string) => void; platform: SocialPlatform; placeholder: string; invalid: boolean }[] = [
+    { label: text.youtube, value: youtube, set: setYoutube, platform: 'youtube', placeholder: 'https://www.youtube.com/watch?v=…', invalid: youtubeUrl === null },
+    { label: text.reel, value: reel, set: setReel, platform: 'instagram', placeholder: 'https://www.instagram.com/reel/…', invalid: reelUrl === null },
+    { label: text.spotify, value: spotify, set: setSpotify, platform: 'spotify', placeholder: 'https://open.spotify.com/track/…', invalid: spotifyUrl === null },
+  ];
   return <form onSubmit={event => void send(event)} className="music-submit-form music-studio-form">
     <div className="music-studio-fields">
       <section className="music-studio-section">
         <div className="music-studio-section-heading"><span>01</span><div><h2>{text.stepFiles}</h2><p>{text.filesHint}</p></div></div>
         <div className="music-studio-uploads">{(['cover', 'audio'] as const).map(kind => {
-          const file = kind === 'cover' ? cover : audio; const Icon = kind === 'cover' ? ImagePlus : Headphones;
-          return <label key={kind} className={`music-studio-upload ${file ? 'has-file' : ''}`}><Icon size={24} strokeWidth={1.4} /><strong>{kind === 'cover' ? copy.cover : copy.audio}</strong><small>{kind === 'cover' ? copy.coverHint : copy.audioHint}</small><span>{file ? text.change : kind === 'cover' ? text.pickCover : text.pickAudio}<ArrowUpRight size={12} /></span><input className="sr-only" aria-label={kind === 'cover' ? copy.cover : copy.audio} type="file" accept={kind === 'cover' ? 'image/jpeg,image/png,image/webp' : AUDIO_FILE_ACCEPT} onClick={handleFilePickerClick} onChange={event => { selectFile(event.target.files?.[0], kind); event.target.value = ''; }} disabled={loading} />{file && <em title={file.name}><Check size={12} />{file.name}</em>}</label>;
+          const file = kind === 'cover' ? cover : audio;
+          const isCover = kind === 'cover';
+          return <label key={kind} className={`music-studio-upload music-studio-upload-${kind}${file ? ' has-file' : ''}`}>
+            <div className={`music-studio-upload-visual${file ? ' is-loaded' : ''}`} aria-hidden="true">
+              {isCover && coverUrl
+                ? <img src={coverUrl} alt="" />
+                : isCover
+                  ? <div className="music-studio-upload-art-placeholder"><ImagePlus size={36} strokeWidth={1.2} /><span>ARTWORK</span></div>
+                  : <div className={`music-studio-audio-art${buffer ? ' is-loaded' : ''}`}>
+                    <div className="music-studio-audio-disc"><Music2 size={25} strokeWidth={1.2} /></div>
+                    <div className="music-studio-audio-bars">{Array.from({ length: 25 }, (_, index) => <i key={index} />)}</div>
+                    <span>{buffer ? formatAudioTime(buffer.duration) : 'MP3  /  WAV  /  M4A'}</span>
+                  </div>}
+              <span className="music-studio-upload-index">{isCover ? '01' : '02'}</span>
+              <span className="music-studio-upload-status">{file ? <><Check size={12} />{text.change}</> : isCover ? text.pickCover : text.pickAudio}</span>
+            </div>
+            <div className="music-studio-upload-content">
+              <div className="music-studio-upload-title">
+                <strong>{isCover ? copy.cover : copy.audio}</strong>
+                <small>{isCover ? 'JPG · PNG · WEBP' : 'MP3 · WAV · M4A'}</small>
+              </div>
+              <p>{file ? file.name : isCover ? copy.coverHint : copy.audioHint}</p>
+              <span className="music-studio-upload-action">{file ? text.change : isCover ? text.pickCover : text.pickAudio}<ArrowUpRight size={14} /></span>
+            </div>
+            <input className="sr-only" aria-label={isCover ? copy.cover : copy.audio} type="file" accept={isCover ? 'image/jpeg,image/png,image/webp' : AUDIO_FILE_ACCEPT} onClick={handleFilePickerClick} onChange={event => { selectFile(event.target.files?.[0], kind); event.target.value = ''; }} disabled={loading} />
+          </label>;
         })}</div>
         {decoding && <p className="music-studio-processing" role="status"><LoaderCircle size={15} className="animate-spin" />{text.decoding}</p>}
         {decodeError && <p role="alert" className="music-studio-error">{decodeError}</p>}
         {buffer && <AudioClipEditor buffer={buffer} start={start} end={end} onChange={(from, to) => { setStart(from); setEnd(to); }} clipUrl={clipFile ? audioUrl : ''} activeId={activeId} onActiveChange={setActiveId} disabled={loading} />}
       </section>
-      <section className="music-studio-section">
-        <div className="music-studio-section-heading"><span>02</span><div><h2>{text.stepDetails}</h2></div></div>
+      <section className="music-studio-section music-studio-identity-section">
+        <div className="music-studio-section-heading"><span>02</span><div><h2>{text.stepDetails}</h2><p>{text.identityHint}</p></div></div>
         <div className="music-studio-identity"><label><span>{copy.title} *</span><input value={title} onChange={event => setTitle(event.target.value)} maxLength={120} required disabled={loading} placeholder={copy.title} /></label><label><span>{copy.artist} *</span><input value={artist} onChange={event => setArtist(event.target.value)} maxLength={120} required disabled={loading} placeholder={copy.artist} /></label></div>
-        <label className="music-studio-social-field"><span><Instagram size={14} />{text.instagram}<small>{text.optional}</small></span><input value={instagram} onChange={event => setInstagram(event.target.value)} maxLength={200} disabled={loading} placeholder="@username" aria-invalid={username === null} autoCapitalize="none" autoCorrect="off" /><small>{text.instagramHint}</small></label>
+        <label className="music-studio-social-field"><span className="music-studio-social-label"><SocialBrandMark platform="instagram" />{text.instagram}<small>{text.optional}</small></span><input value={instagram} onChange={event => setInstagram(event.target.value)} maxLength={200} disabled={loading} placeholder="@username" aria-invalid={username === null} autoCapitalize="none" autoCorrect="off" /><small>{text.instagramHint}</small></label>
         {username && <a className="music-studio-profile-link" href={`https://www.instagram.com/${username}/`} target="_blank" rel="noopener noreferrer">@{username}<ArrowUpRight size={12} /></a>}
         {username === null && <p className="music-studio-error" role="alert">{text.invalidInstagram}</p>}
       </section>
-      <section className="music-studio-section">
+      <section className="music-studio-section music-studio-links-section">
         <div className="music-studio-section-heading"><span>03</span><div><h2>{text.stepLinks}<small>{text.optional}</small></h2><p>{text.linksHint}</p></div></div>
-        <div className="music-studio-external-links">{fields.map(({ label, value, set, Icon, placeholder, invalid }) => <label key={label}><span><Icon size={14} />{label}</span><input type="url" value={value} onChange={event => set(event.target.value)} disabled={loading} placeholder={placeholder} maxLength={500} aria-invalid={invalid} /></label>)}</div>
+        <div className="music-studio-external-links">{fields.map(({ label, value, set, platform, placeholder, invalid }) => <label key={label} className={`music-studio-link-field music-studio-link-${platform}`}><span><SocialBrandMark platform={platform} />{label}</span><input type="url" value={value} onChange={event => set(event.target.value)} disabled={loading} placeholder={placeholder} maxLength={500} aria-invalid={invalid} /></label>)}</div>
         {[youtubeUrl, reelUrl, spotifyUrl].includes(null) && <p className="music-studio-error" role="alert">{text.invalidLink}</p>}
       </section>
       <section className="music-studio-send"><label><input type="checkbox" required disabled={loading} /><span>{copy.rights}</span></label><p>{copy.review}</p><button type="submit" className="submit-primary-button" disabled={loading || !cover || !clipFile || invalidSocial}>{loading ? <LoaderCircle size={17} className="animate-spin" /> : <ArrowUpRight size={17} />}{loading ? copy.sending : copy.send}</button><p className="music-studio-privacy"><ShieldCheck size={13} />{text.privacy}</p></section>

@@ -58,7 +58,7 @@ export default function WorldInstrument({ kind, progress, reduced }: Props) {
     <div ref={subject} className="home-instrument-subject">
       {kind === 'music' && <svg className="home-mic-cable" viewBox="0 0 100 100" preserveAspectRatio="none"><defs><linearGradient id="home-cable-metal"><stop stopColor="#111"/><stop offset=".45" stopColor="#484946"/><stop offset="1" stopColor="#101111"/></linearGradient></defs><path d="M50 -20 C49 12 52 42 50 98" fill="none" stroke="url(#home-cable-metal)" strokeWidth=".65" /></svg>}
       <div className="home-instrument-product">
-        <img className="home-instrument-photo-image" src={image} width={kind === 'photo' ? 1536 : 1024} height={kind === 'photo' ? 1024 : 1536} loading="lazy" decoding="async" onLoad={() => setReady(true)} alt="" draggable={false}/>
+        <img className={`home-instrument-photo-image${kind === 'music' ? ' home-microphone-image' : ''}`} src={image} width={kind === 'photo' ? 1536 : 1024} height={kind === 'photo' ? 1024 : 1536} loading="lazy" decoding="async" onLoad={() => setReady(true)} alt="" draggable={false}/>
         {kind === 'photo' && <div ref={lens} className="home-camera-lens">
           <img src={image} width="1536" height="1024" decoding="async" alt="" draggable={false}/>
           <div className="home-camera-optics"><canvas ref={iris} width="384" height="384"/><span className="home-camera-coating"/></div>
