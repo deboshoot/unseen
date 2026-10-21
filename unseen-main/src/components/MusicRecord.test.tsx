@@ -96,6 +96,32 @@ describe("music playback", () => {
     }
   });
 
+  it("starts the disc and social-link entrance on the first demo play event", async () => {
+    const originalAnimate = Object.getOwnPropertyDescriptor(Element.prototype, "animate");
+    const animations: { currentTime: number | null; updatePlaybackRate: ReturnType<typeof vi.fn>; play: ReturnType<typeof vi.fn>; pause: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> }[] = [];
+    const animate = vi.fn(() => {
+      const animation = { currentTime: 0, updatePlaybackRate: vi.fn(), play: vi.fn(), pause: vi.fn(), cancel: vi.fn() };
+      animations.push(animation);
+      return animation;
+    });
+    Object.defineProperty(Element.prototype, "animate", { configurable: true, value: animate });
+    try {
+      const { container } = render(<MusicRecord track={demoTracks[0]} activeId={null} onActiveChange={vi.fn()} demoTransport onPrepareAudio={vi.fn()} />);
+      fireEvent.click(screen.getAllByRole("button", { name: "Ascolta Afterhours — NOVA" })[0]);
+      await waitFor(() => expect(container.querySelector(".music-demo-side-socials")).toBeInTheDocument());
+      expect(animations).toHaveLength(3);
+      animations.forEach((animation) => {
+        expect(animation.updatePlaybackRate).toHaveBeenCalledWith(1);
+        expect(animation.play).toHaveBeenCalledOnce();
+      });
+      expect(container.querySelectorAll(".music-demo-side-socials a").length).toBeGreaterThan(1);
+    } finally {
+      cleanup();
+      if (originalAnimate) Object.defineProperty(Element.prototype, "animate", originalAnimate);
+      else Reflect.deleteProperty(Element.prototype, "animate");
+    }
+  });
+
   it("does not autoplay, plays one record at a time, and pauses rotation with audio", async () => {
     const { container, unmount } = render(<Duel />);
     const audio = Array.from(container.querySelectorAll("audio"));

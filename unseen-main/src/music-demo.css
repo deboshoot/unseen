@@ -299,7 +299,7 @@
 }
 .music-demo-page > .music-waveform-arena {
   position: relative;
-  width: min(100%, 170px);
+  width: min(100%, 128px);
   max-width: none;
   height: 48px;
   gap: 4px;
@@ -314,11 +314,11 @@
   min-width: 2px;
   border-radius: 999px;
   background: linear-gradient(180deg, #f7f8f6 0%, #d8e0df 52%, #aeb9b8 100%);
-  box-shadow: 0 0 4px #e9f4f222;
+  box-shadow: none;
 }
 .music-demo-page .music-waveform-arena.is-active span {
   background: linear-gradient(180deg, #ffffff 0%, #f3ffff 32%, #c8f4f5 72%, #eafafa 100%);
-  box-shadow: 0 0 5px #ffffff88, 0 0 11px #a4eef066;
+  box-shadow: none;
 }
 @media (max-width: 600px) {
   .music-demo-countdown { gap: 12px; margin: 24px auto 0; }
@@ -326,7 +326,7 @@
   .music-demo-countdown > strong { gap: 7px; padding: 9px 10px; font-size: clamp(34px, 10vw, 48px); }
   .music-demo-clock-group { gap: 3px; }
   .music-demo-clock-digit { border-radius: 3px; }
-  .music-demo-page > .music-waveform-arena { width: min(100%, 150px); height: 44px; margin: 22px auto 18px; }
+  .music-demo-page > .music-waveform-arena { width: min(100%, 112px); height: 44px; margin: 22px auto 18px; }
 }
 @media (max-width: 390px) {
   .music-demo-page .music-demo-transport { gap: 8px; }

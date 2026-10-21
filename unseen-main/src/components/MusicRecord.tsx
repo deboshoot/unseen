@@ -36,6 +36,27 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
       input.style.setProperty('--music-progress', `${(audio.currentTime / audio.duration) * 100}%`);
     }
   }, []);
+  const setMotionPlaying = (shouldPlay: boolean) => {
+    motionRef.current.forEach((animation) => {
+      if (!shouldPlay && animation.currentTime === 0) { animation.pause(); return; }
+      animation.updatePlaybackRate(shouldPlay ? 1 : -1);
+      animation.play();
+    });
+  };
+  const handlePlaybackStart = () => {
+    setMotionPlaying(true);
+    setPlaying(true);
+    if (demoTransport) {
+      if (socialExitTimerRef.current !== null) window.clearTimeout(socialExitTimerRef.current);
+      socialExitTimerRef.current = null;
+      setSocialsVisible(true);
+      setSocialsExiting(false);
+    }
+  };
+  const handlePlaybackStop = () => {
+    setMotionPlaying(false);
+    setPlaying(false);
+  };
 
   useEffect(() => {
     mountedRef.current = true;
@@ -48,15 +69,7 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
   }, []);
   useEffect(() => { if (activeId !== track.id) audioRef.current?.pause(); }, [activeId, track.id]);
   useEffect(() => {
-    if (!demoTransport) return;
-    if (playing) {
-      if (socialExitTimerRef.current !== null) window.clearTimeout(socialExitTimerRef.current);
-      socialExitTimerRef.current = null;
-      setSocialsVisible(true);
-      setSocialsExiting(false);
-      return;
-    }
-    if (!socialsVisible) return;
+    if (!demoTransport || playing || !socialsVisible) return;
     setSocialsExiting(true);
     const exitDelay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 420;
     socialExitTimerRef.current = window.setTimeout(() => {
@@ -128,14 +141,6 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
       motionRef.current = [];
     };
   }, [slot]);
-
-  useLayoutEffect(() => {
-    // Reversing the current timeline also handles Pause during extraction.
-    motionRef.current.forEach((animation) => {
-      if (!playing && animation.currentTime === 0) { animation.pause(); return; }
-      animation.updatePlaybackRate(playing ? 1 : -1); animation.play();
-    });
-  }, [playing, slot]);
 
   const toggle = async () => {
     const audio = audioRef.current;
@@ -220,9 +225,9 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
       <audio ref={audioRef} crossOrigin="anonymous" src={track.audio_url || undefined} preload="metadata"
         onLoadedMetadata={(event) => { setDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : 0); syncProgress(event.currentTarget); }}
         onTimeUpdate={(event) => { setCurrentTime(event.currentTarget.currentTime); syncProgress(event.currentTarget); }}
-        onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
-        onEnded={() => { setPlaying(false); onActiveChange(null); }}
-        onError={() => { setPlaying(false); setLoading(false); onActiveChange(null); }}
+        onPlay={handlePlaybackStart} onPause={handlePlaybackStop}
+        onEnded={() => { handlePlaybackStop(); onActiveChange(null); }}
+        onError={() => { handlePlaybackStop(); setLoading(false); onActiveChange(null); }}
       />
       <input ref={progressInputRef} type="range" className="music-progress" min={0} max={duration || 1} step={0.1} value={Math.min(currentTime, duration || 1)} disabled={!duration} aria-label={`${copy.seek}: ${track.title}`}
         onChange={(event) => { if (audioRef.current) { const value = Number(event.target.value); audioRef.current.currentTime = value; setCurrentTime(value); syncProgress(audioRef.current); } }} />
