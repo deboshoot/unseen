@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useI18n } from '@/i18n/I18nProvider';
 import { homeExperienceCopy } from '@/i18n/home-experience-copy';
 import PortalScene from '@/components/home/PortalScene';
+import Starfield from '@/components/home/Starfield';
 import WorldCard from '@/components/home/WorldCard';
 import { useHomeReducedMotion } from '@/components/home/useHomeReducedMotion';
 import '@/home-experience.css';
@@ -14,6 +15,7 @@ export default function Index() {
   const copy = homeExperienceCopy[locale];
   const reduce = useHomeReducedMotion();
   return <main className="home-experience">
+    <Starfield />
     <section className="home-immersive-hero" aria-labelledby="home-title">
       <div className="home-hero-topline"><span><i />{copy.universe}</span><span className="home-edition">UNSEEN / INDEPENDENT CULTURE</span></div>
       <div className="home-hero-layout">

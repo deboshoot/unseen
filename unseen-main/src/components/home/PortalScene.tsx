@@ -1,18 +1,21 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import type { BufferGeometry, Material, Mesh, WebGLRenderer } from 'three';
+import { createPortalGlow } from './createPortalGlow';
 
 type Props = { label: string };
 
-/** Renders only during deliberate interaction or a resize. */
+/** Renders during deliberate interaction, the light's settling, or a resize. */
 export default function PortalScene({ label }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const interaction = useRef<HTMLDivElement>(null);
+  const aura = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const element = host.current;
     const grabZone = interaction.current;
-    if (!element || !grabZone) return;
+    const glow = aura.current;
+    if (!element || !grabZone || !glow) return;
     let disposed = false;
     let destroy = () => {};
     void (async () => {
@@ -22,14 +25,16 @@ export default function PortalScene({ label }: Props) {
           import('three'), import('three/addons/environments/RoomEnvironment.js'),
         ]);
         if (disposed) return;
-        renderer = new T.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        renderer = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
         renderer.toneMapping = T.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.95;
+        renderer.setClearColor(0x000000, 0);
         const canvas = renderer.domElement;
+        canvas.className = 'portal-emblem';
         canvas.setAttribute('aria-hidden', 'true');
         element.appendChild(canvas);
+        const bloom = createPortalGlow(glow, canvas);
         const scene = new T.Scene();
-        const background = new T.Color();
-        scene.background = background;
         const camera = new T.PerspectiveCamera(38, 1, 0.1, 60);
         camera.position.set(0, 0.45, 10.5);
         camera.lookAt(0, -0.12, 0);
@@ -97,37 +102,6 @@ export default function PortalScene({ label }: Props) {
         const emblem = new T.Mesh(geometry, face);
         sculpture.add(emblem);
 
-        const floorY = -2.15;
-        const reflection = sculpture.clone(true);
-        reflection.traverse(object => {
-          const mesh = object as Mesh;
-          if (!mesh.material) return;
-          const clone = (material: Material) => {
-            const result = material.clone(); result.transparent = true; result.opacity = 0.13; result.depthWrite = false;
-            return result;
-          };
-          mesh.material = Array.isArray(mesh.material) ? mesh.material.map(clone) : clone(mesh.material);
-        });
-        reflection.matrixAutoUpdate = false;
-        const mirror = new T.Matrix4().makeScale(1, -1, 1);
-        mirror.setPosition(0, floorY * 2, 0); scene.add(reflection);
-        // Keep the ground in the background palette: environment lighting on a
-        // huge standard-material plane produced a bright rectangular horizon.
-        const floorMaterial = new T.MeshBasicMaterial({ transparent: true, opacity: 0.88, depthWrite: false, toneMapped: false });
-        const floor = new T.Mesh(new T.PlaneGeometry(65, 65), floorMaterial);
-        floor.rotation.x = -Math.PI / 2; floor.position.y = floorY; floor.renderOrder = 2; scene.add(floor);
-        // A soft contact shadow anchors the base without real-time shadow maps.
-        const shadowSize = 64, shadowPixels = new Uint8Array(shadowSize * shadowSize * 4);
-        for (let y = 0; y < shadowSize; y++) for (let x = 0; x < shadowSize; x++) {
-          const radius = Math.hypot((x + 0.5) / shadowSize * 2 - 1, (y + 0.5) / shadowSize * 2 - 1);
-          shadowPixels[(y * shadowSize + x) * 4 + 3] = Math.round((1 - T.MathUtils.smoothstep(radius, 0.25, 1)) * 255);
-        }
-        const shadowMap = new T.DataTexture(shadowPixels, shadowSize, shadowSize);
-        shadowMap.magFilter = T.LinearFilter; shadowMap.minFilter = T.LinearFilter; shadowMap.needsUpdate = true;
-        const shadowMaterial = new T.MeshBasicMaterial({ color: 0x000000, map: shadowMap, transparent: true, depthWrite: false, toneMapped: false });
-        const shadow = new T.Mesh(new T.PlaneGeometry(4.4, 3.8), shadowMaterial);
-        shadow.rotation.x = -Math.PI / 2; shadow.position.y = floorY + 0.002; shadow.renderOrder = 3; scene.add(shadow);
-
         let frame = 0, last = 0, yaw = 0, pitch = 0, targetYaw = 0, targetPitch = 0;
         let visible = true, dragging = false, previousX = 0, previousY = 0;
         let samples = 0, totalInterval = 0, longest = 0;
@@ -135,12 +109,14 @@ export default function PortalScene({ label }: Props) {
           frame = 0;
           if (disposed || document.hidden || !visible) return;
           const interval = (now - last) || 1000 / 60;
-          const elapsed = Math.min(interval / 1000, 0.05); last = now;
+          const elapsed = Math.max(0.001, Math.min(interval / 1000, 0.05)); last = now;
           const easing = 1 - Math.exp(-(dragging ? 17 : 6.5) * elapsed);
+          const previousYaw = yaw, previousPitch = pitch;
           yaw += (targetYaw - yaw) * easing; pitch += (targetPitch - pitch) * easing;
           sculpture.rotation.set(pitch, yaw, 0, 'YXZ');
-          sculpture.updateMatrix(); reflection.matrix.copy(sculpture.matrix).premultiply(mirror);
           renderer!.render(scene, camera);
+          const glowSettling = bloom.update(elapsed, yaw - previousYaw, pitch - previousPitch);
+          if (import.meta.env.DEV) element.dataset.glowSettling = String(glowSettling);
           const settling = Math.abs(targetYaw - yaw) + Math.abs(targetPitch - pitch) > 0.00012;
           if (!dragging && !settling) {
             yaw = targetYaw = T.MathUtils.euclideanModulo(yaw + Math.PI, Math.PI * 2) - Math.PI;
@@ -149,7 +125,7 @@ export default function PortalScene({ label }: Props) {
           if (import.meta.env.DEV && (dragging || settling)) {
             samples++; totalInterval += interval; longest = Math.max(longest, interval);
           }
-          if (dragging || settling) frame = requestAnimationFrame(render);
+          if (dragging || settling || glowSettling) frame = requestAnimationFrame(render);
           else if (import.meta.env.DEV && samples > 5) {
             element.dataset.frameInterval = (totalInterval / samples).toFixed(1);
             element.dataset.longestFrame = longest.toFixed(1);
@@ -171,21 +147,15 @@ export default function PortalScene({ label }: Props) {
         const endDrag = () => {
           dragging = false; element.dataset.dragging = 'false'; returnHome();
         };
-        const syncTheme = () => {
-          background.set(getComputedStyle(element).backgroundColor);
-          floorMaterial.color.copy(background);
-          shadowMaterial.opacity = 0.38;
-          renderer!.toneMappingExposure = 0.95;
-          start();
-        };
         const resize = () => {
           const { width, height } = element.getBoundingClientRect();
           if (!width || !height) return;
           renderer!.setPixelRatio(Math.min(devicePixelRatio, 1.5, Math.sqrt(1300000 / (width * height))));
           renderer!.setSize(width, height, false);
+          bloom.resize(width, height);
           camera.aspect = width / height;
           // Fit the emblem to its grid cell instead of offsetting it in a
-          // full-screen canvas. Keep room for rotation and the reflection.
+          // full-screen canvas. Keep room for rotation.
           const halfFov = T.MathUtils.degToRad(camera.fov / 2);
           camera.position.z = 2.55 / (Math.tan(halfFov) * Math.min(camera.aspect, 1));
           camera.position.y = 0.45;
@@ -248,6 +218,7 @@ export default function PortalScene({ label }: Props) {
         const size = new ResizeObserver(resize); size.observe(element);
         destroy = () => {
           cancelAnimationFrame(frame); intersection.disconnect(); size.disconnect();
+          bloom.dispose();
           document.removeEventListener('visibilitychange', visibility);
           element.removeEventListener('keydown', keydown); element.removeEventListener('keyup', keyup);
           element.removeEventListener('blur', endDrag); window.removeEventListener('blur', endDrag);
@@ -261,9 +232,9 @@ export default function PortalScene({ label }: Props) {
           });
           for (const geometry of geometries) geometry.dispose();
           for (const material of materials) material.dispose();
-          shadowMap.dispose(); environment.dispose(); renderer!.dispose(); canvas.remove();
+          environment.dispose(); renderer!.dispose(); canvas.remove();
         };
-        syncTheme(); resize(); setReady(true);
+        resize(); setReady(true);
       } catch {
         destroy(); renderer?.dispose(); renderer?.domElement.remove();
         if (!disposed) setReady(false);
@@ -273,6 +244,7 @@ export default function PortalScene({ label }: Props) {
   }, []);
 
   return <div ref={host} className={`portal-scene${ready ? ' is-ready' : ''}`} role="group" aria-label={label} tabIndex={0}>
+    <canvas ref={aura} className="portal-aura" aria-hidden="true" />
     <div className="portal-fallback" aria-hidden="true"><img src="/unseen-logo-transparent.png" alt="" /></div>
     <div ref={interaction} className="portal-grab-zone" aria-hidden="true" />
   </div>;
