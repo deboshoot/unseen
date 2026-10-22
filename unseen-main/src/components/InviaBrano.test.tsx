@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import InviaBrano from "./InviaBrano";
 
@@ -98,6 +98,31 @@ describe("music submissions", () => {
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', { title: 'My Track', artist: 'Artist', instagram_username: '', youtube_url: '', instagram_reel_url: '', spotify_url: '' }, [expect.objectContaining({kind:'cover',file:expect.any(File)}),expect.objectContaining({kind:'audio',file:expect.objectContaining({name:'unseen-clip.wav',type:'audio/wav'})})]));
     expect(await screen.findByText("Brano ricevuto")).toBeInTheDocument();
+  });
+
+  it('shows an animated, accessible elapsed-time indicator while a submission is pending', async () => {
+    let finishUpload!: (result: { id: string }) => void;
+    mocks.upload.mockImplementationOnce(() => new Promise(resolve => { finishUpload = resolve; }));
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    const button = screen.getByRole('button', { name: 'Invia il brano' });
+    await waitFor(() => expect(button).toBeEnabled());
+    fireEvent.click(button);
+
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalled());
+    expect(screen.getByRole('status')).toHaveTextContent('Stiamo inviando il tuo brano');
+    expect(screen.getByRole('timer', { name: 'Tempo trascorso: 0 secondi' })).toHaveTextContent('00:00');
+    expect(container.querySelector('.music-submit-progress-ring')).toBeInTheDocument();
+    expect(button).toBeDisabled();
+
+    await act(async () => {
+      await new Promise(resolve => window.setTimeout(resolve, 1050));
+    });
+    expect(screen.getByRole('timer', { name: 'Tempo trascorso: 1 secondo' })).toHaveTextContent('00:01');
+
+    await act(async () => finishUpload({ id: 'submission-1' }));
+    expect(await screen.findByText('Brano ricevuto')).toBeInTheDocument();
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument();
   });
 
   it("never reports success when R2 confirmation fails", async () => {
