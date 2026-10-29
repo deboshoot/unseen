@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Maximize2, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { useI18n } from '@/i18n/I18nProvider';
 import { photoArenaCopy } from '@/i18n/photo-arena-copy';
@@ -47,7 +47,6 @@ export default function PhotoArenaWork({ entry, lost = false }: { entry: Champio
       <DialogTrigger asChild>
         <button type="button" className="photo-arena-image-button" aria-label={`${text.expand}: ${entry.title}`}>
           <img src={entry.image_url} alt={entry.title} />
-          <span className="photo-arena-zoom" aria-hidden="true"><Maximize2 size={13} /><span>{text.expand}</span></span>
         </button>
       </DialogTrigger>
       <figcaption className="photo-arena-caption"><h2>{entry.title}</h2><p>{entry.artist}</p></figcaption>
