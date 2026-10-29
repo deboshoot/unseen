@@ -1,0 +1,56 @@
+.photo-arena .photo-arena-duel {
+  align-items: start;
+  margin-top: 52px;
+}
+.photo-arena-work { margin: 0; min-width: 0; }
+.photo-arena-print {
+  position: relative;
+  width: min(100%, 340px);
+  aspect-ratio: 4 / 3;
+  margin: 0 auto 30px;
+  padding: 9px 9px 30px;
+  border: 1px solid #ffffff3d;
+  border-radius: 2px;
+  background: linear-gradient(125deg, #f1eee8, #e1dcd4);
+  box-shadow: 0 24px 50px #0008, 0 2px 3px #0009, inset 0 0 0 1px #fff4;
+  transform: rotate(-2deg);
+}
+.photo-arena-challenger-2 .photo-arena-print { transform: rotate(2deg); }
+.photo-arena-print img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #121214;
+}
+.photo-arena-print > span {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  color: #69635c;
+  font-size: 7px;
+  font-weight: 500;
+  letter-spacing: .19em;
+  text-align: center;
+}
+.photo-arena-caption { padding: 9px 0 8px; }
+.photo-arena-caption h2 {
+  color: #e4e4ed;
+  font-size: clamp(20px, 2.7vw, 27px);
+  font-weight: 400;
+  letter-spacing: -.035em;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.photo-arena-caption p { margin-top: 3px; color: #989baa; font-size: 12px; letter-spacing: .03em; }
+.photo-arena .is-lost img { filter: grayscale(.85) brightness(.5); }
+.photo-arena .champ-arena-result { padding-top: 8px; }
+@media (max-width: 600px) {
+  .photo-arena .photo-arena-duel { margin-top: 38px; gap: 24px; }
+  .photo-arena-print { margin-bottom: 22px; padding: 5px 5px 21px; }
+  .photo-arena-print > span { bottom: 7px; font-size: 5px; letter-spacing: .12em; }
+  .photo-arena-caption { padding-top: 6px; }
+  .photo-arena-caption h2 { font-size: clamp(16px, 4vw, 21px); }
+  .photo-arena-caption p { font-size: 10px; }
+}

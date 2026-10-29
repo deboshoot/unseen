@@ -1,17 +1,19 @@
 import { useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Check, Share2, Trophy } from 'lucide-react';
+import { ArrowLeft, Share2, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/supabaseClient';
 import { useChampionship } from '@/hooks/useChampionship';
 import { arenaPath, countdown, currentMatch, isMatchOpen, type ChampionshipKind } from '@/lib/championship';
 import { useI18n } from '@/i18n/I18nProvider';
 import { championshipCopy } from '@/i18n/championship-copy';
-import MusicArenaStage from '@/components/MusicArenaStage';
+import ArenaStage from '@/components/ArenaStage';
+import { MusicArenaMedia } from '@/components/MusicArenaStage';
 import MusicArenaVote from '@/components/MusicArenaVote';
 import ArenaComingSoon from '@/components/ArenaComingSoon';
 import { musicDemoCopy } from '@/i18n/music-demo-copy';
 import '@/championship.css';
+import '@/photo-arena.css';
 
 export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) {
   const [params] = useSearchParams();
@@ -25,11 +27,11 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
   const championship = data?.championship;
   const live = data ? currentMatch(data, now) : null;
   const requested = params.get('match');
-  // Keep the music stage visible while the server resolves a deadline, and show
+  // Keep the stage visible while the server resolves a deadline, and show
   // the final result on the main arena page after the championship completes.
-  const musicFinal = kind === 'music' && championship?.status === 'completed' ? data?.matches.find(item => item.number === 15) : undefined;
-  const musicClosing = kind === 'music' && championship?.status === 'running' ? data?.matches.find(item => !item.resolved_at && Date.parse(item.start_at) <= now) : undefined;
-  const match = requested ? data?.matches.find(item => item.id === requested) : live ?? musicFinal ?? musicClosing;
+  const finalMatch = championship?.status === 'completed' ? data?.matches.find(item => item.number === 15) : undefined;
+  const closingMatch = championship?.status === 'running' ? data?.matches.find(item => !item.resolved_at && Date.parse(item.start_at) <= now) : undefined;
+  const match = requested ? data?.matches.find(item => item.id === requested) : live ?? finalMatch ?? closingMatch;
   const canVote = Boolean(championship && match && isMatchOpen(match, championship, now));
   const chosen = data?.my_votes.find(vote => vote.match_id === match?.id)?.vote_slot ?? (localVote && localVote.matchId === match?.id && localVote.userId === userId ? localVote.slot : null);
   const bracketUrl = `/campionato?tipo=${kind === 'music' ? 'musica' : 'foto'}${championship ? `&id=${championship.id}` : ''}`;
@@ -59,36 +61,46 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
     {isLoading ? <p role="status" className="champ-notice">{copy.loading}</p> : <div role="alert" className="champ-notice"><p>{copy.error}</p><button className="champ-button" onClick={() => void refetch()}>{copy.retry}</button></div>}
   </div></main>;
-  const showOpening = kind === 'music' ? !championship || championship.status === 'scheduled' : !match;
+  const showOpening = !championship || championship.status === 'scheduled';
   if (!requested && showOpening) return <ArenaComingSoon kind={kind} startsAt={championship?.status === 'scheduled' ? championship.start_at : undefined} />;
-  if (kind === 'music' && championship && match && data) {
+  if (championship && match && data) {
     const text = musicDemoCopy[locale];
-    const tracks = [match.entry_1_id, match.entry_2_id].map(id => {
-      const entry = data.entries.find(entry => entry.id === id);
-      return entry ? { ...entry, cover_url: entry.image_url, audio_url: entry.audio_url ?? '' } : null;
-    });
+    const entries = [match.entry_1_id, match.entry_2_id].map(id => data.entries.find(entry => entry.id === id) ?? null);
+    const tracks = entries.map(entry => entry ? { ...entry, cover_url: entry.image_url, audio_url: entry.audio_url ?? '' } : null);
     const beforeStart = Date.parse(match.start_at) > now;
     const timerValue = match.resolved_at || championship.status === 'cancelled' ? '00 : 00 : 00' : countdown(beforeStart ? match.start_at : match.end_at, now);
     const waiting = (index: number) => <div className="champ-empty">{copy.waiting} #{(match.round === 2 ? (match.position - 1) * 2 : match.round === 3 ? 8 + (match.position - 1) * 2 : 12) + index + 1}</div>;
-    return <MusicArenaStage key={`${championship.id}:${match.id}:${userId ?? 'anon'}`} tracks={tracks}
+    const duelLabel = `${championship.name} · ${copy.rounds[match.round - 1]} · #${match.number}/15`;
+    const result = (index: number) => <p className={match.resolved_at ? 'champ-arena-result' : 'sr-only'}>
+      {match.resolved_at ? <>{(index === 0 ? match.votes_1 : match.votes_2) ?? 0} {copy.votes}</> : copy.secretVotes}
+      {match.winner_id && <span>{match.winner_id === entries[index]?.id ? match.number === 15 ? copy.champion : copy.qualified : copy.lost}</span>}
+    </p>;
+    return <ArenaStage key={`${championship.id}:${match.id}:${userId ?? 'anon'}`} kind={kind}
       timerValue={timerValue} timerLabel={beforeStart ? text.nextDuelStarts : text.duelDeadline}
-      duelLabel={`${championship.name} · ${copy.rounds[match.round - 1]} · #${match.number}/15`} bracketUrl={bracketUrl}
+      bracketUrl={bracketUrl}
       navigation={<nav className="music-demo-navigation" aria-label="Arena">
         <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
         <button className="music-share" onClick={() => void share()}><Share2 size={15} />{copy.share}</button>
-      </nav>}
-      renderWaiting={waiting}
-      renderTrackFooter={index => <p className={match.resolved_at ? 'champ-arena-result' : 'sr-only'}>
-        {match.resolved_at ? <>{(index === 0 ? match.votes_1 : match.votes_2) ?? 0} {copy.votes}</> : copy.secretVotes}
-        {match.winner_id && <span>{match.winner_id === tracks[index]?.id ? copy.qualified : copy.lost}</span>}
-      </p>}>
-      <MusicArenaVote choices={tracks.flatMap(track => track ? [track] : [])} selectedId={chosen ? tracks[chosen - 1]?.id ?? null : null}
+      </nav>}>
+      {kind === 'music' ? <MusicArenaMedia tracks={tracks} duelLabel={duelLabel} renderWaiting={waiting} renderTrackFooter={result} />
+        : <section className="music-duel photo-arena-duel" aria-label={duelLabel}>
+          {entries.map((entry, index) => <article className={`music-challenger photo-arena-challenger photo-arena-challenger-${index + 1}`} key={`${match.id}-${index}`}>
+            {entry ? <>
+              <figure className={`photo-arena-work${match.winner_id && match.winner_id !== entry.id ? ' is-lost' : ''}`}>
+                <div className="photo-arena-print"><img src={entry.image_url} alt={entry.title} /><span aria-hidden="true">UNSEEN · {String(entry.seed).padStart(2, '0')}</span></div>
+                <figcaption className="photo-arena-caption"><h2>{entry.title}</h2><p>{entry.artist}</p></figcaption>
+              </figure>
+              {result(index)}
+            </> : waiting(index)}
+          </article>)}
+        </section>}
+      <MusicArenaVote choices={entries.flatMap(entry => entry ? [entry] : [])} selectedId={chosen ? entries[chosen - 1]?.id ?? null : null}
         selectedLabel={copy.voted} disabled={!canVote || busy || Boolean(chosen)}
-        onChoose={id => void vote(tracks.findIndex(track => track?.id === id) + 1)} />
+        onChoose={id => void vote(entries.findIndex(entry => entry?.id === id) + 1)} />
       <p className="sr-only">{copy.rounds[match.round - 1]} · #{match.number}/15 · {championship.name}</p>
       {match.tie_break && <p className="champ-rule">{copy.tie}</p>}
       {!canVote && live && live.id !== match.id && <Link className="champ-button" to={`${arenaPath(kind)}?campionato=${championship.id}`}>{copy.live} · #{live.number}</Link>}
-    </MusicArenaStage>;
+    </ArenaStage>;
   }
   return <main className={`champ-page ${kind === 'music' ? 'music-arena' : ''}`}><div className="champ-container champ-arena-container">
     <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
@@ -96,24 +108,6 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
       {match && <div className="champ-arena-countdown"><span>{copy.rounds[match.round - 1]} · #{match.number}/15</span><strong>{canVote ? countdown(match.end_at, now) : match.winner_id ? copy.completed : copy.scheduled}</strong><span>{canVote ? copy.remaining : new Date(match.start_at).toLocaleString(locale)}</span></div>}
       <div className="champ-arena-actions"><Link className="champ-button" to={bracketUrl}><Trophy size={16} />{copy.bracket}</Link>{match && <button className="music-share" onClick={() => void share()}><Share2 size={15} />{copy.share}</button>}</div>
     </header>
-    {!match ? <section className="champ-empty"><Trophy size={30} /><h2>{championship?.status === 'scheduled' ? copy.scheduled : copy.noMatch}</h2><p>{championship?.status === 'scheduled' ? `${copy.starts} ${new Date(championship.start_at).toLocaleString(locale)}` : championship ? copy[championship.status] : copy.emptyText}</p><Link to={bracketUrl} className="champ-button">{copy.title}</Link>{live && <Link to={`${arenaPath(kind)}?campionato=${championship?.id}`}>{copy.live}</Link>}</section> : <>
-      <section className="champ-photo-duel">
-        {[match.entry_1_id, match.entry_2_id].map((id, index) => {
-          const entry = data.entries.find(entry => entry.id === id);
-          const lost = Boolean(match.winner_id && match.winner_id !== id);
-          return <article key={`${match.id}-${index}`} className="champ-photo-challenger">
-            {entry ? <>
-              <div className={`champ-photo-frame ${lost ? 'is-lost' : ''}`}><img src={entry.image_url} alt={entry.title} />{lost && <span aria-label={copy.lost}>×</span>}</div><div className="champ-photo-caption"><span>#{entry.seed} · {entry.artist}</span><h2>{entry.title}</h2></div>
-              <p className="champ-arena-result">{match.resolved_at ? <>{(index === 0 ? match.votes_1 : match.votes_2) ?? 0} {copy.votes}</> : copy.secretVotes}{match.winner_id && <span>{lost ? copy.lost : copy.qualified}</span>}</p>
-              <button className={`music-vote ${chosen === index + 1 ? 'is-selected' : ''}`} disabled={!canVote || busy || Boolean(chosen)} onClick={() => void vote(index + 1)}>{chosen === index + 1 ? <><Check size={16} />{copy.voted}</> : !userId && canVote ? copy.login : copy.vote}</button>
-            </> : <div className="champ-empty">{copy.waiting} #{(match.round === 2 ? (match.position - 1) * 2 : match.round === 3 ? 8 + (match.position - 1) * 2 : 12) + index + 1}</div>}
-          </article>;
-        })}
-        <span className="champ-photo-vs" aria-hidden="true">VS</span>
-      </section>
-      {match.tie_break && <p className="champ-rule">{copy.tie}</p>}
-      {!canVote && live && live.id !== match.id && <Link className="champ-button" to={`${arenaPath(kind)}?campionato=${championship.id}`}>{copy.live} · #{live.number}</Link>}
-      <p className="champ-rule">{copy.tieRule}</p>
-    </>}
+    <section className="champ-empty"><Trophy size={30} /><h2>{copy.noMatch}</h2><p>{championship ? copy[championship.status] : copy.emptyText}</p><Link to={bracketUrl} className="champ-button">{copy.title}</Link></section>
   </div></main>;
 }

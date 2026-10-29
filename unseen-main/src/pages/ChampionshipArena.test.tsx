@@ -19,7 +19,9 @@ vi.mock('@/components/MusicRecord', () => ({ default: ({ track }: { track: { tit
 vi.mock('@/components/MusicWaveform', () => ({ default: () => <div /> }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 function Location() { return <p data-testid="location">{useLocation().pathname}{useLocation().search}</p>; }
-function mount(url = '/arena/fotografica') { return render(<MemoryRouter initialEntries={[url]}><ChampionshipArena kind="photo" /><Location /></MemoryRouter>); }
+function photoPage(url = '/arena/fotografica') { return <MemoryRouter initialEntries={[url]}><ChampionshipArena kind="photo" /><Location /></MemoryRouter>; }
+function mount(url = '/arena/fotografica') { return render(photoPage(url)); }
+function openPhotoVotes() { fireEvent.click(screen.getByRole('button', { name: 'Vota' })); return screen.getAllByRole('button', { name: /^Vota Artist/ }); }
 beforeEach(() => { vi.clearAllMocks(); empty = false; loading = false; loadError = null; state = championshipFixture(); userId = 'user'; now = fixtureNow; mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'user' } } } }); mocks.rpc.mockResolvedValue({ error: null }); mocks.refetch.mockResolvedValue({}); });
 afterEach(cleanup);
 describe('arena loading', () => {
@@ -73,6 +75,28 @@ describe('arena loading', () => {
 });
 
 describe('championship arena voting', () => {
+  it('uses the same arena presentation for real photographs, without music controls or cropped images', () => {
+    const { container } = mount();
+    expect(screen.getByRole('heading', { name: 'ARENA DIGITALE' })).toBeInTheDocument();
+    expect(screen.getByRole('timer')).toHaveTextContent('48 : 00 : 00');
+    expect(container.querySelectorAll('.photo-arena-print img')).toHaveLength(2);
+    expect(screen.getByRole('img', { name: 'Work 1' })).toHaveAttribute('src', '/image-1.webp');
+    expect(screen.getByRole('img', { name: 'Work 2' })).toHaveAttribute('src', '/image-2.webp');
+    expect(container.querySelector('audio')).toBeNull();
+    expect(container.querySelector('.music-demo-transport')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Invia la tua foto' })).toHaveAttribute('href', '/submit?tipo=foto');
+    expect(screen.getByRole('link', { name: 'Scopri il campionato' })).toHaveAttribute('href', '/campionato?tipo=foto&id=championship-1');
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+  it('keeps photography in the opening page until its scheduled start', () => {
+    state.championship.status = 'scheduled'; now = fixtureNow - 3600000;
+    const { rerender } = mount();
+    expect(screen.getByText('Arena fotografica in arrivo')).toBeInTheDocument();
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+    state.championship.status = 'running'; now = fixtureNow; rerender(photoPage());
+    expect(screen.getByRole('timer')).toHaveTextContent('48 : 00 : 00');
+    expect(screen.getByRole('img', { name: 'Work 1' })).toBeInTheDocument();
+  });
   it('keeps live totals secret and reveals scores only after the match has been resolved', () => {
     state.matches[0].votes_1 = 532; state.matches[0].votes_2 = 341;
     const { unmount } = mount();
@@ -95,30 +119,32 @@ describe('championship arena voting', () => {
   });
   it('requires login and preserves the selected match in the auth return URL', async () => {
     userId = null; mocks.getSession.mockResolvedValue({ data: { session: null } }); mount();
-    fireEvent.click(screen.getAllByRole('button', { name: 'Accedi per votare' })[0]);
+    fireEvent.click(openPhotoVotes()[0]);
     await waitFor(() => expect(screen.getByTestId('location').textContent).toContain('/auth?redirect='));
     expect(decodeURIComponent(screen.getByTestId('location').textContent)).toContain('campionato=championship-1&match=match-1');
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
   it('sends one atomic vote when clicked twice and disables both choices after success', async () => {
-    mount(); const buttons = screen.getAllByRole('button', { name: 'Vota questa opera' });
+    mount(); const buttons = openPhotoVotes();
     fireEvent.click(buttons[1]); fireEvent.click(buttons[0]);
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Voto registrato' })).toBeDisabled());
+    await waitFor(() => expect(screen.getByText('Voto registrato')).toBeInTheDocument());
     expect(mocks.rpc).toHaveBeenCalledTimes(1);
     expect(mocks.rpc).toHaveBeenCalledWith('cast_championship_vote', { p_match_id: 'match-1', p_vote_slot: 2 });
-    expect(screen.getByRole('button', { name: 'Vota questa opera' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Vota Artist 1' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Vota Artist 2' })).toBeDisabled();
   });
   it('honours a vote already stored for the user', () => {
     state.my_votes = [{ match_id: 'match-1', vote_slot: 1 }]; mount();
-    expect(screen.getByRole('button', { name: 'Voto registrato' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Vota questa opera' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Vota Artist 1' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Vota Artist 1' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Vota Artist 2' })).toBeDisabled();
   });
   it('closes voting at exactly the server deadline', () => {
     now += 48 * 3600000; mount('/arena/fotografica?match=match-1');
-    screen.getAllByRole('button', { name: 'Vota questa opera' }).forEach(button => expect(button).toBeDisabled());
+    expect(screen.getByRole('button', { name: 'Vota' })).toBeDisabled();
   });
   it('keeps cancelled championships closed even during their scheduled window', () => {
     state.championship.status = 'cancelled'; mount('/arena/fotografica?match=match-1');
-    screen.getAllByRole('button', { name: 'Vota questa opera' }).forEach(button => expect(button).toBeDisabled());
+    expect(screen.getByRole('button', { name: 'Vota' })).toBeDisabled();
   });
 });
