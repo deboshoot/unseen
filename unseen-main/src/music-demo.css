@@ -308,10 +308,10 @@
 .music-demo-clock-digit {
   position: relative;
   display: grid;
-  width: .56em;
+  width: .62em;
   height: 1em;
   place-items: center;
-  overflow: hidden;
+  overflow: visible;
   border: 0;
   border-radius: 0;
   background: none;
