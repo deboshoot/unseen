@@ -10,6 +10,7 @@ import { championshipCopy } from '@/i18n/championship-copy';
 import ArenaStage from '@/components/ArenaStage';
 import { MusicArenaMedia } from '@/components/MusicArenaStage';
 import MusicArenaVote from '@/components/MusicArenaVote';
+import PhotoArenaWork from '@/components/PhotoArenaWork';
 import ArenaComingSoon from '@/components/ArenaComingSoon';
 import { musicDemoCopy } from '@/i18n/music-demo-copy';
 import '@/championship.css';
@@ -86,10 +87,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
         : <section className="music-duel photo-arena-duel" aria-label={duelLabel}>
           {entries.map((entry, index) => <article className={`music-challenger photo-arena-challenger photo-arena-challenger-${index + 1}`} key={`${match.id}-${index}`}>
             {entry ? <>
-              <figure className={`photo-arena-work${match.winner_id && match.winner_id !== entry.id ? ' is-lost' : ''}`}>
-                <div className="photo-arena-print"><img src={entry.image_url} alt={entry.title} /><span aria-hidden="true">UNSEEN · {String(entry.seed).padStart(2, '0')}</span></div>
-                <figcaption className="photo-arena-caption"><h2>{entry.title}</h2><p>{entry.artist}</p></figcaption>
-              </figure>
+              <PhotoArenaWork entry={entry} lost={Boolean(match.winner_id && match.winner_id !== entry.id)} />
               {result(index)}
             </> : waiting(index)}
           </article>)}
