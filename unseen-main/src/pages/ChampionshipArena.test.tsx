@@ -57,7 +57,8 @@ describe('arena loading', () => {
     expect(screen.queryByRole('button', { name: 'Vota questa opera' })).not.toBeInTheDocument();
     loading = false; rerender(musicArena('/arena/musicale?match=match-1'));
     expect(container.querySelector('.music-duel')).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Vota questa opera' })).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: 'Vota' }));
+    expect(screen.getAllByRole('button', { name: /^Vota Artist/ })).toHaveLength(2);
   });
 
   it('keeps load errors outside the arena and allows retrying', () => {

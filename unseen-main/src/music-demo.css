@@ -3,6 +3,8 @@
 .music-demo-vote-note{text-align:center;margin:14px auto 0}.music-demo-vote-note>button{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;color:#cfbbed;border:1px solid #ab8de933;border-radius:7px;font-size:11px}.music-demo-vote-note>button:hover{background:#ab8de912}.music-demo-navigation>a:focus-visible,.music-demo-vote-note>button:focus-visible{outline:2px solid #82caff;outline-offset:4px}
 @media(max-width:600px){.music-demo-navigation{margin-bottom:10px}.music-demo-navigation>a:last-child{font-size:10px}.music-demo-page .music-vote{min-height:48px;line-height:1.5}.music-demo-page .music-vote svg{flex-shrink:0}.music-demo-vote-note{margin-top:12px}}
 .music-demo-page { padding-top: 56px; }
+.music-demo-page .music-demo-vote-choice:disabled { cursor: default; transform: none; }
+.music-demo-page .music-demo-vote-choice:disabled:not(.is-selected) { opacity: .55; }
 .music-demo-page .music-challenger {
   min-width: 0;
   padding: 0;
@@ -138,7 +140,7 @@
 .music-demo-page .music-demo-vote-area .music-vote.is-selected { border-color: #c8b4edc2; color: #f3edff; background: #c29ce610; }
 .music-demo-vote-choices { display: grid; width: min(100%, 680px); grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; animation: music-demo-votes-in .22s ease-out both; }
 .music-demo-page .music-demo-vote-choices .music-demo-vote-choice { position: relative; display: flex; min-width: 0; min-height: 76px; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 14px 22px; overflow: hidden; border: 1px solid #9596aa88; border-radius: 16px; color: #e5e1ed; background: linear-gradient(135deg, #ffffff08, #c29ce608); transition: color .2s, border-color .2s, background .2s, transform .2s; }
-.music-demo-page .music-demo-vote-choices .music-demo-vote-choice:hover { transform: translateY(-2px); border-color: #c8b4edc2; color: #fff; background: linear-gradient(135deg, #c29ce61c, #c29ce608); }
+.music-demo-page .music-demo-vote-choices .music-demo-vote-choice:hover:enabled { transform: translateY(-2px); border-color: #c8b4edc2; color: #fff; background: linear-gradient(135deg, #c29ce61c, #c29ce608); }
 .music-demo-page .music-demo-vote-choices .music-demo-vote-choice > span { font-size: 16px; font-weight: 500; letter-spacing: .08em; }
 .music-demo-page .music-demo-vote-choices .music-demo-vote-choice > small { color: #a7a7c3; font-size: 10px; }
 .music-demo-page .music-demo-vote-choices .music-demo-vote-choice > svg { position: absolute; top: 12px; right: 12px; color: #cdb7ed; }
