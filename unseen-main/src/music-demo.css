@@ -221,38 +221,41 @@
   line-height: 1.25;
 }
 .music-demo-countdown {
-  gap: 14px;
-  margin: 30px auto 0;
+  --music-clock-accent: #c3b0e3;
+  gap: 18px;
+  margin: 34px auto 0;
   padding: 0;
   max-width: 100%;
   color: #c8c2b9;
 }
 .music-demo-countdown > span {
-  color: #aaa4ad;
+  color: #96909d;
   font-size: 9px;
   font-weight: 500;
-  letter-spacing: .24em;
+  letter-spacing: .26em;
 }
-.music-demo-clock-caption { display: inline-flex; align-items: center; gap: 8px; }
-.music-demo-clock-caption::before { width: 4px; height: 4px; border-radius: 50%; background: #dd9b94; content: ''; }
+.music-demo-clock-caption { display: inline-flex; align-items: center; gap: 12px; }
+.music-demo-clock-caption::before,
+.music-demo-clock-caption::after { width: 22px; height: 1px; background: linear-gradient(90deg, transparent, #c3b0e34d); content: ''; }
+.music-demo-clock-caption::after { transform: scaleX(-1); }
 .music-demo-countdown > strong {
   position: relative;
   display: flex;
   min-width: 0;
   align-items: stretch;
   justify-content: center;
-  gap: 10px;
+  gap: clamp(12px, 2vw, 18px);
   padding: 0;
   border: 0;
   border-radius: 0;
   background: none;
   box-shadow: none;
-  color: #f2ede8;
+  color: #f0ebe6;
   font-family: 'Outfit', 'DM Sans', sans-serif;
-  font-size: clamp(42px, 6vw, 64px);
+  font-size: clamp(48px, 6.5vw, 68px);
   font-variant-numeric: tabular-nums lining-nums;
   font-style: normal;
-  font-weight: 400;
+  font-weight: 300;
   letter-spacing: 0;
   line-height: 1;
   text-shadow: none;
@@ -265,45 +268,48 @@
   min-width: 0;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 13px;
 }
 .music-demo-clock-unit::after {
-  color: #8e8793;
+  color: #948b9b;
   content: attr(data-unit);
   font-family: 'DM Sans', sans-serif;
   font-size: 9px;
-  font-weight: 500;
-  letter-spacing: .18em;
+  font-weight: 400;
+  letter-spacing: .22em;
   line-height: 1;
   text-shadow: none;
   text-transform: uppercase;
 }
 .music-demo-clock-separator {
   display: flex;
-  width: .16em;
-  height: calc(1.05em + .3em + 2px);
+  width: .12em;
+  height: 1.07em;
   flex: none;
   align-items: center;
   justify-content: center;
-  color: #58505e;
+  color: #7e748b;
   text-shadow: none;
 }
-.music-demo-clock-separator > span { font-size: .42em; font-weight: 300; }
+.music-demo-clock-separator > span { font-size: .32em; font-weight: 300; opacity: .65; }
 .music-demo-clock-group {
+  position: relative;
   display: inline-flex;
   gap: 0;
-  padding: .15em .18em;
-  border: 1px solid #ffffff12;
-  border-radius: 13px;
-  background: linear-gradient(160deg, #ffffff0a, #ffffff03);
-  box-shadow: inset 0 1px 0 #ffffff03;
+  padding: 0 .03em .07em;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
-.music-demo-clock-unit:last-child .music-demo-clock-group { border-color: #e4a09a24; background: linear-gradient(160deg, #d9867e10, #d9867e04); color: #e5a69e; }
+.music-demo-clock-group::after { position: absolute; right: 8%; bottom: 0; left: 8%; height: 1px; background: linear-gradient(90deg, transparent, #ffffff1c, transparent); content: ''; }
+.music-demo-clock-unit:last-child .music-demo-clock-group { color: var(--music-clock-accent); }
+.music-demo-clock-unit:last-child .music-demo-clock-group::after { background: linear-gradient(90deg, transparent, #c3b0e333, transparent); }
 .music-demo-clock-digit {
   position: relative;
   display: grid;
-  width: .57em;
-  height: 1.05em;
+  width: .56em;
+  height: 1em;
   place-items: center;
   overflow: hidden;
   border: 0;
@@ -352,12 +358,12 @@
   box-shadow: none;
 }
 @media (max-width: 600px) {
-  .music-demo-countdown { gap: 12px; margin: 24px auto 0; min-width: 0; }
+  .music-demo-countdown { gap: 15px; margin: 28px auto 0; min-width: 0; }
   .music-demo-countdown > span { font-size: 8px; }
-  .music-demo-countdown > strong { gap: 7px; padding: 0; font-size: clamp(34px, 10vw, 46px); }
-  .music-demo-clock-unit { gap: 10px; }
-  .music-demo-clock-unit::after { font-size: 8px; letter-spacing: .12em; }
-  .music-demo-clock-group { gap: 0; border-radius: 10px; }
+  .music-demo-countdown > strong { gap: 12px; padding: 0; font-size: clamp(38px, 11vw, 48px); }
+  .music-demo-clock-unit { gap: 11px; }
+  .music-demo-clock-unit::after { font-size: 8px; letter-spacing: .16em; }
+  .music-demo-clock-group { gap: 0; border-radius: 0; }
   .music-demo-page > .music-waveform-arena { width: min(100%, 112px); height: 44px; margin: 22px auto 18px; }
 }
 @media (max-width: 390px) {
