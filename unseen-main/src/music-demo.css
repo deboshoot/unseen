@@ -221,104 +221,98 @@
   line-height: 1.25;
 }
 .music-demo-countdown {
-  gap: 12px;
-  margin: 28px auto 0;
+  gap: 14px;
+  margin: 30px auto 0;
   padding: 0;
   max-width: 100%;
   color: #c8c2b9;
 }
 .music-demo-countdown > span {
-  color: #a9a6ae;
-  font-size: 10px;
+  color: #aaa4ad;
+  font-size: 9px;
   font-weight: 500;
-  letter-spacing: .2em;
+  letter-spacing: .24em;
 }
+.music-demo-clock-caption { display: inline-flex; align-items: center; gap: 8px; }
+.music-demo-clock-caption::before { width: 4px; height: 4px; border-radius: 50%; background: #dd9b94; content: ''; }
 .music-demo-countdown > strong {
   position: relative;
   display: flex;
   min-width: 0;
   align-items: stretch;
   justify-content: center;
-  gap: 9px;
-  padding: 13px 16px 11px;
-  border: 1px solid #ffffff24;
-  border-radius: 14px;
-  background: linear-gradient(160deg, #222326, #101113 42%, #161719);
-  box-shadow:
-    inset 0 1px 0 #ffffff0e,
-    0 0 0 3px #ffffff03,
-    0 10px 28px #0007;
-  color: #ff5a70;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
-  font-size: clamp(40px, 6.5vw, 62px);
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: #f2ede8;
+  font-family: 'Outfit', 'DM Sans', sans-serif;
+  font-size: clamp(42px, 6vw, 64px);
   font-variant-numeric: tabular-nums lining-nums;
   font-style: normal;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0;
   line-height: 1;
-  text-shadow: 0 0 16px #ff344d2b;
+  text-shadow: none;
 }
 .music-demo-countdown > strong::before {
-  position: absolute;
-  inset: 4px;
-  border: 1px solid #ffffff06;
-  border-radius: 10px;
-  content: "";
-  pointer-events: none;
+  content: none;
 }
 .music-demo-clock-unit {
   display: flex;
   min-width: 0;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
 }
 .music-demo-clock-unit::after {
-  color: #96939d;
+  color: #8e8793;
   content: attr(data-unit);
   font-family: 'DM Sans', sans-serif;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 500;
-  letter-spacing: .16em;
+  letter-spacing: .18em;
   line-height: 1;
   text-shadow: none;
   text-transform: uppercase;
 }
 .music-demo-clock-separator {
   display: flex;
-  width: .3em;
-  height: 1.08em;
+  width: .16em;
+  height: calc(1.05em + .3em + 2px);
   flex: none;
   align-items: center;
   justify-content: center;
-  color: #b74355;
+  color: #58505e;
   text-shadow: none;
 }
-.music-demo-clock-separator > span { font-size: .6em; }
+.music-demo-clock-separator > span { font-size: .42em; font-weight: 300; }
 .music-demo-clock-group {
   display: inline-flex;
-  gap: 4px;
+  gap: 0;
+  padding: .15em .18em;
+  border: 1px solid #ffffff12;
+  border-radius: 13px;
+  background: linear-gradient(160deg, #ffffff0a, #ffffff03);
+  box-shadow: inset 0 1px 0 #ffffff03;
 }
+.music-demo-clock-unit:last-child .music-demo-clock-group { border-color: #e4a09a24; background: linear-gradient(160deg, #d9867e10, #d9867e04); color: #e5a69e; }
 .music-demo-clock-digit {
   position: relative;
   display: grid;
-  width: .63em;
-  height: 1.08em;
+  width: .57em;
+  height: 1.05em;
   place-items: center;
   overflow: hidden;
-  border: 1px solid #ffffff15;
-  border-radius: 5px;
-  background: linear-gradient(180deg, #2b2c30, #202125 49%, #191a1e 50%, #222327);
-  box-shadow: inset 0 1px 0 #ffffff09, 0 2px 3px #0005;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
 .music-demo-clock-digit::after {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: #0005;
-  content: "";
+  content: none;
 }
 .music-demo-clock-value {
   position: relative;
@@ -326,8 +320,8 @@
   animation: music-clock-settle .18s ease-out both;
 }
 @keyframes music-clock-settle {
-  from { opacity: .55; transform: translateY(-3px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: .7; }
+  to { opacity: 1; }
 }
 .music-demo-countdown > small {
   color: #777a79;
@@ -358,13 +352,12 @@
   box-shadow: none;
 }
 @media (max-width: 600px) {
-  .music-demo-countdown { gap: 10px; margin: 22px auto 0; min-width: 0; }
-  .music-demo-countdown > span { font-size: 9px; }
-  .music-demo-countdown > strong { gap: 5px; padding: 10px 11px 9px; font-size: clamp(32px, 9.5vw, 46px); }
-  .music-demo-clock-unit { gap: 8px; }
-  .music-demo-clock-unit::after { font-size: 7px; }
-  .music-demo-clock-group { gap: 3px; }
-  .music-demo-clock-digit { border-radius: 4px; }
+  .music-demo-countdown { gap: 12px; margin: 24px auto 0; min-width: 0; }
+  .music-demo-countdown > span { font-size: 8px; }
+  .music-demo-countdown > strong { gap: 7px; padding: 0; font-size: clamp(34px, 10vw, 46px); }
+  .music-demo-clock-unit { gap: 10px; }
+  .music-demo-clock-unit::after { font-size: 8px; letter-spacing: .12em; }
+  .music-demo-clock-group { gap: 0; border-radius: 10px; }
   .music-demo-page > .music-waveform-arena { width: min(100%, 112px); height: 44px; margin: 22px auto 18px; }
 }
 @media (max-width: 390px) {
