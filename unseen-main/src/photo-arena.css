@@ -35,24 +35,24 @@
   padding: 7px 10px;
   border: 1px solid #ffffff24;
   border-radius: 999px;
-  color: #eeebf3;
-  background: #111015bf;
+  color: hsl(0 0% 93.7%);
+  background: hsl(0 0% 7.3% / 0.749);
   backdrop-filter: blur(8px);
   font-size: 10px;
   transition: border-color .2s, background .2s;
 }
-.photo-arena-image-button:hover .photo-arena-zoom { border-color: #c3b0e380; background: #211b2ae6; }
-.photo-arena-image-button:focus-visible { outline: 2px solid #c3b0e3; outline-offset: 6px; }
+.photo-arena-image-button:hover .photo-arena-zoom { border-color: hsl(var(--primary) / 0.502); background: hsl(0 0% 13.5% / 0.902); }
+.photo-arena-image-button:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 6px; }
 .photo-arena-caption { padding: 9px 0 8px; }
 .photo-arena-caption h2 {
-  color: #e4e4ed;
+  color: hsl(0 0% 91.2%);
   font-size: clamp(20px, 2.7vw, 27px);
   font-weight: 400;
   letter-spacing: -.035em;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
-.photo-arena-caption p { margin-top: 3px; color: #989baa; font-size: 12px; letter-spacing: .03em; }
+.photo-arena-caption p { margin-top: 3px; color: hsl(0 0% 63.1%); font-size: 12px; letter-spacing: .03em; }
 .photo-arena .is-lost img { filter: grayscale(.85) brightness(.5); }
 .photo-arena .champ-arena-result { padding-top: 8px; }
 .photo-arena-dialog[role="dialog"] {
@@ -73,24 +73,24 @@
   animation: none;
   border: 0;
   border-radius: 0;
-  color: #ece8f1;
-  background: #070709;
+  color: hsl(0 0% 92.7%);
+  background: hsl(0 0% 3.1%);
 }
 .photo-arena-dialog > button:last-child { display: none; }
 .photo-arena-dialog-media { display: flex; min-width: 0; min-height: 0; height: 100%; align-items: center; justify-content: center; }
 .photo-arena-dialog-media img { display: block; width: 100%; height: 100%; max-height: calc(100dvh - 108px); object-fit: contain; }
 .photo-arena-dialog-copy { min-width: 0; max-height: calc(100dvh - 108px); overflow-y: auto; padding: 4px 6px 4px 0; }
-.photo-arena-dialog-copy h2 { color: #f1edf5; font-size: clamp(26px, 3.5vw, 44px); font-weight: 400; letter-spacing: -.035em; line-height: 1.18; overflow-wrap: anywhere; }
-.photo-arena-dialog-artist { margin-top: 10px; color: #c3b0e3; font-size: 13px; }
-.photo-arena-dialog-copy h3 { margin: 34px 0 12px; color: #aaa1b7; font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
+.photo-arena-dialog-copy h2 { color: hsl(0 0% 94.5%); font-size: clamp(26px, 3.5vw, 44px); font-weight: 400; letter-spacing: -.035em; line-height: 1.18; overflow-wrap: anywhere; }
+.photo-arena-dialog-artist { margin-top: 10px; color: hsl(var(--primary)); font-size: 13px; }
+.photo-arena-dialog-copy h3 { margin: 34px 0 12px; color: hsl(var(--primary)); font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
 .photo-arena-dialog-copy .photo-arena-description,
 .photo-arena-dialog-copy [role="status"],
-.photo-arena-dialog-copy [role="alert"] { color: #b7b0c1; font-size: 14px; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
-.photo-arena-dialog-close { position: absolute; top: 20px; right: 24px; display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid #ffffff24; border-radius: 50%; color: #eeebf3; background: #ffffff05; }
+.photo-arena-dialog-copy [role="alert"] { color: hsl(0 0% 72.4%); font-size: 14px; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.photo-arena-dialog-close { position: absolute; top: 20px; right: 24px; display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid #ffffff24; border-radius: 50%; color: hsl(0 0% 93.7%); background: #ffffff05; }
 .photo-arena-dialog-close:hover { background: #ffffff10; }
 .photo-arena-dialog-close:focus-visible,
-.photo-arena-retry:focus-visible { outline: 2px solid #c3b0e3; outline-offset: 4px; }
-.photo-arena-retry { margin-top: 14px; padding: 7px 12px; border: 1px solid #c3b0e34d; border-radius: 999px; color: #d4c7e9; font-size: 12px; }
+.photo-arena-retry:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 4px; }
+.photo-arena-retry { margin-top: 14px; padding: 7px 12px; border: 1px solid hsl(var(--primary) / 0.302); border-radius: 999px; color: hsl(var(--primary)); font-size: 12px; }
 @media (max-width: 760px) {
   .photo-arena-dialog[role="dialog"] { display: flex; flex-direction: column; align-items: stretch; gap: 26px; overflow-y: auto; padding: 70px 18px 30px; }
   .photo-arena-dialog-media { flex: none; height: min(62dvh, 600px); }

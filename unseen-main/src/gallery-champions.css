@@ -22,11 +22,11 @@
 .collection-navigation nav > button[aria-pressed="true"], .collection-navigation nav > button:hover { color: var(--collection-ink); }
 .collection-navigation nav > button[aria-pressed="true"]::after { transform: scaleX(1); }
 .collection-archive-label { display: flex; align-items: center; gap: 9px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--collection-muted); }
-.collection-archive-label > span { width: 4px; height: 4px; border-radius: 50%; background: #bdb09a; }
+.collection-archive-label > span { width: 4px; height: 4px; border-radius: 50%; background: hsl(var(--primary)); }
 .collection-edition-header { display: flex; justify-content: space-between; align-items: end; gap: 24px; padding: 36px 0 31px; }
 .collection-edition-header .collection-eyebrow { color: var(--collection-muted); font-size: 10px; margin-bottom: 10px; }
 .collection-edition-header h2 { font-family: var(--font-display); font-size: clamp(25px, 3vw, 36px); font-weight: 400; line-height: 1.2; letter-spacing: -.025em; }
-.collection-edition-header h2 > span { color: #c8bba3; }
+.collection-edition-header h2 > span { color: hsl(var(--primary)); }
 .collection-edition-category { color: var(--collection-muted); font-size: 12px; padding-bottom: 4px; }
 .collection-section-line { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 37px 0 29px; font-size: 9px; line-height: 1.7; }
 .collection-section-line > p { text-transform: uppercase; letter-spacing: .18em; }
@@ -41,7 +41,7 @@
 .collection-artwork-caption { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 19px; color: var(--collection-muted); font-size: 8px; letter-spacing: .14em; }
 .collection-artwork-caption > span:last-child { display: flex; align-items: center; gap: 8px; letter-spacing: .03em; }
 .collection-exhibition-copy { padding: 12px 0 30px; }
-.collection-exhibition-copy > .collection-eyebrow { color: #b9ab93; margin-bottom: 23px; }
+.collection-exhibition-copy > .collection-eyebrow { color: hsl(var(--primary)); margin-bottom: 23px; }
 .collection-exhibition-copy > h2 { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(36px, 4vw, 58px); font-weight: 400; letter-spacing: -.025em; line-height: 1.05; overflow-wrap: anywhere; }
 .collection-artist { margin-top: 27px; font-size: 16px; line-height: 1.6; }
 .collection-artist > span { display: block; margin-bottom: 7px; font-size: 8px; letter-spacing: .17em; text-transform: uppercase; color: var(--collection-muted); }
@@ -49,19 +49,19 @@
 .collection-metadata { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--collection-line); padding-top: 20px; margin-bottom: 26px; }
 .collection-metadata dt { font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: var(--collection-muted); margin-bottom: 7px; }
 .collection-metadata dd { font-size: 11px; line-height: 1.6; }
-.collection-text-link { display: inline-flex; align-items: center; justify-content: space-between; min-width: 170px; min-height: 44px; gap: 28px; padding: 12px 0; border-bottom: 1px solid #b8ac9580; font-size: 12px; }
+.collection-text-link { display: inline-flex; align-items: center; justify-content: space-between; min-width: 170px; min-height: 44px; gap: 28px; padding: 12px 0; border-bottom: 1px solid hsl(var(--primary) / 0.502); font-size: 12px; }
 .collection-text-link > svg, .collection-submit-link > svg { transition: transform .25s; }
 .collection-text-link:hover > svg { transform: translate(3px, -3px); }
 .collection-profile { display: flex; align-items: center; gap: 7px; min-height: 30px; width: fit-content; margin-top: 22px; color: var(--collection-muted); font-size: 11px; }
 .collection-profile:hover, .collection-tournament:hover { color: var(--collection-ink); }
 .collection-tournament { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 23px; padding-top: 16px; border-top: 1px solid var(--collection-line); color: var(--collection-muted); font-size: 10px; line-height: 1.7; }
 .collection-awards { margin-top: 35px; }
-.collection-awards-toggle { display: flex; width: 100%; min-height: 76px; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 24px; border: 1px solid #b9ab9355; background: #c8bba30b; color: var(--collection-ink); font-size: 15px; font-weight: 500; line-height: 1.5; text-align: left; transition: background .2s, border-color .2s; }
+.collection-awards-toggle { display: flex; width: 100%; min-height: 76px; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 24px; border: 1px solid hsl(var(--primary) / 0.333); background: hsl(var(--primary) / 0.043); color: var(--collection-ink); font-size: 15px; font-weight: 500; line-height: 1.5; text-align: left; transition: background .2s, border-color .2s; }
 .collection-awards-toggle > span { display: flex; align-items: center; gap: 16px; min-width: 0; }
 .collection-awards-toggle small { display: grid; place-items: center; flex-shrink: 0; min-width: 28px; height: 28px; border: 1px solid var(--collection-line); font-size: 11px; color: var(--collection-ink); }
 .collection-awards-toggle > svg { width: 20px; height: 20px; flex-shrink: 0; transition: transform .25s; }
 .collection-awards-toggle[aria-expanded="true"] > svg { transform: rotate(180deg); }
-.collection-awards-toggle:hover { background: #c8bba315; border-color: #b9ab9390; }
+.collection-awards-toggle:hover { background: hsl(var(--primary) / 0.082); border-color: hsl(var(--primary) / 0.565); }
 .collection-awards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; max-width: 850px; margin: 38px auto 0; }
 .collection-archive { margin-top: 65px; border-top: 1px solid var(--collection-line); }
 .collection-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 65px 40px; }
@@ -73,39 +73,39 @@
 .collection-piece-open { position: absolute; right: 13px; bottom: 13px; color: #5b574e; opacity: 0; transition: opacity .2s; }
 .collection-piece:hover .collection-piece-open, .collection-piece:focus-visible .collection-piece-open { opacity: 1; }
 .collection-piece-caption { position: relative; display: block; padding: 23px 25px 0 0; }
-.collection-piece-caption > .collection-eyebrow { color: #b9ab93; font-size: 8px; letter-spacing: .13em; }
+.collection-piece-caption > .collection-eyebrow { color: hsl(var(--primary)); font-size: 8px; letter-spacing: .13em; }
 .collection-piece-title { display: block; font-family: 'Instrument Serif', Georgia, serif; font-size: 27px; font-weight: 400; line-height: 1.15; margin-top: 10px; overflow-wrap: anywhere; }
 .collection-piece-author { display: block; color: var(--collection-muted); font-size: 10px; margin-top: 8px; }
 .collection-piece-caption > svg { position: absolute; right: 0; top: 29px; color: var(--collection-muted); }
 .collection-entry .collection-awards-grid { gap: 20px; grid-template-columns: 1fr; }
 .collection-exhibition.is-music { grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); }
-.collection-exhibition.is-music .collection-exhibition-media { padding: 14px 30px 0; background: radial-gradient(ellipse at 50% 65%, #d6b9900a, transparent 65%); }
+.collection-exhibition.is-music .collection-exhibition-media { padding: 14px 30px 0; background: radial-gradient(ellipse at 50% 65%, hsl(var(--primary) / 0.039), transparent 65%); }
 .unseen-collection .music-track-info h2 { color: var(--collection-ink); font-size: 20px; }
 .unseen-collection .music-track-info p, .unseen-collection .music-time { color: var(--collection-muted); }
 .unseen-collection .music-small-play { border-color: var(--collection-line); color: var(--collection-ink); }
-.unseen-collection .music-progress { accent-color: #b9ab93; }
+.unseen-collection .music-progress { accent-color: hsl(var(--primary)); }
 .collection-empty { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: clamp(45px, 7vw, 100px); padding: 80px 35px 70px; }
 .collection-empty-art { position: relative; width: 100%; max-width: 370px; aspect-ratio: 1; margin: auto; display: grid; place-items: center; }
-.collection-empty-object { position: relative; width: 66%; aspect-ratio: 4 / 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; border: 1px solid #c1b49555; background: linear-gradient(135deg, #c8bd9f08, transparent 55%), #17191c; box-shadow: 14px 22px 45px #0004, inset 0 0 0 15px #101215, inset 0 0 0 16px #c1b49525; }
+.collection-empty-object { position: relative; width: 66%; aspect-ratio: 4 / 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; border: 1px solid hsl(var(--primary) / 0.333); background: linear-gradient(135deg, hsl(var(--primary) / 0.031), transparent 55%), #17191c; box-shadow: 14px 22px 45px #0004, inset 0 0 0 15px #101215, inset 0 0 0 16px hsl(var(--primary) / 0.145); }
 .collection-empty-object > span { font-size: 16px; letter-spacing: .23em; font-weight: 500; padding-left: .23em; }
 .collection-empty-object > small { font-size: 6px; letter-spacing: .21em; color: var(--collection-muted); }
 .collection-empty.is-music .collection-empty-object { width: 83%; aspect-ratio: 1; border-radius: 50%; border: 0; background: #08090b url('/music/vinyl-photoreal.png') center / cover; box-shadow: 12px 22px 45px #0006; }
 .collection-empty.is-music .collection-empty-object > span { font-size: 10px; letter-spacing: .09em; }
 .collection-empty.is-music .collection-empty-object > small { font-size: 4px; letter-spacing: 0; }
-.collection-empty-copy > .collection-eyebrow { color: #b9ab93; }
+.collection-empty-copy > .collection-eyebrow { color: hsl(var(--primary)); }
 .collection-empty-copy > h2 { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(35px, 4vw, 52px); font-weight: 400; line-height: 1.1; letter-spacing: -.02em; max-width: 390px; margin-top: 20px; }
 .collection-empty-copy > p:not(.collection-eyebrow) { max-width: 320px; color: var(--collection-muted); font-size: 12px; line-height: 1.9; margin: 22px 0; }
 .collection-invitation { display: grid; grid-template-columns: 1.3fr 1fr; align-items: center; gap: 50px; border-top: 1px solid var(--collection-line); margin-top: 95px; padding-top: 47px; }
 .collection-invitation > div:first-child > .collection-eyebrow { color: var(--collection-muted); }
 .collection-invitation h2 { font-family: var(--font-display); font-size: clamp(30px, 3.3vw, 45px); font-weight: 300; letter-spacing: -.04em; line-height: 1.1; margin-top: 22px; }
-.collection-invitation h2 > em { font-family: 'Instrument Serif', Georgia, serif; font-size: 1.2em; font-weight: 400; color: #c8bba3; }
+.collection-invitation h2 > em { font-family: 'Instrument Serif', Georgia, serif; font-size: 1.2em; font-weight: 400; color: hsl(var(--primary)); }
 .collection-invitation > div:nth-child(2) { max-width: 290px; width: 100%; justify-self: end; }
 .collection-invitation > div:nth-child(2) > p { font-size: 11px; color: var(--collection-muted); line-height: 1.9; }
-.collection-submit-link { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid #b8ac9580; padding: 17px 0; margin-top: 14px; font-size: 11px; }
+.collection-submit-link { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid hsl(var(--primary) / 0.502); padding: 17px 0; margin-top: 14px; font-size: 11px; }
 .collection-submit-link:hover > svg { transform: translate(3px, 3px); }
 .collection-signature { grid-column: 1 / -1; text-align: center; width: 100%; overflow: hidden; font-family: var(--font-display); font-size: clamp(64px, 17vw, 220px); font-weight: 500; letter-spacing: -.055em; line-height: .78; color: #eeeae307; margin-top: 23px; padding-top: 15px; user-select: none; }
 .collection-loading { display: flex; align-items: center; justify-content: center; gap: 15px; min-height: 300px; font-size: 11px; color: var(--collection-muted); }
-.collection-loading > span { width: 24px; height: 1px; background: #b9ab93; animation: collection-pulse 1.4s ease-in-out infinite alternate; }
+.collection-loading > span { width: 24px; height: 1px; background: hsl(var(--primary)); animation: collection-pulse 1.4s ease-in-out infinite alternate; }
 @keyframes collection-pulse { to { opacity: .25; transform: scaleX(.5); } }
 .collection-notice { display: flex; align-items: center; gap: 25px; justify-content: space-between; margin: 32px 0; padding: 25px 0; border-bottom: 1px solid var(--collection-line); font-size: 12px; color: var(--collection-muted); }
 .collection-notice > button { display: flex; align-items: center; gap: 10px; color: var(--collection-ink); }
@@ -113,11 +113,11 @@
 .collection-pagination button:disabled { opacity: .3; }
 .unseen-collection :is(button,a):focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 6px; }
 .light-mode .unseen-collection { --collection-ink: #252724; --collection-muted: #686961; --collection-line: #24271f24; --collection-paper: #e5e1d7; color: var(--collection-ink); background: #f6f4ef; }
-.light-mode .unseen-collection :is(.collection-exhibition-copy > .collection-eyebrow,.collection-piece-caption > .collection-eyebrow,.collection-empty-copy > .collection-eyebrow) { color: #7a6848; }
-.light-mode .collection-invitation h2 > em { color: #7a6848; }
-.light-mode .collection-edition-header h2 > span { color: #7a6848; }
+.light-mode .unseen-collection :is(.collection-exhibition-copy > .collection-eyebrow,.collection-piece-caption > .collection-eyebrow,.collection-empty-copy > .collection-eyebrow) { color: hsl(var(--primary)); }
+.light-mode .collection-invitation h2 > em { color: hsl(var(--primary)); }
+.light-mode .collection-edition-header h2 > span { color: hsl(var(--primary)); }
 .light-mode .collection-signature { color: #25272409; }
-.light-mode .collection-empty-object { background: #eeeae1; box-shadow: 14px 22px 45px #48402d0c, inset 0 0 0 15px #f6f4ef, inset 0 0 0 16px #82755633; }
+.light-mode .collection-empty-object { background: #eeeae1; box-shadow: 14px 22px 45px #48402d0c, inset 0 0 0 15px #f6f4ef, inset 0 0 0 16px hsl(var(--primary) / 0.2); }
 .light-mode .collection-empty.is-music .collection-empty-object { background: #08090b url('/music/vinyl-photoreal.png') center / cover; color: #eeeae3; box-shadow: 12px 22px 45px #48402d24; }
 @media (min-width: 1500px) { .unseen-collection { padding-top: 175px; } }
 @media (max-width: 1000px) { .unseen-collection { padding-right: 28px; padding-left: 28px; } .collection-exhibition { gap: 35px; grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr); } .collection-mount { min-height: 330px; padding: 26px; } .collection-exhibition-copy > h2 { font-size: 40px; } .collection-grid { gap: 50px 25px; } }

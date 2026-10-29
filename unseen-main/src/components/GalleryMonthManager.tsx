@@ -150,9 +150,9 @@ const GalleryMonthManager = () => {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-3xl border border-cyan-400/20 bg-cyan-950/10 p-6 md:p-8">
+      <div className="rounded-3xl border border-primary/20 bg-primary/10 p-6 md:p-8">
         <div className="mb-6 flex items-center gap-3">
-          <CalendarDays className="text-cyan-300" />
+          <CalendarDays className="text-primary" />
           <div>
             <h2 className="font-display text-2xl font-bold text-white">Campionato mensile</h2>
             <p className="text-sm text-white/50">Associa tre opere diverse allo stesso mese.</p>
@@ -165,10 +165,10 @@ const GalleryMonthManager = () => {
           <ArtworkSelect label="2ª posizione" value={form.peopleChoiceId} onChange={(value) => updateField("peopleChoiceId", value)} artworks={artworks} />
           <ArtworkSelect label="3ª posizione" value={form.juryChoiceId} onChange={(value) => updateField("juryChoiceId", value)} artworks={artworks} />
         </div>
-        {message ? <p className="mt-4 text-sm text-cyan-200">{message}</p> : null}
+        {message ? <p className="mt-4 text-sm text-primary">{message}</p> : null}
         <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" onClick={() => void handleSave()} disabled={saving || loading} className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-5 py-3 font-display text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-50"><Save size={17} />{saving ? "Salvataggio..." : "Salva ordine galleria"}</button>
-          <button type="button" onClick={importFinalOrder} disabled={!finalArena} className="rounded-xl border border-amber-300/30 bg-amber-300/10 px-5 py-3 font-display text-sm font-semibold text-amber-100 transition hover:bg-amber-300/20 disabled:opacity-50">Importa ordine Arena Finale</button>
+          <button type="button" onClick={() => void handleSave()} disabled={saving || loading} className="inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-5 py-3 font-display text-sm font-semibold text-primary transition hover:bg-primary/20 disabled:opacity-50"><Save size={17} />{saving ? "Salvataggio..." : "Salva ordine galleria"}</button>
+          <button type="button" onClick={importFinalOrder} disabled={!finalArena} className="rounded-xl border border-primary/30 bg-primary/10 px-5 py-3 font-display text-sm font-semibold text-primary transition hover:bg-primary/20 disabled:opacity-50">Importa ordine Arena Finale</button>
         </div>
       </div>
 
@@ -176,14 +176,14 @@ const GalleryMonthManager = () => {
         {months.map((month) => (
           <div key={month.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div><p className="text-xs uppercase tracking-[0.25em] text-cyan-200/70">{month.month_label}</p><p className="mt-1 text-xs text-white/40">{month.month_key.slice(0, 7)}</p></div>
+              <div><p className="text-xs uppercase tracking-[0.25em] text-primary/70">{month.month_label}</p><p className="mt-1 text-xs text-white/40">{month.month_key.slice(0, 7)}</p></div>
               <div className="flex gap-2"><button type="button" onClick={() => handleEdit(month)} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/70 hover:bg-white/10">Modifica</button><button type="button" onClick={() => void handleDelete(month.id)} className="rounded-lg border border-red-300/20 p-2 text-red-200 hover:bg-red-300/10" aria-label="Rimuovi mese"><Trash2 size={16} /></button></div>
             </div>
             <div className="mt-4 grid gap-2 text-sm text-white/65 md:grid-cols-3"><p><strong className="block text-xs uppercase text-white/35">Mese</strong>{artworkLabel(month.winner_id)}</p><p><strong className="block text-xs uppercase text-white/35">Popolo</strong>{artworkLabel(month.people_choice_id)}</p><p><strong className="block text-xs uppercase text-white/35">Giuria</strong>{artworkLabel(month.jury_choice_id)}</p></div>
           </div>
         ))}
         {!loading && months.length === 0 ? <p className="py-8 text-center text-sm text-white/40">Nessun mese configurato.</p> : null}
-        {!loading && artworks.length === 0 ? <p className="rounded-xl border border-amber-300/20 bg-amber-300/5 p-4 text-sm text-amber-100">Non ci sono opere accettate. Vai nella scheda Moderazione e accetta prima le opere che vuoi inserire nei vincitori.</p> : null}
+        {!loading && artworks.length === 0 ? <p className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-primary">Non ci sono opere accettate. Vai nella scheda Moderazione e accetta prima le opere che vuoi inserire nei vincitori.</p> : null}
       </div>
     </div>
   );
