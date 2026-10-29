@@ -40,11 +40,14 @@ export default function MusicArenaStage({ tracks, timerValue, timerLabel, naviga
         <h1>ARENA DIGITALE</h1>
         <p className="music-demo-tagline">framing the unseen</p>
         <section className="music-demo-countdown" aria-label={timerLabel}>
-          <strong role="timer" aria-label={`${timerLabel}: ${timerValue}`}>
-            {timerValue.split(' : ').map((group, groupIndex) => <Fragment key={`${group}-${groupIndex}`}>
-              {groupIndex > 0 && ' : '}
-              <span className="music-demo-clock-group">
-                {Array.from(group, (digit, digitIndex) => <span className="music-demo-clock-digit" key={`${digit}-${digitIndex}`}>{digit}</span>)}
+          <span className="music-demo-clock-caption" aria-hidden="true">{timerLabel}</span>
+          <strong role="timer" aria-live="off" aria-label={`${timerLabel}: ${timerValue}`}>
+            {timerValue.split(' : ').map((group, groupIndex) => <Fragment key={groupIndex}>
+              {groupIndex > 0 && <span className="music-demo-clock-separator" aria-hidden="true"><span>{' : '}</span></span>}
+              <span className="music-demo-clock-unit" data-unit={text.timeUnits[groupIndex]}>
+                <span className="music-demo-clock-group">
+                  {Array.from(group, (digit, digitIndex) => <span className="music-demo-clock-digit" key={digitIndex}><span className="music-demo-clock-value" key={digit}>{digit}</span></span>)}
+                </span>
               </span>
             </Fragment>)}
           </strong>
