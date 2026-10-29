@@ -21,9 +21,7 @@ export default function Index() {
       <div className="home-hero-layout">
         <div className="home-hero-visual"><PortalScene label={copy.scene} /></div>
         <div className="home-hero-center">
-          <p className="home-hero-intro">{copy.intro}</p>
           <h1 id="home-title" className="home-sculpture-title">UNSEEN</h1>
-          <p className="home-hero-description">{t('home.tagline')}</p>
           <div className="home-hero-actions">
             <Link to="/gallery" className="home-enter-link">{t('home.galleryCta')}<ArrowUpRight size={17} /></Link>
             <Link to="/arena" className="home-arena-link">{t('home.arenaCta')}<ArrowUpRight size={16} /></Link>
