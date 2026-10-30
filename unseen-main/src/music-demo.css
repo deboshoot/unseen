@@ -87,14 +87,18 @@
 .music-demo-page .music-track .music-demo-profile { margin-top: 12px; }
 .music-demo-page .music-track .music-demo-profile-icon:focus-visible,
 .music-demo-profile-close:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 4px; }
-.music-demo-profile-dialog { inset: 0; left: 0; top: 0; width: 100vw; max-width: none; height: 100vh; height: 100dvh; max-height: none; transform: none; gap: 0; overflow: auto; border: 0; border-radius: 0; padding: clamp(24px, 6vw, 80px); color: hsl(0 0% 95.7%); background: radial-gradient(ellipse at 50% 35%, hsl(24 18% 20%) 0%, hsl(0 0% 10.2%) 50%, hsl(0 0% 6.5%) 100%); }
+/* Override the shared dialog utilities regardless of stylesheet load order. */
+.music-demo-profile-dialog[role="dialog"] { inset: 0; left: 0; top: 0; width: 100%; max-width: none; height: 100vh; height: 100dvh; max-height: none; transform: none; gap: 0; overflow: auto; border: 0; border-radius: 0; padding: clamp(24px, 6vw, 80px); color: hsl(0 0% 95.7%); background: radial-gradient(ellipse at 50% 35%, hsl(24 18% 20%) 0%, hsl(0 0% 10.2%) 50%, hsl(0 0% 6.5%) 100%); }
+.music-demo-profile-dialog[role="dialog"][data-state] { animation-name: music-demo-profile-fade; }
+.music-demo-profile-dialog[role="dialog"][data-state="closed"] { animation-direction: reverse; }
+@keyframes music-demo-profile-fade { from { opacity: 0; } to { opacity: 1; } }
 .music-demo-profile-dialog > button:last-child { display: none; }
 .music-demo-profile-expanded { position: relative; display: grid; width: min(100%, 1100px); min-height: min(72vh, 760px); grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); align-items: center; gap: clamp(30px, 7vw, 100px); margin: auto; }
 .music-demo-profile-expanded > img { display: block; width: 100%; max-height: 78vh; aspect-ratio: 1; object-fit: contain; border-radius: 14px; box-shadow: 0 25px 80px #0009; }
 .music-demo-profile-expanded-details { min-width: 0; padding: 24px 0; }
 .music-demo-profile-expanded-details > span { color: hsl(var(--primary)); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
-.music-demo-profile-expanded-details h2 { margin-top: 12px; color: hsl(0 0% 96.9%); font-size: clamp(38px, 7vw, 76px); font-weight: 500; letter-spacing: -.05em; }
-.music-demo-profile-expanded-details > p { margin-top: 12px; color: hsl(var(--primary)); font-size: 16px; }
+.music-demo-profile-expanded-details h2 { margin-top: 12px; color: hsl(0 0% 96.9%); font-size: clamp(38px, 7vw, 76px); font-weight: 500; line-height: 1.05; letter-spacing: -.05em; overflow-wrap: anywhere; }
+.music-demo-profile-expanded-details > p { margin-top: 12px; color: hsl(var(--primary)); font-size: 16px; overflow-wrap: anywhere; }
 .music-demo-profile-expanded-details > p > a { color: inherit; text-decoration: none; transition: color .2s; }
 .music-demo-profile-expanded-details > p > a:hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
 .music-demo-profile-dialog .music-social-links { display: flex; flex-wrap: nowrap; align-items: center; gap: 18px; margin: 30px 0 0; }
@@ -177,7 +181,7 @@
   .music-demo-page .music-demo-side-socials .music-social-link-instagram > .music-instagram-mark { width: 33px; height: 33px; }
   .music-demo-page .music-demo-side-socials .music-social-link-youtube > .music-youtube-mark { width: 33px; height: 33px; }
   .music-demo-page .music-demo-side-socials .music-social-link-spotify > .music-spotify-mark { width: 33px; height: 33px; }
-  .music-demo-profile-dialog { padding: 72px 22px 28px; }
+  .music-demo-profile-dialog[role="dialog"] { padding: 72px 22px 28px; }
   .music-demo-profile-expanded { width: min(100%, 560px); min-height: 0; grid-template-columns: 1fr; gap: 24px; }
   .music-demo-profile-expanded > img { width: min(100%, 420px); max-height: 52vh; margin: auto; }
   .music-demo-profile-expanded-details { padding: 0; text-align: center; }
@@ -372,6 +376,7 @@
   .music-demo-page .music-demo-vote-choices .music-demo-vote-choice > span { font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .music-demo-profile-dialog[role="dialog"][data-state] { animation: none; }
   .music-demo-clock-value { animation: none; }
   .music-demo-page .music-demo-transport > button,
   .music-demo-page .vinyl-button .vinyl-play-icon { transition: none; }
