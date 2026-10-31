@@ -97,7 +97,7 @@ describe('championship arena voting', () => {
     expect(screen.getByRole('timer')).toHaveTextContent('48 : 00 : 00');
     expect(screen.getByRole('img', { name: 'Work 1' })).toBeInTheDocument();
   });
-  it('keeps live totals secret and reveals scores only after the match has been resolved', () => {
+  it('keeps live totals secret and redirects resolved-match links to the active duel', () => {
     state.matches[0].votes_1 = 532; state.matches[0].votes_2 = 341;
     const { unmount } = mount();
     expect(screen.queryByText(/532/)).not.toBeInTheDocument();
@@ -105,8 +105,10 @@ describe('championship arena voting', () => {
     unmount();
     state.matches[0].resolved_at = new Date(fixtureNow + 48 * 3600000).toISOString();
     now += 48 * 3600000; mount('/arena/fotografica?match=match-1');
-    expect(screen.getByText(/532/)).toBeInTheDocument();
-    expect(screen.getByText(/341/)).toBeInTheDocument();
+    expect(screen.queryByText(/532/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/341/)).not.toBeInTheDocument();
+    expect(screen.getByTestId('location')).toHaveTextContent('/arena/fotografica?campionato=championship-1&match=match-2');
+    expect(screen.getByRole('img', { name: 'Work 3' })).toBeInTheDocument();
   });
   it('renders the music opening page without a championship and links to song submissions', () => {
     empty = true;
@@ -141,10 +143,25 @@ describe('championship arena voting', () => {
   });
   it('closes voting at exactly the server deadline', () => {
     now += 48 * 3600000; mount('/arena/fotografica?match=match-1');
-    expect(screen.getByRole('button', { name: 'Vota' })).toBeDisabled();
+    expect(screen.getByTestId('location')).toHaveTextContent('match=match-2');
+    expect(screen.queryByRole('img', { name: 'Work 1' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Vota' })).toBeEnabled();
   });
   it('keeps cancelled championships closed even during their scheduled window', () => {
     state.championship.status = 'cancelled'; mount('/arena/fotografica?match=match-1');
-    expect(screen.getByRole('button', { name: 'Vota' })).toBeDisabled();
+    expect(screen.getByTestId('location')).toHaveTextContent('/campionato?tipo=foto&id=championship-1');
+    expect(screen.queryByRole('button', { name: 'Vota' })).not.toBeInTheDocument();
+  });
+  it.each(['match-8', 'missing-match'])('redirects the link %s without ever mounting future photographs', requested => {
+    mount(`/arena/fotografica?match=${requested}`);
+    expect(screen.getByTestId('location')).toHaveTextContent('match=match-1');
+    expect(screen.queryByRole('img', { name: 'Work 15' })).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Work 1' })).toBeInTheDocument();
+  });
+  it('keeps direct match links on the opening page before the scheduled start', () => {
+    state.championship.status = 'scheduled'; now = fixtureNow - 1;
+    const { container } = mount('/arena/fotografica?match=match-1');
+    expect(screen.getByText('Arena fotografica in arrivo')).toBeInTheDocument();
+    expect(container.querySelector('.photo-arena-image-button')).toBeNull();
   });
 });

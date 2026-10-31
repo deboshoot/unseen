@@ -5,7 +5,7 @@ export type ChampionshipMatch = { id: string; championship_id: string; number: n
 export type Championship = { id: string; kind: ChampionshipKind; name: string; start_at: string; end_at: string; status: 'scheduled' | 'running' | 'completed' | 'cancelled'; winner_id: string | null };
 export type ChampionshipData = { championship: Championship | null; entries: ChampionshipEntry[]; matches: ChampionshipMatch[]; my_votes: { match_id: string; vote_slot: number }[]; server_now: string };
 export const arenaPath = (kind: ChampionshipKind) => `/arena/${kind === 'music' ? 'musicale' : 'fotografica'}`;
-export const isMatchOpen = (match: ChampionshipMatch, championship: Championship, now: number) => championship.status === 'running' && !match.winner_id && Date.parse(match.start_at) <= now && Date.parse(match.end_at) > now && Boolean(match.entry_1_id && match.entry_2_id);
+export const isMatchOpen = (match: ChampionshipMatch, championship: Championship, now: number) => championship.status === 'running' && !match.winner_id && !match.resolved_at && Date.parse(match.start_at) <= now && Date.parse(match.end_at) > now && Boolean(match.entry_1_id && match.entry_2_id);
 export const currentMatch = (data: ChampionshipData, now: number) => data.championship ? data.matches.find(match => isMatchOpen(match, data.championship, now)) : undefined;
 export const countdown = (end: string, now: number) => {
   const seconds = Math.max(0, Math.ceil((Date.parse(end) - now) / 1000));

@@ -23,6 +23,7 @@ export default function Championship() {
     return () => { mounted = false; };
   }, [kind, data?.championship?.id]);
   const championship = data?.championship;
+  const published = championship && championship.status !== 'scheduled' && Date.parse(championship.start_at) <= now;
   const live = data ? currentMatch(data, now) : null;
   const finished = data?.matches.filter(match => match.winner_id).length ?? 0;
   const winner = data?.entries.find(entry => entry.id === championship?.winner_id);
@@ -47,9 +48,9 @@ export default function Championship() {
         </section> : <section className="champ-empty"><Trophy size={28} /><h2>{copy.empty}</h2><p>{copy.emptyText}</p><Link className="champ-button" to={`/submit?tipo=${kind === 'music' ? 'musica' : 'foto'}`}>{copy.submit}<ArrowUpRight size={16} /></Link></section>}
         {winner && <section className="champ-winner"><img src={winner.image_url} alt={winner.title} /><div><p><Trophy size={16} />{copy.champion}</p><h2>{winner.title}</h2><span>{winner.artist} · #{winner.seed}</span></div></section>}
         <div className="champ-board-heading"><h2>{copy.bracket}</h2><span>{copy.scroll}</span></div>
-        <ChampionshipBracket data={data} kind={kind} now={now} />
+        <ChampionshipBracket data={published ? data : undefined} kind={kind} now={now} />
         <div className="champ-rule"><p>{copy.duration}</p><p>{copy.tieRule}</p></div>
-        {data?.entries.length > 0 && <section className="champ-participants"><h2>16 {copy.participants}</h2><div>{data.entries.map(entry => <article key={entry.id} className={eliminated.has(entry.id) ? 'is-lost' : ''}><div><img src={entry.image_url} alt={entry.title} loading="lazy" />{eliminated.has(entry.id) && <X aria-label={copy.lost} size={38} />}</div><span>#{entry.seed} · {entry.artist}</span><h3>{entry.title}</h3></article>)}</div></section>}
+        {published && data?.entries.length > 0 && <section className="champ-participants"><h2>16 {copy.participants}</h2><div>{data.entries.map(entry => <article key={entry.id} className={eliminated.has(entry.id) ? 'is-lost' : ''}><div><img src={entry.image_url} alt={entry.title} loading="lazy" />{eliminated.has(entry.id) && <X aria-label={copy.lost} size={38} />}</div><span>#{entry.seed} · {entry.artist}</span><h3>{entry.title}</h3></article>)}</div></section>}
       </>}
       {history.length > 1 && <label className="champ-history">{copy.history}<select value={id || championship?.id || ''} onChange={event => setParams({ tipo: kind === 'music' ? 'musica' : 'foto', id: event.target.value })}>{history.map(item => <option key={item.id} value={item.id}>{item.name} · {copy[item.status]}</option>)}</select></label>}
     </div>

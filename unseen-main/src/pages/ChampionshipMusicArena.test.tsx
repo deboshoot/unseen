@@ -107,30 +107,40 @@ describe('official music arena using the demo presentation', () => {
     await waitFor(() => expect(screen.getByText('Voto registrato')).toBeInTheDocument()); expect(mocks.rpc).toHaveBeenCalledTimes(2);
   });
 
-  it('closes the vote at the exact deadline even before the next server refresh', () => {
+  it('removes the expired pair at the exact deadline even before the next server refresh', () => {
     now += 48 * 3600000;
     // Simulate the brief gap before the next pair has been refreshed.
     data.matches[1].entry_1_id = null; data.matches[1].entry_2_id = null;
-    render(page());
-    expect(screen.getByRole('heading', { name: 'ARENA DIGITALE' })).toBeInTheDocument();
-    expect(screen.getByRole('timer')).toHaveTextContent('00 : 00 : 00'); expect(screen.getByRole('button', { name: 'Vota' })).toBeDisabled();
+    const { container } = render(page());
+    expect(screen.getByRole('heading', { name: 'Nessun duello in corso' })).toBeInTheDocument();
+    expect(container.querySelector('audio')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Vota' })).not.toBeInTheDocument();
   });
 
-  it('keeps the demo layout on the main arena page when the final winner is published', () => {
+  it('returns to the public bracket when the final winner is published', () => {
     data.championship!.status = 'completed'; data.championship!.winner_id = 'entry-1'; now = Date.parse(data.championship!.end_at);
     Object.assign(data.matches[14], { entry_1_id: 'entry-1', entry_2_id: 'entry-2', resolved_at: new Date(now).toISOString(), winner_id: 'entry-1', votes_1: 22, votes_2: 13 });
-    render(page());
-    expect(screen.getByRole('heading', { name: 'ARENA DIGITALE' })).toBeInTheDocument();
-    expect(screen.getByText('22 voti')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Vota' })).toBeDisabled();
+    const { container } = render(page());
+    expect(screen.getByTestId('location')).toHaveTextContent('/campionato?tipo=musica&id=championship-1');
+    expect(container.querySelector('audio')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Vota' })).not.toBeInTheDocument();
   });
 
-  it('reveals resolved results with a stopped countdown and no voting', () => {
+  it('opens the active pair instead of replaying a resolved duel from an old link', () => {
     now += 48 * 3600000; Object.assign(data.matches[0], { resolved_at: new Date(now).toISOString(), winner_id: 'entry-2', votes_1: 12, votes_2: 18 });
-    render(page('/arena/musicale?match=match-1'));
-    expect(screen.getByText('12 voti')).toBeInTheDocument(); expect(screen.getByText('18 voti')).toBeInTheDocument();
-    expect(screen.getByText('Qualificato')).toBeInTheDocument(); expect(screen.getByRole('button', { name: 'Vota' })).toBeDisabled();
-    expect(screen.getByRole('timer')).toHaveTextContent('00 : 00 : 00');
+    const { container } = render(page('/arena/musicale?match=match-1'));
+    expect(screen.getByTestId('location')).toHaveTextContent('match=match-2');
+    expect([...container.querySelectorAll('audio')].map(audio => audio.getAttribute('src'))).toEqual(['/audio-3.mp3', '/audio-4.mp3']);
+    expect(screen.queryByText('12 voti')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Vota' })).toBeEnabled();
+  });
+
+  it('never loads future audio through a direct match URL', () => {
+    const { container } = render(page('/arena/musicale?match=match-8'));
+    expect(screen.getByTestId('location')).toHaveTextContent('match=match-1');
+    expect([...container.querySelectorAll('audio')].map(audio => audio.getAttribute('src'))).toEqual(['/audio-1.mp3', '/audio-2.mp3']);
+    expect(screen.queryByRole('heading', { name: 'Work 15' })).not.toBeInTheDocument();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
   });
 
   it('clears playback and vote choices when the next duel starts', async () => {

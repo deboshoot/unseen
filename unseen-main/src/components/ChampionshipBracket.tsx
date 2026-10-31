@@ -29,7 +29,7 @@ export default function ChampionshipBracket({ data, kind, now, admin = false, on
       {matches.map(match => {
         const live = data?.championship && isMatchOpen(match, data.championship, now);
         const feeders = feederNumbers(match);
-        const url = data?.championship && !onSeedClick ? `${arenaPath(kind)}?campionato=${data.championship.id}&match=${match.id}` : null;
+        const url = live && data?.championship && !onSeedClick ? `${arenaPath(kind)}?campionato=${data.championship.id}&match=${match.id}` : null;
         const content = <>
           <div className="champ-match-label"><span>#{String(match.number).padStart(2, '0')}</span><span>{live ? copy.live : match.winner_id ? '✓' : match.start_at ? new Date(match.start_at).toLocaleDateString(locale, { day: '2-digit', month: 'short' }) : '48h'}</span></div>
           {[match.entry_1_id, match.entry_2_id].map((id, slot) => {
@@ -48,7 +48,7 @@ export default function ChampionshipBracket({ data, kind, now, admin = false, on
           {match.tie_break && <span className="champ-tie" title={copy.tie}>{copy.tie}</span>}
         </>;
         const style = { left: (match.round - 1) * 270, top: matchCenter(match.round, match.position) - 44 };
-        return url ? <Link key={match.id} to={url} style={style} className={`champ-match ${live ? 'is-live' : ''}`} aria-label={`${copy.view} ${match.number}`}>{content}</Link> : <div key={match.id} style={style} className="champ-match is-placeholder">{content}</div>;
+        return url ? <Link key={match.id} to={url} style={style} className="champ-match is-live" aria-label={`${copy.view} ${match.number}`}>{content}</Link> : <div key={match.id} style={style} className={`champ-match${data?.championship ? '' : ' is-placeholder'}`}>{content}</div>;
       })}
     </div>
   </div>;
