@@ -560,7 +560,7 @@
   padding: 0;
   overflow: hidden;
   border: 1px solid #ffffff1b;
-  border-radius: 9px;
+  border-radius: 6px;
   background: #050505;
   transition: border-color .24s, transform .24s, background .24s;
 }
@@ -575,17 +575,17 @@
   position: relative;
   display: grid;
   width: 100%;
-  min-height: 194px;
-  flex: 1 0 194px;
+  min-height: 212px;
+  flex: 1 0 212px;
   place-items: center;
   overflow: hidden;
   border-bottom: 1px solid #ffffff12;
-  background: #090909;
+  background: radial-gradient(ellipse at 50% 35%, #ffffff05, transparent 68%), #060606;
 }
 .music-studio-upload-visual::after {
   position: absolute;
   inset: 42% 0 0;
-  background: linear-gradient(180deg, transparent, #000b);
+  background: linear-gradient(180deg, transparent, #0005);
   content: "";
   pointer-events: none;
 }
@@ -599,68 +599,74 @@
 }
 .music-studio-upload:hover .music-studio-upload-visual > img { transform: scale(1.035); }
 .music-studio-upload-art-placeholder {
+  position: relative;
   display: flex;
-  width: 112px;
+  width: 124px;
   aspect-ratio: 1;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: space-between;
   flex-direction: column;
-  gap: 12px;
-  border: 1px solid hsl(var(--primary) / 0.239);
-  border-radius: 3px;
-  color: hsl(var(--primary));
-  background:
-    linear-gradient(135deg, hsl(var(--primary) / 0.051), transparent 58%),
-    #10100f;
-  box-shadow: 0 18px 40px #0009, inset 0 0 30px hsl(var(--primary) / 0.031);
+  padding: 12px;
+  border: 1px solid #e9e5d82b;
+  border-radius: 1px;
+  color: #e9e5dc;
+  background: linear-gradient(135deg, #302f2a, #10100f 58%, #1b1a17);
+  box-shadow: -3px 3px 0 #24231e, -4px 4px 0 #e9e5d81a, 0 18px 28px #000a;
+  transform: rotate(-7deg);
+  transition: transform .4s cubic-bezier(.22, 1, .36, 1);
 }
-.music-studio-upload-art-placeholder > span {
-  font-size: 8px;
-  letter-spacing: .22em;
+.music-studio-art-edition { font-size: 5px; letter-spacing: .18em; color: #c7c3b88c; }
+.music-studio-upload-art-placeholder > svg { align-self: center; color: #e9e5dcc4; }
+.music-studio-art-wordmark { display: flex; align-items: baseline; gap: 3px; font-family: var(--font-display); font-size: 19px; font-weight: 500; letter-spacing: -.065em; }
+.music-studio-art-wordmark > i { width: 4px; height: 4px; background: hsl(var(--primary)); }
+.music-studio-upload:hover .music-studio-upload-art-placeholder { transform: translateY(-3px) rotate(-4deg); }
+.music-studio-upload.has-file .music-studio-upload-visual { background: #060606; }
+.music-studio-upload-audio .music-studio-upload-visual::after {
+  background: linear-gradient(180deg, transparent, #0003);
 }
 .music-studio-audio-art {
   position: relative;
   display: flex;
   width: 100%;
   height: 100%;
-  min-height: 194px;
+  min-height: 212px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at 50% 45%, hsl(var(--primary) / 0.071), transparent 53%),
-    repeating-linear-gradient(135deg, transparent 0 13px, #ffffff04 13px 14px),
-    #090909;
+  background: radial-gradient(ellipse at 50% 35%, #ffffff05, transparent 68%), #060606;
 }
 .music-studio-audio-disc {
   position: absolute;
   display: grid;
-  width: 94px;
+  top: 36px;
+  width: 128px;
   aspect-ratio: 1;
   place-items: center;
-  border: 1px solid #ffffff1d;
+  border: 1px solid #ffffff24;
   border-radius: 50%;
-  color: hsl(var(--primary));
+  color: #e9e5dc;
   background:
-    repeating-radial-gradient(circle, transparent 0 8px, #ffffff08 9px 10px),
-    radial-gradient(circle, #181613, #080808 72%);
-  box-shadow: 0 10px 28px #0009, inset 0 0 0 6px #0008;
+    repeating-radial-gradient(circle, transparent 0 3px, #ffffff09 3.5px 4px),
+    conic-gradient(from -35deg, #0b0b0b, #444440 12%, #141413 21%, #080808 40%, #32322f 60%, #101010 72%, #080808);
+  box-shadow: 0 15px 28px #000b, inset 0 0 0 4px #0006;
+  transform: rotate(-14deg);
 }
+.music-studio-audio-disc > svg { position: relative; z-index: 1; width: 18px; height: 18px; }
 .music-studio-audio-disc::after {
   position: absolute;
-  inset: 42%;
-  border: 1px solid hsl(var(--primary) / 0.4);
+  inset: 36%;
+  border: 1px solid hsl(var(--primary) / 0.35);
   border-radius: 50%;
-  background: #090909;
+  background: #171613;
   content: "";
 }
 .music-studio-audio-bars {
   position: absolute;
-  right: 17px;
-  bottom: 46px;
-  left: 17px;
+  right: 28px;
+  bottom: 31px;
+  left: 28px;
   display: flex;
-  height: 48px;
+  height: 32px;
   align-items: center;
   justify-content: center;
   gap: 3px;
@@ -669,12 +675,13 @@
 }
 .music-studio-audio-bars > i {
   width: 2px;
-  height: calc(7px + (var(--wave-height, 1) * 1px));
+  height: calc(4px + (var(--wave-height, 1) * .65px));
   flex: 1 1 2px;
-  max-width: 4px;
+  max-width: 2px;
   border-radius: 9px;
-  background: linear-gradient(180deg, #f0bd8d, hsl(var(--primary)) 58%, #9d5832);
+  background: #dfd9ce;
 }
+.music-studio-audio-bars > i:nth-child(6n + 1) { background: hsl(var(--primary)); }
 .music-studio-audio-bars > i:nth-child(7n + 1) { --wave-height: 22; }
 .music-studio-audio-bars > i:nth-child(7n + 2) { --wave-height: 35; }
 .music-studio-audio-bars > i:nth-child(7n + 3) { --wave-height: 16; }
@@ -683,9 +690,9 @@
 .music-studio-audio-bars > i:nth-child(7n + 6) { --wave-height: 25; }
 .music-studio-audio-art > span {
   position: absolute;
-  bottom: 18px;
-  color: #aaa59f;
-  font-size: 8px;
+  bottom: 12px;
+  color: #8c8982;
+  font-size: 7px;
   letter-spacing: .19em;
 }
 .music-studio-upload-index,
@@ -714,19 +721,22 @@
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
-  padding: 14px 14px 15px;
+  padding: 18px 17px 10px;
 }
 .music-studio-upload-title {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 7px;
 }
 .submit-experience .music-studio-upload-title > strong {
   min-width: 0;
-  color: #eeece8;
-  font-size: 12px;
-  font-weight: 500;
+  color: #eeece4;
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -.025em;
 }
 .music-studio-upload-title > small {
   flex: 0 0 auto;
@@ -739,31 +749,34 @@
   margin: 0;
   overflow: hidden;
   color: #97938e;
-  font-size: 9px;
-  line-height: 1.55;
+  font-size: 10px;
+  line-height: 1.7;
   text-overflow: ellipsis;
   overflow-wrap: anywhere;
 }
 .submit-experience .music-studio-upload-action {
   display: flex;
-  min-height: 34px;
+  min-height: 44px;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 7px;
-  margin-top: 2px;
-  border: 1px solid hsl(var(--primary) / 0.322);
-  border-radius: 5px;
-  color: hsl(var(--primary));
+  margin-top: auto;
+  padding: 7px 0 0;
+  border: 0;
+  border-top: 1px solid #ffffff1f;
+  border-radius: 0;
+  color: #e9e5dc;
   font-size: 9px;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: .1em;
   text-transform: uppercase;
   transition: color .2s, background .2s, border-color .2s;
 }
+.submit-experience .music-studio-upload-action > svg { box-sizing: content-box; width: 12px; height: 12px; padding: 7px; border: 1px solid #e9e5dc40; border-radius: 50%; color: hsl(var(--primary)); }
 .submit-experience .music-studio-upload:hover .music-studio-upload-action {
   border-color: hsl(var(--primary));
   color: hsl(var(--primary));
-  background: hsl(var(--primary) / 0.078);
+  background: transparent;
 }
 .submit-experience .music-studio-upload:focus-within .music-studio-upload-action {
   outline: 2px solid hsl(var(--primary));
@@ -771,7 +784,7 @@
 }
 .light-mode .submit-experience .music-studio-upload { border-color: #d7d7d3; background: #fff; }
 .light-mode .music-studio-upload-visual { border-color: #e3e3df; background: #f4f3f0; }
-.light-mode .music-studio-upload-art-placeholder { background: #ece9e3; }
+.light-mode .music-studio-upload-art-placeholder { background: linear-gradient(135deg, #302f2a, #10100f 58%, #1b1a17); }
 .light-mode .music-studio-audio-art {
   background:
     radial-gradient(ellipse at 50% 45%, hsl(var(--primary) / 0.086), transparent 53%),
@@ -780,6 +793,8 @@
 }
 .light-mode .submit-experience .music-studio-upload-title > strong { color: #232321; }
 .light-mode .submit-experience .music-studio-upload-content > p { color: #666660; }
+.light-mode .submit-experience .music-studio-upload-action { color: #35342e; border-top-color: #dedbd3; }
+.light-mode .submit-experience .music-studio-upload-action > svg { border-color: #35342e40; }
 .light-mode .music-studio-upload-index { color: #45433f; }
 @media(max-width:560px) {
   .submit-experience .music-studio-uploads { grid-template-columns: 1fr; }
@@ -790,12 +805,17 @@
   .music-studio-upload-content { justify-content: center; padding: 14px; }
   .music-studio-upload-title { align-items: flex-start; flex-direction: column; gap: 4px; }
   .music-studio-upload-art-placeholder { width: min(78%, 92px); }
-  .music-studio-audio-disc { width: 72px; }
+  .music-studio-audio-disc { top: 23px; width: 90px; }
+  .music-studio-art-edition { font-size: 4px; letter-spacing: .06em; }
+  .music-studio-art-wordmark { font-size: 14px; }
+  .music-studio-upload-art-placeholder { padding: 9px; }
+  .submit-experience .music-studio-upload-title > strong { font-size: 22px; }
   .music-studio-audio-bars { right: 8px; bottom: 34px; left: 8px; height: 38px; gap: 2px; }
   .music-studio-audio-art > span { bottom: 13px; font-size: 6px; }
 }
 @media(prefers-reduced-motion:reduce) {
   .music-studio-upload,
+  .music-studio-upload-art-placeholder,
   .music-studio-upload-visual > img,
   .music-studio-upload-action { transition: none !important; }
 }

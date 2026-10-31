@@ -154,14 +154,14 @@ export default function InviaBrano() {
               {isCover && coverUrl
                 ? <img src={coverUrl} alt="" />
                 : isCover
-                  ? <div className="music-studio-upload-art-placeholder"><ImagePlus size={36} strokeWidth={1.2} /><span>ARTWORK</span></div>
+                  ? <div className="music-studio-upload-art-placeholder"><span className="music-studio-art-edition">SOUND SERIES / 01</span><ImagePlus size={30} strokeWidth={1} /><span className="music-studio-art-wordmark">UNSEEN<i /></span></div>
                   : <div className={`music-studio-audio-art${buffer ? ' is-loaded' : ''}`}>
                     <div className="music-studio-audio-disc"><Music2 size={25} strokeWidth={1.2} /></div>
                     <div className="music-studio-audio-bars">{Array.from({ length: 25 }, (_, index) => <i key={index} />)}</div>
                     <span>{buffer ? formatAudioTime(buffer.duration) : 'MP3  /  WAV  /  M4A'}</span>
                   </div>}
               <span className="music-studio-upload-index">{isCover ? '01' : '02'}</span>
-              <span className="music-studio-upload-status">{file ? <><Check size={12} />{text.change}</> : isCover ? text.pickCover : text.pickAudio}</span>
+              <span className="music-studio-upload-status">{file ? <><Check size={12} />{text.change}</> : isCover ? 'ARTWORK' : 'SOUND'}</span>
             </div>
             <div className="music-studio-upload-content">
               <div className="music-studio-upload-title">
