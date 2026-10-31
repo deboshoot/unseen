@@ -15,20 +15,20 @@ export default function WorldInstrument({ kind, progress, reduced }: Props) {
   useEffect(() => {
     const element = host.current, object = subject.current;
     if (!element || !object || !ready) return;
-    const state = createInstrumentState(reduced ? 0.5 : progress.get());
+    const state = createInstrumentState(progress.get());
     const context = iris.current?.getContext('2d');
     let frame = 0, last = 0, visible = false, previousOpening = -1;
     const paint = () => {
       const p = state.position, travel = Math.max(0, Math.min(1, (p - 0.08) / 0.84));
       if (kind === 'photo') {
-        object.style.transform = `translate3d(${(travel - 0.5) * 12}px,${(0.5 - travel) * 26}px,0) rotateX(${(0.5 - travel) * 4}deg) rotateY(${(travel - 0.5) * 8}deg) rotateZ(${(travel - 0.5) * 4}deg)`;
+        object.style.transform = reduced ? 'none' : `translate3d(${(travel - 0.5) * 12}px,${(0.5 - travel) * 26}px,0) rotateX(${(0.5 - travel) * 4}deg) rotateY(${(travel - 0.5) * 8}deg) rotateZ(${(travel - 0.5) * 4}deg)`;
         const opening = Math.max(0, Math.min(1, (p - 0.2) / 0.47));
         const smooth = opening * opening * (3 - 2 * opening);
-        if (lens.current) lens.current.style.transform = `translate3d(0,0,${smooth * 18}px) scale(${1 + smooth * 0.018})`;
+        if (lens.current) lens.current.style.transform = reduced ? 'none' : `translate3d(0,0,${smooth * 18}px) scale(${1 + smooth * 0.018})`;
         if (context && Math.abs(smooth - previousOpening) > 0.00001) { drawAperture(context, smooth); previousOpening = smooth; }
       } else {
         const sway = state.angle * 180 / Math.PI + Math.sin(travel * Math.PI * 1.6) * 1.3;
-        object.style.transform = `translate3d(0,${(0.5 - travel) * 26}px,0) rotateZ(${sway}deg)`;
+        object.style.transform = reduced ? `rotateZ(${sway}deg)` : `translate3d(0,${(0.5 - travel) * 26}px,0) rotateZ(${sway}deg)`;
       }
       if (import.meta.env.DEV) element.dataset.progress = p.toFixed(4);
     };
@@ -36,7 +36,10 @@ export default function WorldInstrument({ kind, progress, reduced }: Props) {
       frame = 0;
       if (!visible || document.hidden) { last = 0; return; }
       const dt = last ? Math.min((time - last) / 1000, 0.05) : 1 / 60; last = time;
-      const moving = advanceInstrument(state, reduced ? 0.5 : progress.get(), dt, kind === 'music' && !reduced);
+      // Reduced motion still follows the user's scroll, without inertia or 3D travel.
+      let moving = false;
+      if (reduced) state.position = Math.max(0, Math.min(1, progress.get()));
+      else moving = advanceInstrument(state, progress.get(), dt, kind === 'music');
       paint();
       if (moving && !reduced) frame = requestAnimationFrame(tick); else last = 0;
     };
@@ -47,7 +50,7 @@ export default function WorldInstrument({ kind, progress, reduced }: Props) {
       visible = entries[0].isIntersecting;
       if (visible) schedule(); else { cancelAnimationFrame(frame); frame = 0; last = 0; }
     }, { rootMargin: '100px' }); observer.observe(element);
-    const unsubscribe = progress.on('change', () => { if (!reduced) schedule(); });
+    const unsubscribe = progress.on('change', schedule);
     document.addEventListener('visibilitychange', schedule);
     paint();
     return () => { cancelAnimationFrame(frame); observer.disconnect(); unsubscribe(); document.removeEventListener('visibilitychange', schedule); };
