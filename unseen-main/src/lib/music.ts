@@ -1,5 +1,16 @@
 import type { MusicSocials } from './music-links';
 
+export type MusicCollaboration = 'feat' | 'duet';
+export const MAX_ARTIST_CREDIT_LENGTH = 120;
+
+// Artist is the public credit used by moderation, records and championship snapshots.
+export const formatArtistCredit = (artist: string, collaborator: string, kind: MusicCollaboration) => {
+  const name = artist.trim();
+  const guest = collaborator.trim();
+  if (!name) return guest;
+  return guest ? `${name}${kind === 'feat' ? ' feat. ' : ' & '}${guest}` : name;
+};
+
 export type MusicTrack = MusicSocials & {
   id: string;
   title: string;

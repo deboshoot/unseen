@@ -38,6 +38,50 @@ function fillSubmission() {
 }
 
 describe("music submissions", () => {
+  it.each([
+    ['feat', '  Guest  ', 'Artist feat. Guest'],
+    ['duet', '  Guest  ', 'Artist & Guest'],
+    ['feat', '   ', 'Artist'],
+  ])('previews and uploads %s credits with an optional second artist', async (kind, guest, credit) => {
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione' }), { target: { value: kind } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome del secondo artista' }), { target: { value: guest } });
+    const button = screen.getByRole('button', { name: 'Invia il brano' });
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(container.querySelector('.music-track-info p')).toHaveTextContent(credit);
+    expect(container.querySelector('form')!.checkValidity()).toBe(true);
+    fireEvent.click(button);
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({ artist: credit }), expect.any(Array)));
+    expect(await screen.findByText('Brano ricevuto')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Invia un altro brano' }));
+    expect(screen.getByRole('textbox', { name: 'Nome del secondo artista' })).toHaveValue('');
+    expect(screen.getByRole('combobox', { name: 'Tipo di collaborazione' })).toHaveValue('feat');
+  });
+
+  it('checks the combined credit against the upload limit and allows correction', async () => {
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    const guest = screen.getByRole('textbox', { name: 'Nome del secondo artista' });
+    fireEvent.change(guest, { target: { value: 'G'.repeat(107) } });
+    const button = screen.getByRole('button', { name: 'Invia il brano' });
+    await waitFor(() => expect(button).toBeEnabled());
+    // Artist (6) + " feat. " (7) + guest (108) exceeds the server's 120-character limit.
+    fireEvent.change(guest, { target: { value: 'G'.repeat(108) } });
+    expect(button).toBeDisabled();
+    expect(guest).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('alert')).toHaveTextContent('120 caratteri');
+    fireEvent.submit(container.querySelector('form')!);
+    expect(mocks.upload).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione' }), { target: { value: 'duet' } });
+    expect(button).toBeEnabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    fireEvent.click(button);
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({ artist: `Artist & ${'G'.repeat(108)}` }), expect.any(Array)));
+  });
+
   it.each([12.34567, 0.03456])('submits a short clip of %s seconds through the actual submit button', async duration => {
     mocks.decode.mockResolvedValueOnce({ duration, numberOfChannels: 2 });
     const { container } = render(<InviaBrano />);

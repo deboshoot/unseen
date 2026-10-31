@@ -5,12 +5,13 @@ import { toast } from 'sonner';
 import MusicRecord from './MusicRecord';
 import AudioClipEditor from './AudioClipEditor';
 import { supabase } from '@/supabaseClient';
-import { musicFileError, AUDIO_FILE_ACCEPT, formatAudioTime } from '@/lib/music';
+import { musicFileError, AUDIO_FILE_ACCEPT, formatAudioTime, formatArtistCredit, MAX_ARTIST_CREDIT_LENGTH, type MusicCollaboration } from '@/lib/music';
 import { decodeAudioFile, MAX_CLIP_SECONDS, renderAudioClip, type AudioSource } from '@/lib/audio-clip';
 import { normalizeInstagram, normalizeMusicLink } from '@/lib/music-links';
 import { useI18n } from '@/i18n/I18nProvider';
 import { musicCopy } from '@/i18n/music-copy';
 import { musicSubmitCopy } from '@/i18n/music-submit-copy';
+import { musicCollaborationCopy } from '@/i18n/music-collaboration-copy';
 import { optimizeImage } from '@/lib/optimize-image';
 import { uploadSubmission } from '@/lib/media-upload';
 import '@/music-submit.css';
@@ -38,8 +39,11 @@ function SocialBrandMark({ platform }: { platform: SocialPlatform }) {
 
 export default function InviaBrano() {
   const { locale } = useI18n(); const copy = musicCopy[locale]; const text = musicSubmitCopy[locale];
+  const credits = musicCollaborationCopy[locale];
   const navigate = useNavigate();
   const [title, setTitle] = useState(''); const [artist, setArtist] = useState('');
+  const [collaborator, setCollaborator] = useState(''); const [collaboration, setCollaboration] = useState<MusicCollaboration>('feat');
+  const collaborationHintId = useId(); const artistCreditErrorId = useId();
   const [instagram, setInstagram] = useState(''); const [youtube, setYoutube] = useState(''); const [reel, setReel] = useState(''); const [spotify, setSpotify] = useState('');
   const [cover, setCover] = useState<File | null>(null); const [audio, setAudio] = useState<File | null>(null);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
@@ -51,6 +55,8 @@ export default function InviaBrano() {
   const clipFile = prepared && prepared.source === buffer && prepared.start === start && prepared.end === end ? prepared.file : null;
   const username = normalizeInstagram(instagram); const youtubeUrl = normalizeMusicLink(youtube, 'youtube'); const reelUrl = normalizeMusicLink(reel, 'reel'); const spotifyUrl = normalizeMusicLink(spotify, 'spotify');
   const invalidSocial = username === null || youtubeUrl === null || reelUrl === null || spotifyUrl === null;
+  const artistCredit = formatArtistCredit(artist, collaborator, collaboration);
+  const invalidArtistCredit = artistCredit.length > MAX_ARTIST_CREDIT_LENGTH;
 
   useEffect(() => {
     let active = true;
@@ -116,14 +122,15 @@ export default function InviaBrano() {
     if (submitting.current) return;
     if (!cover || !clipFile) { toast.error(copy.chooseFiles); return; }
     if (!title.trim() || !artist.trim()) return;
+    if (invalidArtistCredit) { toast.error(credits.artistCreditTooLong); return; }
     if (invalidSocial) { toast.error(username === null ? text.invalidInstagram : text.invalidLink); return; }
     submitting.current = true; setElapsedSeconds(0); setLoading(true); setActiveId(null);
     try {
       const { data: { session }, error } = await supabase.auth.getSession(); if (error) throw error;
       if (!session) { toast.info(copy.login); navigate(`/auth?redirect=${encodeURIComponent('/submit?tipo=musica')}`); return; }
       const optimizedCover = await optimizeImage(cover, 1600);
-      await uploadSubmission('music', { title: title.trim(), artist: artist.trim(), instagram_username: username || '', youtube_url: youtubeUrl || '', instagram_reel_url: reelUrl || '', spotify_url: spotifyUrl || '' }, [{ kind: 'cover', file: optimizedCover }, { kind: 'audio', file: clipFile }]);
-      setSubmitted(true); setCover(null); setAudio(null); setTitle(''); setArtist(''); setInstagram(''); setYoutube(''); setReel(''); setSpotify(''); toast.success(copy.received);
+      await uploadSubmission('music', { title: title.trim(), artist: artistCredit, instagram_username: username || '', youtube_url: youtubeUrl || '', instagram_reel_url: reelUrl || '', spotify_url: spotifyUrl || '' }, [{ kind: 'cover', file: optimizedCover }, { kind: 'audio', file: clipFile }]);
+      setSubmitted(true); setCover(null); setAudio(null); setTitle(''); setArtist(''); setCollaborator(''); setCollaboration('feat'); setInstagram(''); setYoutube(''); setReel(''); setSpotify(''); toast.success(copy.received);
     } catch (error) { toast.error(text.uploadError, { description: error instanceof Error ? error.message : undefined }); }
     finally { submitting.current = false; setLoading(false); }
   };
@@ -172,7 +179,16 @@ export default function InviaBrano() {
       </section>
       <section className="music-studio-section music-studio-identity-section">
         <div className="music-studio-section-heading"><span>02</span><div><h2>{text.stepDetails}</h2><p>{text.identityHint}</p></div></div>
-        <div className="music-studio-identity"><label><span>{copy.title} *</span><input value={title} onChange={event => setTitle(event.target.value)} maxLength={120} required disabled={loading} placeholder={copy.title} /></label><label><span>{copy.artist} *</span><input value={artist} onChange={event => setArtist(event.target.value)} maxLength={120} required disabled={loading} placeholder={copy.artist} /></label></div>
+        <div className="music-studio-identity"><label><span>{copy.title} *</span><input value={title} onChange={event => setTitle(event.target.value)} maxLength={120} required disabled={loading} placeholder={copy.title} /></label><label><span>{copy.artist} *</span><input value={artist} onChange={event => setArtist(event.target.value)} maxLength={MAX_ARTIST_CREDIT_LENGTH} required disabled={loading} placeholder={copy.artist} aria-invalid={invalidArtistCredit} aria-describedby={invalidArtistCredit ? artistCreditErrorId : undefined} /></label></div>
+        <fieldset className="music-studio-collaboration" disabled={loading} aria-describedby={collaborationHintId}>
+          <legend>{credits.collaboration}<small>{text.optional}</small></legend>
+          <p id={collaborationHintId}>{credits.collaborationHint}</p>
+          <div className="music-studio-collaboration-fields">
+            <label><span>{credits.collaborationType}</span><select value={collaboration} onChange={event => setCollaboration(event.target.value as MusicCollaboration)}><option value="feat">{credits.featuring}</option><option value="duet">{credits.secondArtist}</option></select></label>
+            <label><span>{credits.collaborator}</span><input value={collaborator} onChange={event => setCollaborator(event.target.value)} maxLength={MAX_ARTIST_CREDIT_LENGTH} placeholder={credits.collaboratorPlaceholder} aria-invalid={invalidArtistCredit} aria-describedby={invalidArtistCredit ? artistCreditErrorId : undefined} /></label>
+          </div>
+        </fieldset>
+        {invalidArtistCredit && <p id={artistCreditErrorId} className="music-studio-error" role="alert">{credits.artistCreditTooLong}</p>}
         <label className="music-studio-social-field"><span className="music-studio-social-label"><SocialBrandMark platform="instagram" />{text.instagram}<small>{text.optional}</small></span><input value={instagram} onChange={event => setInstagram(event.target.value)} maxLength={200} disabled={loading} placeholder="@username" aria-invalid={username === null} autoCapitalize="none" autoCorrect="off" /><small>{text.instagramHint}</small></label>
         {username && <a className="music-studio-profile-link" href={`https://www.instagram.com/${username}/`} target="_blank" rel="noopener noreferrer">@{username}<ArrowUpRight size={12} /></a>}
         {username === null && <p className="music-studio-error" role="alert">{text.invalidInstagram}</p>}
@@ -182,14 +198,14 @@ export default function InviaBrano() {
         <div className="music-studio-external-links">{fields.map(({ label, value, set, platform, placeholder, invalid }) => <label key={label} className={`music-studio-link-field music-studio-link-${platform}`}><span><SocialBrandMark platform={platform} />{label}</span><input type="url" value={value} onChange={event => set(event.target.value)} disabled={loading} placeholder={placeholder} maxLength={500} aria-invalid={invalid} /></label>)}</div>
         {[youtubeUrl, reelUrl, spotifyUrl].includes(null) && <p className="music-studio-error" role="alert">{text.invalidLink}</p>}
       </section>
-      <section className="music-studio-send"><label><input type="checkbox" required disabled={loading} /><span>{copy.rights}</span></label><p>{copy.review}</p><button type="submit" className="submit-primary-button" disabled={loading || !cover || !clipFile || invalidSocial}>{loading ? <LoaderCircle size={17} className="animate-spin" /> : <ArrowUpRight size={17} />}{loading ? copy.sending : copy.send}</button>{loading && <div className="music-submit-progress" aria-busy="true">
+      <section className="music-studio-send"><label><input type="checkbox" required disabled={loading} /><span>{copy.rights}</span></label><p>{copy.review}</p><button type="submit" className="submit-primary-button" disabled={loading || !cover || !clipFile || invalidSocial || invalidArtistCredit}>{loading ? <LoaderCircle size={17} className="animate-spin" /> : <ArrowUpRight size={17} />}{loading ? copy.sending : copy.send}</button>{loading && <div className="music-submit-progress" aria-busy="true">
         <div className="music-submit-progress-spinner" aria-hidden="true"><svg className="music-submit-progress-ring" viewBox="0 0 48 48"><circle className="music-submit-progress-track" cx="24" cy="24" r="20" /><circle className="music-submit-progress-indicator" cx="24" cy="24" r="20" /></svg><Music2 className="music-submit-progress-icon" size={16} /></div>
         <div className="music-submit-progress-copy" role="status" aria-live="polite"><strong>{text.uploading}</strong><p>{text.uploadingHint}</p></div>
         <div className="music-submit-progress-timer"><span>{text.elapsed}</span><strong role="timer" aria-label={text.elapsedTime(elapsedSeconds)}>{`${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}`}</strong></div>
       </div>}<p className="music-studio-privacy"><ShieldCheck size={13} />{text.privacy}</p></section>
     </div>
     <aside className="music-studio-preview"><div className="music-studio-preview-heading"><span>{text.previewBadge}</span><span>{text.maxClip}</span></div>
-      {coverUrl ? <MusicRecord key={audioUrl || 'cover-only'} track={{ id: 'submission-preview', title: title || copy.title, artist: artist || copy.artist, cover_url: coverUrl, audio_url: clipFile ? audioUrl : '', instagram_username: username, youtube_url: youtubeUrl, instagram_reel_url: reelUrl, spotify_url: spotifyUrl }} activeId={activeId} onActiveChange={setActiveId} /> : <div className="music-studio-empty"><div className="music-studio-empty-art" aria-hidden="true"><div className="music-studio-empty-disc" /><div className="music-studio-empty-sleeve"><Music2 size={35} strokeWidth={1} /><strong>YOUR<br />NEXT SOUND.</strong><span>UNSEEN / SOUND SERIES</span></div></div><p>{text.previewHint}</p></div>}
+      {coverUrl ? <MusicRecord key={audioUrl || 'cover-only'} track={{ id: 'submission-preview', title: title || copy.title, artist: formatArtistCredit(artist.trim() || copy.artist, collaborator, collaboration), cover_url: coverUrl, audio_url: clipFile ? audioUrl : '', instagram_username: username, youtube_url: youtubeUrl, instagram_reel_url: reelUrl, spotify_url: spotifyUrl }} activeId={activeId} onActiveChange={setActiveId} /> : <div className="music-studio-empty"><div className="music-studio-empty-art" aria-hidden="true"><div className="music-studio-empty-disc" /><div className="music-studio-empty-sleeve"><Music2 size={35} strokeWidth={1} /><strong>YOUR<br />NEXT SOUND.</strong><span>UNSEEN / SOUND SERIES</span></div></div><p>{text.previewHint}</p></div>}
       <div className="music-studio-preview-note"><ShieldCheck size={18} /><div><strong>{text.ready}</strong><p>{text.summary}</p></div></div>
     </aside>
   </form>;
