@@ -16,15 +16,16 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
   const vinylRef = useRef<HTMLButtonElement>(null);
   const sleeveRef = useRef<HTMLDivElement>(null);
   const motionRef = useRef<Animation[]>([]);
+  const playbackRef = useRef(false);
   const mountedRef = useRef(true);
   const socialExitTimerRef = useRef<number | null>(null);
   const progressInputRef = useRef<HTMLInputElement>(null);
+  const currentTimeLabelRef = useRef<HTMLSpanElement>(null);
   const [playing, setPlaying] = useState(false);
   const [socialsVisible, setSocialsVisible] = useState(false);
   const [socialsExiting, setSocialsExiting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
   const [profileExpanded, setProfileExpanded] = useState(false);
   const { locale } = useI18n();
   const copy = musicCopy[locale];
@@ -33,8 +34,13 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
   const syncProgress = useCallback((audio: HTMLAudioElement) => {
     const input = progressInputRef.current;
     if (input && Number.isFinite(audio.duration) && audio.duration > 0) {
-      input.style.setProperty('--music-progress', `${(audio.currentTime / audio.duration) * 100}%`);
+      const value = Math.max(0, Math.min(audio.duration, audio.currentTime));
+      input.value = String(value);
+      input.style.setProperty('--music-progress', `${(value / audio.duration * 100).toFixed(3)}%`);
     }
+    const label = currentTimeLabelRef.current;
+    const time = formatAudioTime(audio.currentTime);
+    if (label && label.textContent !== time) label.textContent = time;
   }, []);
   const setMotionPlaying = (shouldPlay: boolean) => {
     motionRef.current.forEach((animation) => {
@@ -44,6 +50,11 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
     });
   };
   const handlePlaybackStart = () => {
+    const audio = audioRef.current;
+    // Media events are queued: an old Play can arrive after a newer Pause.
+    // Repeated Play/Playing notifications must not rewind a finished extraction.
+    if (!audio || audio.paused || audio.ended || playbackRef.current) return;
+    playbackRef.current = true;
     setMotionPlaying(true);
     setPlaying(true);
     if (demoTransport) {
@@ -54,6 +65,8 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
     }
   };
   const handlePlaybackStop = () => {
+    if (!playbackRef.current) return;
+    playbackRef.current = false;
     setMotionPlaying(false);
     setPlaying(false);
   };
@@ -84,10 +97,15 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
   }, [demoTransport, playing, socialsVisible]);
   useEffect(() => {
     if (!demoTransport || !playing) return;
-    let frame = 0;
-    const update = () => {
-      const audio = audioRef.current;
-      if (audio) syncProgress(audio);
+    let frame = 0, lastUpdate = -Infinity;
+    const update = (time: number) => {
+      // The painted progress gradient does not need to compete with the
+      // composited vinyl rotation at the display's full refresh rate.
+      if (time - lastUpdate >= 1000 / 30) {
+        lastUpdate = time;
+        const audio = audioRef.current;
+        if (audio) syncProgress(audio);
+      }
       frame = window.requestAnimationFrame(update);
     };
     frame = window.requestAnimationFrame(update);
@@ -136,6 +154,7 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
     // Creating these effects during Play can rerasterize the sleeve for a frame.
     const animations = motionRef.current;
     animations.forEach((animation) => { animation.pause(); animation.currentTime = 0; });
+    if (playbackRef.current) setMotionPlaying(true);
     return () => {
       animations.forEach((animation) => animation.cancel());
       motionRef.current = [];
@@ -151,6 +170,8 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
     try {
       onPrepareAudio?.(audio);
       await audio.play();
+      // Also reconcile after the promise resolves, independently of event timing.
+      if (mountedRef.current) handlePlaybackStart();
     } catch (error) {
       if (mountedRef.current && !(error instanceof DOMException && error.name === "AbortError")) {
         onActiveChange(null);
@@ -165,7 +186,7 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
     if (!audio) return;
     const end = Number.isFinite(audio.duration) ? audio.duration : duration;
     audio.currentTime = Math.max(0, Math.min(end, audio.currentTime + seconds));
-    setCurrentTime(audio.currentTime);
+    syncProgress(audio);
   };
   return (
     <article className={`music-track ${playing ? "is-playing" : ""}`} data-track-id={track.id} data-vinyl-side={slot === 2 ? "right" : "left"}>
@@ -224,14 +245,15 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
       }
       <audio ref={audioRef} crossOrigin="anonymous" src={track.audio_url || undefined} preload="metadata"
         onLoadedMetadata={(event) => { setDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : 0); syncProgress(event.currentTarget); }}
-        onTimeUpdate={(event) => { setCurrentTime(event.currentTarget.currentTime); syncProgress(event.currentTarget); }}
-        onPlay={handlePlaybackStart} onPause={handlePlaybackStop}
+        onTimeUpdate={(event) => syncProgress(event.currentTarget)}
+        onPlay={handlePlaybackStart} onPlaying={handlePlaybackStart}
+        onPause={(event) => { if (event.currentTarget.paused) handlePlaybackStop(); }}
         onEnded={() => { handlePlaybackStop(); onActiveChange(null); }}
         onError={() => { handlePlaybackStop(); setLoading(false); onActiveChange(null); }}
       />
-      <input ref={progressInputRef} type="range" className="music-progress" min={0} max={duration || 1} step={0.1} value={Math.min(currentTime, duration || 1)} disabled={!duration} aria-label={`${copy.seek}: ${track.title}`}
-        onChange={(event) => { if (audioRef.current) { const value = Number(event.target.value); audioRef.current.currentTime = value; setCurrentTime(value); syncProgress(audioRef.current); } }} />
-      <div className="music-time"><span>{formatAudioTime(currentTime)}</span><span>{formatAudioTime(duration)}</span></div>
+      <input ref={progressInputRef} type="range" className="music-progress" min={0} max={duration || 1} step={0.1} defaultValue={0} disabled={!duration} aria-label={`${copy.seek}: ${track.title}`}
+        onChange={(event) => { if (audioRef.current) { audioRef.current.currentTime = Number(event.target.value); syncProgress(audioRef.current); } }} />
+      <div className="music-time"><span ref={currentTimeLabelRef}>0:00</span><span>{formatAudioTime(duration)}</span></div>
     </article>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Profiler, useState } from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MusicRecord from "./MusicRecord";
@@ -27,6 +27,33 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.clearAllMocks(); });
 
 describe("music playback", () => {
+  it('updates progress, time and seeking without rerendering the vinyl artwork', () => {
+    const commits = vi.fn();
+    const { container } = render(<Profiler id="record" onRender={commits}><MusicRecord track={demoTracks[0]} activeId={null} onActiveChange={vi.fn()} demoTransport /></Profiler>);
+    const audio = container.querySelector('audio')!;
+    Object.defineProperty(audio, 'duration', { configurable: true, value: 40 });
+    fireEvent.loadedMetadata(audio);
+    commits.mockClear();
+
+    for (const time of [10.5, 10.75, 11.25]) {
+      audio.currentTime = time;
+      fireEvent.timeUpdate(audio);
+    }
+    const progress = container.querySelector<HTMLInputElement>('.music-progress')!;
+    expect(progress.value).toBe('11.25');
+    expect(progress.style.getPropertyValue('--music-progress')).toBe('28.125%');
+    expect(container.querySelector('.music-time')).toHaveTextContent('0:11');
+    expect(commits).not.toHaveBeenCalled();
+
+    fireEvent.change(progress, { target: { value: '20.3' } });
+    expect(audio.currentTime).toBe(20.3);
+    fireEvent.click(screen.getByRole('button', { name: /\+5s: Afterhours/ }));
+    expect(audio.currentTime).toBe(25.3);
+    expect(progress.value).toBe('25.3');
+    expect(container.querySelector('.music-time')).toHaveTextContent('0:25');
+    expect(commits).not.toHaveBeenCalled();
+  });
+
   it("shows the same paper sleeve for a cover-only preview without requesting audio", () => {
     const { container } = render(<MusicRecord track={{ ...demoTracks[0], audio_url: "" }} activeId={null} onActiveChange={vi.fn()} />);
     expect(container.querySelector(".music-sleeve img")).toHaveAttribute("src", demoTracks[0].cover_url);
@@ -157,6 +184,124 @@ describe("music playback", () => {
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
     expect(container.querySelector(".music-track")).not.toHaveClass("is-playing");
     expect(screen.getAllByRole("button", { name: "Ascolta Afterhours — NOVA" })[0]).toBeEnabled();
+  });
+});
+
+describe("vinyl playback synchronization", () => {
+  type Motion = {
+    currentTime: number;
+    updatePlaybackRate: ReturnType<typeof vi.fn>;
+    play: ReturnType<typeof vi.fn>;
+    pause: ReturnType<typeof vi.fn>;
+    cancel: ReturnType<typeof vi.fn>;
+  };
+  let animations: Motion[];
+  let originalAnimate: PropertyDescriptor | undefined;
+
+  beforeEach(() => {
+    animations = [];
+    originalAnimate = Object.getOwnPropertyDescriptor(Element.prototype, "animate");
+    Object.defineProperty(Element.prototype, "animate", {
+      configurable: true,
+      value: vi.fn(() => {
+        const animation = { currentTime: 0, updatePlaybackRate: vi.fn(), play: vi.fn(), pause: vi.fn(), cancel: vi.fn() };
+        animations.push(animation);
+        return animation;
+      }),
+    });
+  });
+
+  afterEach(() => {
+    if (originalAnimate) Object.defineProperty(Element.prototype, "animate", originalAnimate);
+    else Reflect.deleteProperty(Element.prototype, "animate");
+  });
+
+  function mount(slot = 1) {
+    return render(<MusicRecord track={demoTracks[0]} activeId={demoTracks[0].id} onActiveChange={vi.fn()} slot={slot} />);
+  }
+
+  it("ignores a queued pause notification after playback has already resumed", async () => {
+    const { container } = mount();
+    const button = container.querySelector<HTMLButtonElement>(".vinyl-button")!;
+    const audio = container.querySelector("audio")!;
+    fireEvent.click(button);
+    await waitFor(() => expect(button).toBeEnabled());
+    animations.forEach(animation => { animation.currentTime = 600; });
+    fireEvent.click(button);
+    animations.forEach(animation => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(-1));
+    animations.forEach(animation => { animation.currentTime = 300; });
+    fireEvent.click(button);
+    await waitFor(() => expect(button).toBeEnabled());
+
+    // The old Pause task is delivered after the newer Play changed audio.paused.
+    expect(audio.paused).toBe(false);
+    fireEvent.pause(audio);
+    expect(container.querySelector(".music-track")).toHaveClass("is-playing");
+    expect(container.querySelector<HTMLElement>(".vinyl-record")!.style.animationPlayState).toBe("running");
+    animations.forEach(animation => {
+      expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(1);
+      expect(animation.currentTime).toBe(300);
+    });
+  });
+
+  it("starts extraction when play resolves even without a play notification", async () => {
+    vi.mocked(HTMLMediaElement.prototype.play).mockImplementation(function (this: HTMLMediaElement) {
+      Object.defineProperty(this, "paused", { configurable: true, value: false });
+      return Promise.resolve();
+    });
+    const { container } = mount();
+    fireEvent.click(container.querySelector(".vinyl-button")!);
+    await waitFor(() => expect(container.querySelector(".music-track")).toHaveClass("is-playing"));
+    animations.forEach(animation => {
+      expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(1);
+      expect(animation.play).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("does not restart extraction on repeated play or buffering recovery notifications", async () => {
+    const { container } = mount();
+    const button = container.querySelector<HTMLButtonElement>(".vinyl-button")!;
+    const audio = container.querySelector("audio")!;
+    fireEvent.click(button);
+    await waitFor(() => expect(button).toBeEnabled());
+    animations.forEach(animation => { animation.currentTime = 1900; });
+    fireEvent.play(audio);
+    fireEvent.playing(audio);
+    fireEvent.playing(audio);
+    animations.forEach(animation => {
+      expect(animation.currentTime).toBe(1900);
+      expect(animation.play).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("ignores a queued play notification when the audio is already paused", async () => {
+    const { container } = mount();
+    const button = container.querySelector<HTMLButtonElement>(".vinyl-button")!;
+    const audio = container.querySelector("audio")!;
+    fireEvent.click(button);
+    await waitFor(() => expect(button).toBeEnabled());
+    animations.forEach(animation => { animation.currentTime = 600; });
+    fireEvent.click(button);
+    expect(audio.paused).toBe(true);
+    fireEvent.play(audio);
+    fireEvent.playing(audio);
+    expect(container.querySelector(".music-track")).not.toHaveClass("is-playing");
+    animations.forEach(animation => expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(-1));
+  });
+
+  it("resumes extraction if the record position changes while audio is playing", async () => {
+    const { container, rerender } = mount();
+    const button = container.querySelector<HTMLButtonElement>(".vinyl-button")!;
+    fireEvent.click(button);
+    await waitFor(() => expect(button).toBeEnabled());
+    rerender(<MusicRecord track={demoTracks[0]} activeId={demoTracks[0].id} onActiveChange={vi.fn()} slot={2} />);
+    expect(animations).toHaveLength(6);
+    animations.slice(0, 3).forEach(animation => expect(animation.cancel).toHaveBeenCalledOnce());
+    animations.slice(3).forEach(animation => {
+      expect(animation.updatePlaybackRate).toHaveBeenLastCalledWith(1);
+      expect(animation.play).toHaveBeenCalledOnce();
+    });
+    expect(container.querySelector("audio")!.paused).toBe(false);
   });
 });
 

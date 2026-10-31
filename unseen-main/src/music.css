@@ -23,6 +23,7 @@
 .music-waveform { display: flex; align-items: center; justify-content: center; gap: 3px; height: 66px; max-width: 370px; margin: 17px auto 15px; mask-image: linear-gradient(90deg, transparent, black 12% 88%, transparent); }
 .music-waveform span { width: 2px; min-width: 2px; height: 2px; border-radius: 2px; background: hsl(var(--primary)); opacity: .35; }
 .music-waveform span:nth-child(n+33) { background: hsl(var(--primary)); }
+.music-waveform.is-active span { will-change: transform, opacity; }
 .music-tagline { color: hsl(0 0% 81%); font-size: 14px; line-height: 1.8; }
 .music-share { display: inline-flex; align-items: center; gap: 8px; background: hsl(var(--primary) / .08); border: 1px solid hsl(var(--primary) / .35); color: hsl(var(--primary)); box-shadow: 0 4px 18px hsl(0 0% 3.1%); border-radius: 30px; padding: 10px 20px; margin-top: 16px; font-size: 12px; }
 .music-share:hover { filter: brightness(1.2); }
@@ -56,10 +57,8 @@
   position: absolute; width: 94%; aspect-ratio: 1; top: 50%; left: 50%; z-index: 2;
   transform: translate(-50%, -50%) translateY(-51.06382978723404%);
   border-radius: 50%; display: grid; place-items: center; cursor: pointer; padding: 0;
-  transition: filter .25s;
-  filter: drop-shadow(0 8px 7px #0008); will-change: transform;
+  box-shadow: 0 8px 7px #0008; isolation: isolate; will-change: transform;
 }
-.vinyl-button:hover { filter: drop-shadow(0 8px 7px #0008) brightness(1.08); }
 /* The physical grooves and label spin; the softbox reflection stays in place. */
 .vinyl-record {
   position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; border-radius: 50%;

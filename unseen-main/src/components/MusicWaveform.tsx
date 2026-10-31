@@ -8,15 +8,17 @@ export default function MusicWaveform({ signal, appearance = "default" }: { sign
   const barsRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
   const barCount = appearance === "arena" ? ARENA_BAR_COUNT : BAR_COUNT;
+  const maxHeight = appearance === "arena" ? 42 : 64;
 
   useEffect(() => {
     const bars = Array.from(barsRef.current?.children ?? []) as HTMLElement[];
     const reset = () => bars.forEach((bar) => {
+      bar.style.height = `${maxHeight}px`;
       if (appearance === "arena") {
-        bar.style.height = "1px";
+        bar.style.transform = `scaleY(${1 / maxHeight})`;
         bar.style.opacity = ".28";
       } else {
-        bar.style.height = "2px";
+        bar.style.transform = `scaleY(${2 / maxHeight})`;
         bar.style.opacity = ".35";
       }
     });
@@ -87,7 +89,9 @@ export default function MusicWaveform({ signal, appearance = "default" }: { sign
             : (level > heights[index] ? .8 : .35);
           heights[index] += (level - heights[index]) * smoothing;
           const height = 2 + heights[index] * (appearance === "arena" ? 40 : 62);
-          bar.style.height = `${height.toFixed(2)}px`;
+          // Keep bar geometry fixed: height updates would trigger layout
+          // across the arena while the record is being extracted and spun.
+          bar.style.transform = `scaleY(${(height / maxHeight).toFixed(5)})`;
           bar.style.opacity = String(.35 + heights[index] * .65);
         });
       }
@@ -116,7 +120,7 @@ export default function MusicWaveform({ signal, appearance = "default" }: { sign
       document.removeEventListener("visibilitychange", visibility);
       reset();
     };
-  }, [appearance, barCount, signal]);
+  }, [appearance, barCount, maxHeight, signal]);
 
   return <div ref={barsRef} className={`music-waveform${appearance === "arena" ? " music-waveform-arena" : ""}${playing ? " is-active" : ""}`} aria-hidden="true">{Array.from({ length: barCount }, (_, index) => <span key={index} />)}</div>;
 }
