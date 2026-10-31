@@ -22,7 +22,7 @@ const Submit = () => {
           animate={{ opacity: 1, y: 0 }}
           className={`submit-heading mb-12 text-center md:mb-14 ${isMusic ? 'music-studio-hero' : ''}`}
         >
-          <p className="music-studio-badge"><span />UNSEEN / {isMusic ? studioCopy.badge : 'OPEN CALL'}</p>
+          <p className="music-studio-badge"><span />UNSEEN / {isMusic ? studioCopy.badge : t('submit.badge')}</p>
           <h1 className="font-display text-4xl font-black tracking-tight text-foreground sm:text-6xl md:text-7xl">
             {isMusic ? studioCopy.heading : t("submit.title")}
           </h1>

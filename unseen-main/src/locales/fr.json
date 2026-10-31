@@ -44,14 +44,15 @@
     "artistsText": "Un espace pour ceux qui voient le monde autrement."
   },
   "auth": {
-    "title": "Entrer dans l’Arène",
-    "description": "Inscrivez-vous ou connectez-vous avec Google pour voter.",
+    "title": "Connecte-toi à UNSEEN",
+    "description": "Inscris-toi ou connecte-toi avec Google pour partager tes créations et rejoindre la communauté UNSEEN.",
     "register": "S’inscrire",
     "signInGoogle": "Se connecter avec Google",
     "loading": "Chargement...",
     "signInFailed": "Échec de la connexion Google"
   },
   "submit": {
+    "badge": "CANDIDATURES PHOTOGRAPHIQUES",
     "title": "ENVOYEZ VOTRE ŒUVRE",
     "subtitle": "Partagez votre vision avec le monde",
     "upload": "Télécharger votre œuvre",

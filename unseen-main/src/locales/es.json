@@ -44,14 +44,15 @@
     "artistsText": "Un espacio para quienes ven el mundo de otra manera."
   },
   "auth": {
-    "title": "Entra en la Arena",
-    "description": "Regístrate o accede con tu cuenta de Google para votar.",
+    "title": "Accede a UNSEEN",
+    "description": "Regístrate o accede con Google para compartir tus obras y formar parte de la comunidad UNSEEN.",
     "register": "Registrarse",
     "signInGoogle": "Acceder con Google",
     "loading": "Cargando...",
     "signInFailed": "Error al acceder con Google"
   },
   "submit": {
+    "badge": "CANDIDATURAS FOTOGRÁFICAS",
     "title": "ENVÍA TU OBRA",
     "subtitle": "Comparte tu visión con el mundo",
     "upload": "Sube tu obra",

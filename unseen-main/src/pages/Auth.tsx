@@ -1,16 +1,23 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowUpRight, LoaderCircle } from "lucide-react";
 import { supabase } from "@/supabaseClient";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/I18nProvider";
 import { loginDestination } from "@/lib/auth-redirect";
+import Starfield from "@/components/home/Starfield";
+import "@/home-experience.css";
+import "@/auth.css";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const redirectTo = loginDestination(searchParams.get("redirect"));
   const { t } = useI18n();
+  const reduced = useReducedMotion();
+  const title = t("auth.title").split(" ");
+  const finalWord = title.pop();
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -31,47 +38,49 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen arena-bg flex items-center justify-center px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+    <main className="auth-page" aria-labelledby="auth-title">
+      <Starfield />
+      <motion.section
+        initial={reduced ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="auth-access"
+        aria-busy={loading}
       >
-        <div className="glass rounded-2xl border border-border/60 bg-gradient-to-b from-white/[0.05] to-transparent p-8">
-          <h1 className="font-display text-3xl font-bold text-foreground text-center mb-2">
-            {t("auth.title")}
+        <header className="auth-heading">
+          <p className="auth-eyebrow"><i aria-hidden="true" />UNSEEN / COMMUNITY</p>
+          <h1 id="auth-title" aria-label={t("auth.title")}>
+            {title.join(" ")} <em>{finalWord}<span>.</span></em>
           </h1>
-          <p className="text-muted-foreground text-center text-sm mb-8">
-            {t("auth.description")}
-          </p>
-
-          <div className="space-y-3">
+          <p className="auth-description">{t("auth.description")}</p>
+        </header>
+          <div className="auth-actions">
             <motion.button
               type="button"
               disabled={loading}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={reduced ? undefined : { y: -2 }}
+              whileTap={reduced ? undefined : { scale: 0.98 }}
               onClick={handleGoogleSignIn}
-              className="w-full rounded-xl border border-arena/35 bg-arena/10 py-3.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-arena/55 hover:bg-arena/18 disabled:cursor-not-allowed disabled:opacity-50"
+              className="auth-button auth-register"
             >
-              {loading ? t("auth.loading") : t("auth.register")}
+              <span>{loading ? t("auth.loading") : t("auth.register")}</span>
+              {loading ? <LoaderCircle className="auth-loading" size={18} aria-hidden="true" /> : <ArrowUpRight size={18} aria-hidden="true" />}
             </motion.button>
             <motion.button
               type="button"
               disabled={loading}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={reduced ? undefined : { y: -2 }}
+              whileTap={reduced ? undefined : { scale: 0.98 }}
               onClick={handleGoogleSignIn}
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-border/70 bg-background/60 py-3.5 font-display text-sm font-semibold tracking-wide text-foreground transition-colors hover:border-foreground/40 hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-50"
+              className="auth-button auth-google"
             >
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm font-bold text-[#4285f4]">G</span>
+              <span className="auth-google-mark" aria-hidden="true">G</span>
               {t("auth.signInGoogle")}
             </motion.button>
           </div>
-        </div>
-      </motion.div>
-    </div>
+        <footer className="auth-signature"><span>UNSEEN</span><i aria-hidden="true" /><span>INDEPENDENT CULTURE</span></footer>
+      </motion.section>
+    </main>
   );
 };
 

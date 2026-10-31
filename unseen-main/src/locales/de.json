@@ -44,14 +44,15 @@
     "artistsText": "Ein Raum für Menschen, die die Welt anders sehen."
   },
   "auth": {
-    "title": "Die Arena betreten",
-    "description": "Registriere dich oder melde dich mit Google an, um abzustimmen.",
+    "title": "Anmelden bei UNSEEN",
+    "description": "Registriere dich oder melde dich mit Google an, um deine Werke zu teilen und Teil der UNSEEN-Community zu werden.",
     "register": "Registrieren",
     "signInGoogle": "Mit Google anmelden",
     "loading": "Laden...",
     "signInFailed": "Google-Anmeldung fehlgeschlagen"
   },
   "submit": {
+    "badge": "FOTOGRAFIE-EINREICHUNGEN",
     "title": "WERK EINREICHEN",
     "subtitle": "Teile deine Vision mit der Welt",
     "upload": "Werk hochladen",

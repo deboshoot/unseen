@@ -44,14 +44,15 @@
     "artistsText": "A space for those who see the world differently."
   },
   "auth": {
-    "title": "Enter the Arena",
-    "description": "Register or sign in with your Google account to vote.",
+    "title": "Sign in to UNSEEN",
+    "description": "Register or sign in with Google to share your work and join the UNSEEN community.",
     "register": "Register",
     "signInGoogle": "Sign in with Google",
     "loading": "Loading...",
     "signInFailed": "Google sign-in failed"
   },
   "submit": {
+    "badge": "PHOTOGRAPHY SUBMISSIONS",
     "title": "SUBMIT YOUR WORK",
     "subtitle": "Share your vision with the world",
     "upload": "Upload your work",
