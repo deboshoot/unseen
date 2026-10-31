@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { motion } from 'framer-motion';
 import { ArrowUpRight, Check, Headphones, ImagePlus, LoaderCircle, Music2, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -134,15 +135,15 @@ export default function InviaBrano() {
     } catch (error) { toast.error(text.uploadError, { description: error instanceof Error ? error.message : undefined }); }
     finally { submitting.current = false; setLoading(false); }
   };
-  if (submitted) return <section className="submit-confirmation mx-auto max-w-3xl text-center" aria-live="polite"><Check size={50} className="mx-auto text-primary" /><h2 className="mt-6 font-display text-3xl">{copy.received}</h2><p className="mt-4 text-muted-foreground">{copy.receivedDescription}</p><button type="button" className="submit-secondary-button mt-8" onClick={() => setSubmitted(false)}>{copy.another}</button></section>;
+  if (submitted) return <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="submit-confirmation mx-auto max-w-3xl text-center" aria-live="polite"><Check size={50} className="mx-auto text-primary" /><h2 className="mt-6 font-display text-3xl">{copy.received}</h2><p className="mt-4 text-muted-foreground">{copy.receivedDescription}</p><button type="button" className="submit-secondary-button mt-8" onClick={() => setSubmitted(false)}>{copy.another}</button></motion.section>;
 
   const fields: { label: string; value: string; set: (value: string) => void; platform: SocialPlatform; placeholder: string; invalid: boolean }[] = [
     { label: text.youtube, value: youtube, set: setYoutube, platform: 'youtube', placeholder: 'https://www.youtube.com/watch?v=…', invalid: youtubeUrl === null },
     { label: text.reel, value: reel, set: setReel, platform: 'instagram', placeholder: 'https://www.instagram.com/reel/…', invalid: reelUrl === null },
     { label: text.spotify, value: spotify, set: setSpotify, platform: 'spotify', placeholder: 'https://open.spotify.com/track/…', invalid: spotifyUrl === null },
   ];
-  return <form onSubmit={event => void send(event)} className="music-submit-form music-studio-form">
-    <div className="music-studio-fields">
+  return <motion.form onSubmit={event => void send(event)} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="music-submit-form music-studio-form">
+    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="music-studio-fields">
       <section className="music-studio-section">
         <div className="music-studio-section-heading"><span>01</span><div><h2>{text.stepFiles}</h2><p>{text.filesHint}</p></div></div>
         <div className="music-studio-uploads">{(['cover', 'audio'] as const).map(kind => {
@@ -203,10 +204,10 @@ export default function InviaBrano() {
         <div className="music-submit-progress-copy" role="status" aria-live="polite"><strong>{text.uploading}</strong><p>{text.uploadingHint}</p></div>
         <div className="music-submit-progress-timer"><span>{text.elapsed}</span><strong role="timer" aria-label={text.elapsedTime(elapsedSeconds)}>{`${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}`}</strong></div>
       </div>}<p className="music-studio-privacy"><ShieldCheck size={13} />{text.privacy}</p></section>
-    </div>
-    <aside className="music-studio-preview"><div className="music-studio-preview-heading"><span>{text.previewBadge}</span><span>{text.maxClip}</span></div>
+    </motion.div>
+    <motion.aside initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="music-studio-preview"><div className="music-studio-preview-heading"><span>{text.previewBadge}</span><span>{text.maxClip}</span></div>
       {coverUrl ? <MusicRecord key={audioUrl || 'cover-only'} track={{ id: 'submission-preview', title: title || copy.title, artist: formatArtistCredit(artist.trim() || copy.artist, collaborator, collaboration), cover_url: coverUrl, audio_url: clipFile ? audioUrl : '', instagram_username: username, youtube_url: youtubeUrl, instagram_reel_url: reelUrl, spotify_url: spotifyUrl }} activeId={activeId} onActiveChange={setActiveId} /> : <div className="music-studio-empty"><div className="music-studio-empty-art" aria-hidden="true"><div className="music-studio-empty-disc" /><div className="music-studio-empty-sleeve"><Music2 size={35} strokeWidth={1} /><strong>YOUR<br />NEXT SOUND.</strong><span>UNSEEN / SOUND SERIES</span></div></div><p>{text.previewHint}</p></div>}
       <div className="music-studio-preview-note"><ShieldCheck size={18} /><div><strong>{text.ready}</strong><p>{text.summary}</p></div></div>
-    </aside>
-  </form>;
+    </motion.aside>
+  </motion.form>;
 }
