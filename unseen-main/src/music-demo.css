@@ -124,6 +124,8 @@
 .music-demo-page .music-progress:disabled { cursor: default; opacity: .42; }
 .music-demo-page .music-time { margin-top: 1px; color: hsl(0 0% 63.1%); font-size: 11px; }
 .music-demo-vote-area { display: flex; justify-content: center; margin: 28px auto 0; }
+.champ-arena-share { display: flex; justify-content: center; margin: 0 auto; }
+.champ-arena-share .music-share { margin-top: 16px; }
 .music-demo-page .music-demo-vote-area .music-vote {
   width: min(100%, 338px);
   min-height: 60px;

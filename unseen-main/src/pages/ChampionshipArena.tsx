@@ -74,7 +74,6 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
       bracketUrl={bracketUrl}
       navigation={<nav className="music-demo-navigation" aria-label="Arena">
         <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
-        <button className="music-share" onClick={() => void share()}><Share2 size={15} />{copy.share}</button>
       </nav>}>
       {kind === 'music' ? <MusicArenaMedia tracks={tracks} duelLabel={duelLabel} renderWaiting={waiting} renderTrackFooter={result} />
         : <section className="music-duel photo-arena-duel" aria-label={duelLabel}>
@@ -88,6 +87,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
       <MusicArenaVote choices={entries.flatMap(entry => entry ? [entry] : [])} selectedId={chosen ? entries[chosen - 1]?.id ?? null : null}
         selectedLabel={copy.voted} disabled={!canVote || busy || Boolean(chosen)}
         onChoose={id => void vote(entries.findIndex(entry => entry?.id === id) + 1)} />
+      <div className="champ-arena-share"><button type="button" className="music-share" onClick={() => void share()}><Share2 size={15} />{copy.share}</button></div>
       <p className="sr-only">{copy.rounds[match.round - 1]} · #{match.number}/15 · {championship.name}</p>
     </ArenaStage>;
   }

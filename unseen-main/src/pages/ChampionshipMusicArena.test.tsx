@@ -47,6 +47,12 @@ describe('official music arena using the demo presentation', () => {
     expect(container.querySelector('a[href="/admin"]')).toBeNull();
     expect(container.querySelector('a[href="/arena/musicale/demo"]')).toBeNull();
     expect(screen.getByRole('link', { name: 'Scopri il campionato' })).toHaveAttribute('href', '/campionato?tipo=musica&id=championship-1');
+    const voteArea = container.querySelector('.music-demo-vote-area');
+    const shareArea = container.querySelector('.champ-arena-share');
+    expect(voteArea).toBeInTheDocument();
+    expect(shareArea).toBeInTheDocument();
+    expect(voteArea?.compareDocumentPosition(shareArea!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(shareArea).toHaveTextContent('Condividi');
     expect(mocks.rpc).not.toHaveBeenCalled(); expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
   });
 
