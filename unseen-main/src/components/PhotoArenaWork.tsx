@@ -48,7 +48,7 @@ export default function PhotoArenaWork({ entry, lost = false }: { entry: Champio
     <figure className={`photo-arena-work${lost ? ' is-lost' : ''}`}>
       <DialogTrigger asChild>
         <button type="button" className="photo-arena-image-button" aria-label={`${text.expand}: ${entry.title}`}>
-          <img src={entry.image_url} alt={entry.title} />
+          <img className="photo-arena-image-preview" src={entry.image_url} alt={entry.title} />
         </button>
       </DialogTrigger>
       <figcaption className="photo-arena-caption"><h2>{entry.title}</h2><p>{entry.artist}</p>

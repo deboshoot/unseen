@@ -34,6 +34,15 @@ describe('photograph enlargement and real artwork descriptions', () => {
     expect(screen.queryByRole('link', { name: /invalid/ })).not.toBeInTheDocument();
   });
 
+  it('fills the borderless preview frame with a single cover image', () => {
+    const { container } = render(<PhotoArenaWork entry={entry} />);
+    const frame = container.querySelector('.photo-arena-image-button');
+    const preview = frame?.querySelector('.photo-arena-image-preview');
+    expect(frame?.querySelectorAll('img')).toHaveLength(1);
+    expect(preview).toHaveAttribute('src', entry.image_url);
+    expect(preview).toHaveAttribute('alt', entry.title);
+  });
+
   it('loads only the selected public description on opening, shows the full photo and caches the result', async () => {
     render(<PhotoArenaWork entry={entry} />);
     expect(mocks.from).not.toHaveBeenCalled();

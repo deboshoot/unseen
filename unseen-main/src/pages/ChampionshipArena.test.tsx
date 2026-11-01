@@ -85,7 +85,7 @@ describe('championship arena voting', () => {
     const { container } = mount();
     expect(screen.getByRole('heading', { name: 'ARENA DIGITALE' })).toBeInTheDocument();
     expect(screen.getByRole('timer')).toHaveTextContent('48 : 00 : 00');
-    expect(container.querySelectorAll('.photo-arena-image-button img')).toHaveLength(2);
+    expect(container.querySelectorAll('.photo-arena-image-preview')).toHaveLength(2);
     expect(screen.getByRole('img', { name: 'Work 1' })).toHaveAttribute('src', '/image-1.webp');
     expect(screen.getByRole('img', { name: 'Work 2' })).toHaveAttribute('src', '/image-2.webp');
     expect(container.querySelector('audio')).toBeNull();
