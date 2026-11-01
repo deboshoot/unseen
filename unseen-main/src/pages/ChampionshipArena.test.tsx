@@ -1,17 +1,17 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { championshipFixture, fixtureNow } from '@/test/championship-fixture';
 import ChampionshipArena from './ChampionshipArena';
 
-const mocks = vi.hoisted(() => ({ rpc: vi.fn(), getSession: vi.fn(), refetch: vi.fn() }));
+const mocks = vi.hoisted(() => ({ rpc: vi.fn(), from: vi.fn(), select: vi.fn(), in: vi.fn(), abortSignal: vi.fn(), getSession: vi.fn(), refetch: vi.fn() }));
 let state: ReturnType<typeof championshipFixture>;
 let userId: string | null;
 let now: number;
 let empty: boolean;
 let loading: boolean;
 let loadError: Error | null;
-vi.mock('@/supabaseClient', () => ({ supabase: { rpc: mocks.rpc, auth: { getSession: mocks.getSession } } }));
+vi.mock('@/supabaseClient', () => ({ supabase: { rpc: mocks.rpc, from: mocks.from, auth: { getSession: mocks.getSession } } }));
 vi.mock('@/hooks/useChampionship', () => ({ useChampionship: () => ({ data: empty ? { ...state, championship: null, matches: [], entries: [], my_votes: [] } : state, now, userId, isLoading: loading, error: loadError, refetch: mocks.refetch }) }));
 vi.mock('@/i18n/I18nProvider', () => ({ useI18n: () => ({ locale: 'it' }) }));
 vi.mock('@/hooks/useMusicAnalyser', () => ({ useMusicAnalyser: () => ({ signal: null, prepareAudio: vi.fn() }) }));
@@ -22,7 +22,13 @@ function Location() { return <p data-testid="location">{useLocation().pathname}{
 function photoPage(url = '/arena/fotografica') { return <MemoryRouter initialEntries={[url]}><ChampionshipArena kind="photo" /><Location /></MemoryRouter>; }
 function mount(url = '/arena/fotografica') { return render(photoPage(url)); }
 function openPhotoVotes() { fireEvent.click(screen.getByRole('button', { name: 'Vota' })); return screen.getAllByRole('button', { name: /^Vota Artist/ }); }
-beforeEach(() => { vi.clearAllMocks(); empty = false; loading = false; loadError = null; state = championshipFixture(); userId = 'user'; now = fixtureNow; mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'user' } } } }); mocks.rpc.mockResolvedValue({ error: null }); mocks.refetch.mockResolvedValue({}); });
+beforeEach(() => {
+  vi.clearAllMocks(); empty = false; loading = false; loadError = null; state = championshipFixture(); userId = 'user'; now = fixtureNow;
+  const request = { select: mocks.select, in: mocks.in, abortSignal: mocks.abortSignal };
+  mocks.from.mockReturnValue(request); mocks.select.mockReturnValue(request); mocks.in.mockReturnValue(request);
+  mocks.abortSignal.mockResolvedValue({ data: [{ id: 'photo-1', social_link: '@photo.artist' }, { id: 'photo-2', social_link: 'second.photo' }], error: null });
+  mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'user' } } } }); mocks.rpc.mockResolvedValue({ error: null }); mocks.refetch.mockResolvedValue({});
+});
 afterEach(cleanup);
 describe('arena loading', () => {
   function musicArena(url = '/arena/musicale') {
@@ -87,6 +93,22 @@ describe('championship arena voting', () => {
     expect(screen.getByRole('link', { name: 'Invia la tua foto' })).toHaveAttribute('href', '/submit?tipo=foto');
     expect(screen.getByRole('link', { name: 'Scopri il campionato' })).toHaveAttribute('href', '/campionato?tipo=foto&id=championship-1');
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+  it('shows clickable Instagram profiles for the photographers in the live duel', async () => {
+    state.entries[0].instagram_username = '';
+    state.entries[1].instagram_username = '';
+    render(photoPage());
+    const firstProfile = await screen.findByRole('link', { name: '@photo.artist' });
+    expect(firstProfile).toHaveAttribute('href', 'https://www.instagram.com/photo.artist/');
+    expect(firstProfile).toHaveAttribute('target', '_blank');
+    expect(firstProfile).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(screen.getByRole('link', { name: '@second.photo' })).toHaveAttribute('href', 'https://www.instagram.com/second.photo/');
+    fireEvent.click(screen.getByRole('button', { name: 'Ingrandisci foto: Work 1' }));
+    const dialog = screen.getByRole('dialog', { name: 'Work 1' });
+    expect(within(dialog).getByRole('link', { name: '@photo.artist' })).toHaveAttribute('href', 'https://www.instagram.com/photo.artist/');
+    expect(mocks.from).toHaveBeenCalledWith('opere');
+    expect(mocks.select).toHaveBeenCalledWith('id, social_link');
+    expect(mocks.in).toHaveBeenCalledWith('id', ['photo-1', 'photo-2']);
   });
   it('keeps photography in the opening page until its scheduled start', () => {
     state.championship.status = 'scheduled'; now = fixtureNow - 3600000;

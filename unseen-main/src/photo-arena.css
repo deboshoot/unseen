@@ -36,6 +36,9 @@
   overflow-wrap: anywhere;
 }
 .photo-arena-caption p { margin-top: 3px; color: hsl(0 0% 63.1%); font-size: 12px; letter-spacing: .03em; }
+.photo-arena-instagram { display: inline-block; margin-top: 7px; color: hsl(var(--primary)); font-size: 11px; text-decoration: none; }
+.photo-arena-instagram:hover { color: hsl(0 0% 96%); text-decoration: underline; text-underline-offset: 3px; }
+.photo-arena-instagram:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
 .photo-arena .is-lost img { filter: grayscale(.85) brightness(.5); }
 .photo-arena .champ-arena-result { padding-top: 8px; }
 .photo-arena-dialog[role="dialog"] {

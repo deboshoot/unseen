@@ -4,6 +4,7 @@ import { supabase } from '@/supabaseClient';
 import { useI18n } from '@/i18n/I18nProvider';
 import { photoArenaCopy } from '@/i18n/photo-arena-copy';
 import type { ChampionshipEntry } from '@/lib/championship';
+import { normalizeInstagram } from '@/lib/music-links';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './ui/dialog';
 
 type Detail = { status: 'idle' | 'loading' | 'ready' | 'error'; description: string };
@@ -11,6 +12,7 @@ type Detail = { status: 'idle' | 'loading' | 'ready' | 'error'; description: str
 export default function PhotoArenaWork({ entry, lost = false }: { entry: ChampionshipEntry; lost?: boolean }) {
   const { locale } = useI18n();
   const text = photoArenaCopy[locale];
+  const instagramUsername = normalizeInstagram(entry.instagram_username ?? '');
   const [open, setOpen] = useState(false);
   const [retry, setRetry] = useState(0);
   const [detail, setDetail] = useState<Detail>({ status: 'idle', description: '' });
@@ -49,7 +51,9 @@ export default function PhotoArenaWork({ entry, lost = false }: { entry: Champio
           <img src={entry.image_url} alt={entry.title} />
         </button>
       </DialogTrigger>
-      <figcaption className="photo-arena-caption"><h2>{entry.title}</h2><p>{entry.artist}</p></figcaption>
+      <figcaption className="photo-arena-caption"><h2>{entry.title}</h2><p>{entry.artist}</p>
+        {instagramUsername && <a className="photo-arena-instagram" href={`https://www.instagram.com/${instagramUsername}/`} target="_blank" rel="noopener noreferrer">@{instagramUsername}</a>}
+      </figcaption>
     </figure>
     <DialogContent className="photo-arena-dialog">
       <DialogDescription className="sr-only">{text.detail}</DialogDescription>
@@ -57,6 +61,7 @@ export default function PhotoArenaWork({ entry, lost = false }: { entry: Champio
       <div className="photo-arena-dialog-copy">
         <DialogTitle>{entry.title}</DialogTitle>
         <p className="photo-arena-dialog-artist">{entry.artist}</p>
+        {instagramUsername && <a className="photo-arena-instagram" href={`https://www.instagram.com/${instagramUsername}/`} target="_blank" rel="noopener noreferrer">@{instagramUsername}</a>}
         <h3>{text.description}</h3>
         {detail.status === 'ready' ? <p className="photo-arena-description">{detail.description || text.empty}</p>
           : detail.status === 'error' ? <div role="alert"><p>{text.unavailable}</p>{entry.artwork_id && <button type="button" className="photo-arena-retry" onClick={() => setRetry(value => value + 1)}>{text.retry}</button>}</div>

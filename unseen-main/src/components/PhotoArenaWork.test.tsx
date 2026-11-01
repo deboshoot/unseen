@@ -17,6 +17,23 @@ afterEach(cleanup);
 function openPhoto() { fireEvent.click(screen.getByRole('button', { name: 'Ingrandisci foto: Work 1' })); return screen.getByRole('dialog', { name: 'Work 1' }); }
 
 describe('photograph enlargement and real artwork descriptions', () => {
+  it('links the photographer Instagram tag to the validated profile', async () => {
+    render(<PhotoArenaWork entry={{ ...entry, instagram_username: '@photo.artist' }} />);
+    const tag = screen.getByRole('link', { name: '@photo.artist' });
+    expect(tag).toHaveAttribute('href', 'https://www.instagram.com/photo.artist/');
+    expect(tag).toHaveAttribute('target', '_blank');
+    expect(tag).toHaveAttribute('rel', 'noopener noreferrer');
+
+    const dialog = openPhoto();
+    expect(within(dialog).getByRole('link', { name: '@photo.artist' })).toHaveAttribute('href', 'https://www.instagram.com/photo.artist/');
+    await within(dialog).findByText(/La descrizione originale/);
+  });
+
+  it('does not render a link for an invalid Instagram username', () => {
+    render(<PhotoArenaWork entry={{ ...entry, instagram_username: 'invalid/profile' }} />);
+    expect(screen.queryByRole('link', { name: /invalid/ })).not.toBeInTheDocument();
+  });
+
   it('loads only the selected public description on opening, shows the full photo and caches the result', async () => {
     render(<PhotoArenaWork entry={entry} />);
     expect(mocks.from).not.toHaveBeenCalled();

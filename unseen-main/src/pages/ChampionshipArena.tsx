@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Share2, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,6 +25,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
   const [localVote, setLocalVote] = useState<{ matchId: string; slot: number; userId: string } | null>(null);
+  const [photoSocials, setPhotoSocials] = useState<Record<string, string>>({});
   const championship = data?.championship;
   const requested = params.get('match');
   // A shared URL cannot select a past or future duel outside its 48-hour window.
@@ -33,6 +34,9 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
   const chosen = data?.my_votes.find(vote => vote.match_id === match?.id)?.vote_slot ?? (localVote && localVote.matchId === match?.id && localVote.userId === userId ? localVote.slot : null);
   const bracketUrl = `/campionato?tipo=${kind === 'music' ? 'musica' : 'foto'}${championship ? `&id=${championship.id}` : ''}`;
   const matchUrl = championship && match ? `${arenaPath(kind)}?campionato=${championship.id}&match=${match.id}` : arenaPath(kind);
+  const photoArtworkIds = kind === 'photo' && match
+    ? [...new Set([match.entry_1_id, match.entry_2_id].flatMap(id => data?.entries.find(entry => entry.id === id)?.artwork_id ?? []))].sort().join(',')
+    : '';
   const vote = async (slot: number) => {
     if (!canVote || !match || chosen || busyRef.current) return;
     busyRef.current = true; setBusy(true);
@@ -52,6 +56,19 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
       else { await navigator.clipboard.writeText(url); toast.success(copy.copied); }
     } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) toast.error(copy.error); }
   };
+  useEffect(() => {
+    if (!photoArtworkIds) { setPhotoSocials({}); return; }
+    const controller = new AbortController();
+    void supabase.from('opere').select('id, social_link').in('id', photoArtworkIds.split(',')).abortSignal(controller.signal)
+      .then(({ data: artworks, error: artworkError }) => {
+        if (artworkError) throw artworkError;
+        if (!controller.signal.aborted) setPhotoSocials(Object.fromEntries((artworks ?? []).map(artwork => [artwork.id, artwork.social_link ?? ''])));
+      })
+      .catch(error => {
+        if (!controller.signal.aborted) toast.error(copy.error, { description: error instanceof Error ? error.message : undefined });
+      });
+    return () => controller.abort();
+  }, [photoArtworkIds, copy.error]);
   if (params.get('duelId')) return <Navigate replace to={`/archivio${arenaPath(kind)}?${params.toString()}`} />;
   // Resolve loading and errors before mounting the arena layout.
   if (isLoading || error) return <main className="champ-page" aria-busy={isLoading}><div className="champ-container champ-arena-container">
@@ -64,7 +81,10 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
   if (requested && requested !== match?.id) return <Navigate replace to={match ? matchUrl : `${arenaPath(kind)}?campionato=${championship.id}`} />;
   if (championship && match && data) {
     const text = musicDemoCopy[locale];
-    const entries = [match.entry_1_id, match.entry_2_id].map(id => data.entries.find(entry => entry.id === id) ?? null);
+    const entries = [match.entry_1_id, match.entry_2_id].map(id => {
+      const entry = data.entries.find(item => item.id === id);
+      return entry ? { ...entry, instagram_username: photoSocials[entry.artwork_id ?? ''] || entry.instagram_username || '' } : null;
+    });
     const tracks = entries.map(entry => entry ? { ...entry, cover_url: entry.image_url, audio_url: entry.audio_url ?? '' } : null);
     const waiting = (index: number) => <div className="champ-empty">{copy.waiting} #{(match.round === 2 ? (match.position - 1) * 2 : match.round === 3 ? 8 + (match.position - 1) * 2 : 12) + index + 1}</div>;
     const duelLabel = `${championship.name} · ${copy.rounds[match.round - 1]} · #${match.number}/15`;
