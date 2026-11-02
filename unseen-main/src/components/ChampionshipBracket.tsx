@@ -28,6 +28,7 @@ export default function ChampionshipBracket({ data, kind, now, admin = false, on
       </svg>
       {matches.map(match => {
         const live = data?.championship && isMatchOpen(match, data.championship, now);
+        const showPercentages = Boolean(match.resolved_at || data?.my_votes.some(vote => vote.match_id === match.id));
         const feeders = feederNumbers(match);
         const url = live && data?.championship && !onSeedClick ? `${arenaPath(kind)}?campionato=${data.championship.id}&match=${match.id}` : null;
         const content = <>
@@ -37,10 +38,11 @@ export default function ChampionshipBracket({ data, kind, now, admin = false, on
             const lost = Boolean(entry && match.winner_id && match.winner_id !== id);
             const won = entry && match.winner_id === id;
             const seed = (match.position - 1) * 2 + slot + 1;
+            const percentage = showPercentages ? (slot === 0 ? match.vote_percentages?.slot_1 : match.vote_percentages?.slot_2) : undefined;
             const body = <>
               <div className="champ-entry-image">{entry ? <img src={entry.image_url} alt="" loading="lazy" /> : <span>{match.round === 1 ? String((match.position - 1) * 2 + slot + 1).padStart(2, '0') : '·'}</span>}{lost && <X size={22} aria-label={copy.lost} />}</div>
               <div className="champ-entry-text"><strong>{entry?.title || (match.round === 1 ? `${copy.slot} ${(match.position - 1) * 2 + slot + 1}` : `${copy.waiting} #${feeders[slot]}`)}</strong><span>{entry ? `#${entry.seed} · ${entry.artist}` : '—'}</span></div>
-              {onSeedClick && match.round === 1 ? <Plus size={13} /> : entry && <span className="champ-entry-votes">{admin || match.resolved_at ? (slot === 0 ? match.votes_1 : match.votes_2) ?? '—' : <LockKeyhole size={12} aria-label={copy.secretVotes} />}{won && <Trophy size={10} />}</span>}
+              {onSeedClick && match.round === 1 ? <Plus size={13} /> : entry && <span className="champ-entry-votes">{admin ? (slot === 0 ? match.votes_1 : match.votes_2) ?? '—' : percentage != null ? `${percentage}%` : match.resolved_at ? '—' : <LockKeyhole size={12} aria-label={copy.secretVotes} />}{won && <Trophy size={10} />}</span>}
             </>;
             const className = `champ-entry ${lost ? 'is-lost' : ''} ${won ? 'is-winner' : ''} ${activeSeed === seed && match.round === 1 ? 'is-editing' : ''}`;
             return onSeedClick && match.round === 1 ? <button key={slot} type="button" className={`${className} champ-seed-button`} onClick={() => onSeedClick(seed)} aria-label={`Scegli partecipante posizione ${seed}${entry ? `: ${entry.title}` : ''}`}>{body}</button> : <div key={slot} className={className}>{body}</div>;

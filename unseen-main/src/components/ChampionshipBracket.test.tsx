@@ -6,20 +6,47 @@ import ChampionshipBracket from './ChampionshipBracket';
 vi.mock('@/i18n/I18nProvider', () => ({ useI18n: () => ({ locale: 'it' }) }));
 afterEach(cleanup);
 describe('public championship bracket', () => {
-  it('hides unresolved counts even when the supplied data has admin scores, then reveals a resolved result', () => {
+  it('hides live results before voting, then shows percentages for a resolved match without exposing counts', () => {
     const data = championshipFixture(); data.matches[0].votes_1 = 532; data.matches[0].votes_2 = 341;
+    data.matches[0].vote_percentages = { slot_1: 61, slot_2: 39 };
     const { rerender } = render(<MemoryRouter><ChampionshipBracket data={data} kind="photo" now={fixtureNow} /></MemoryRouter>);
     expect(screen.queryByText('532')).not.toBeInTheDocument();
-    expect(screen.getAllByLabelText('Voti segreti fino alla fine del duello')).toHaveLength(16);
+    expect(screen.queryByText('61%')).not.toBeInTheDocument();
+    expect(screen.getAllByLabelText('Vota per vedere le percentuali')).toHaveLength(16);
     data.matches[0].resolved_at = new Date(fixtureNow + 48 * 3600000).toISOString();
     rerender(<MemoryRouter><ChampionshipBracket data={data} kind="photo" now={fixtureNow + 48 * 3600000} /></MemoryRouter>);
-    expect(screen.getByText('532')).toBeInTheDocument();
-    expect(screen.getByText('341')).toBeInTheDocument();
+    expect(screen.getByText('61%')).toBeInTheDocument();
+    expect(screen.getByText('39%')).toBeInTheDocument();
+    expect(screen.queryByText('532')).not.toBeInTheDocument();
+    expect(screen.queryByText('341')).not.toBeInTheDocument();
+  });
+  it('shows live percentages only for the match the user has voted in', () => {
+    const data = championshipFixture();
+    data.my_votes = [{ match_id: 'match-1', vote_slot: 1 }];
+    data.matches[0].vote_percentages = { slot_1: 48, slot_2: 52 };
+    data.matches[1].vote_percentages = { slot_1: 61, slot_2: 39 };
+    render(<MemoryRouter><ChampionshipBracket data={data} kind="music" now={fixtureNow} /></MemoryRouter>);
+    expect(screen.getByText('48%')).toBeInTheDocument();
+    expect(screen.getByText('52%')).toBeInTheDocument();
+    expect(screen.queryByText('61%')).not.toBeInTheDocument();
+  });
+  it('keeps missing percentages unavailable instead of substituting raw counts, and handles zero votes', () => {
+    const data = championshipFixture();
+    Object.assign(data.matches[0], { resolved_at: new Date(fixtureNow).toISOString(), votes_1: 532, votes_2: 341 });
+    const { container, rerender } = render(<MemoryRouter><ChampionshipBracket data={data} kind="photo" now={fixtureNow} /></MemoryRouter>);
+    expect(container.querySelectorAll('.champ-entry-votes')[0]).toHaveTextContent('—');
+    expect(screen.queryByText('532')).not.toBeInTheDocument();
+    data.matches[0].vote_percentages = { slot_1: 0, slot_2: 0 };
+    rerender(<MemoryRouter><ChampionshipBracket data={data} kind="photo" now={fixtureNow} /></MemoryRouter>);
+    expect(screen.getAllByText('0%')).toHaveLength(2);
   });
   it('allows scores explicitly in the administrator view', () => {
-    const data = championshipFixture(); data.matches[0].votes_1 = 532;
+    const data = championshipFixture(); data.matches[0].votes_1 = 532; data.matches[0].votes_2 = 341;
+    data.matches[0].vote_percentages = { slot_1: 61, slot_2: 39 };
     render(<MemoryRouter><ChampionshipBracket data={data} kind="photo" now={fixtureNow} admin /></MemoryRouter>);
     expect(screen.getByText('532')).toBeInTheDocument();
+    expect(screen.getByText('341')).toBeInTheDocument();
+    expect(screen.queryByText('61%')).not.toBeInTheDocument();
   });
   it('shows 15 scheduled matches, forwards a winner and marks only its losing opponent', () => {
     const data = championshipFixture(); data.matches[0].winner_id = 'entry-2'; data.matches[0].resolved_at = new Date(fixtureNow).toISOString(); data.matches[8].entry_1_id = 'entry-2';
