@@ -96,12 +96,28 @@ describe('official music arena using the demo presentation', () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
-  it('honours stored votes and keeps unresolved scores hidden', () => {
+  it('honours stored votes and reveals only the percentages supplied by the server', () => {
     data.my_votes = [{ match_id: 'match-1', vote_slot: 1 }]; data.matches[0].votes_1 = 532; data.matches[0].votes_2 = 341; render(page());
     expect(screen.getByRole('button', { name: 'Vota Artist 1' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Vota Artist 1' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByText('Voto registrato')).toBeInTheDocument();
     expect(screen.queryByText(/532/)).not.toBeInTheDocument(); expect(screen.queryByText(/341/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Il voto del pubblico')).not.toBeInTheDocument();
+  });
+
+  it('reveals percentages after a successful vote and the refreshed server response', async () => {
+    mocks.refetch.mockImplementationOnce(async () => {
+      data.my_votes = [{ match_id: 'match-1', vote_slot: 2 }];
+      data.matches[0].vote_percentages = { slot_1: 38, slot_2: 62 };
+      return {};
+    });
+    render(page());
+    expect(screen.queryByText('Il voto del pubblico')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Vota' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Vota Artist 2' }));
+    await waitFor(() => expect(screen.getByText('Il voto del pubblico')).toBeInTheDocument());
+    expect(screen.getByRole('status')).toHaveTextContent('Artist 1: 38%. Artist 2: 62%');
+    expect(screen.getByRole('button', { name: 'Vota Artist 2' })).toBeDisabled();
   });
 
   it('allows retrying a failed vote without showing a false confirmation', async () => {

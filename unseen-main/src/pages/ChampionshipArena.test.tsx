@@ -123,7 +123,7 @@ describe('championship arena voting', () => {
     state.matches[0].votes_1 = 532; state.matches[0].votes_2 = 341;
     const { unmount } = mount();
     expect(screen.queryByText(/532/)).not.toBeInTheDocument();
-    expect(screen.getAllByText('Voti segreti fino alla fine del duello')).toHaveLength(2);
+    expect(screen.queryByText('Il voto del pubblico')).not.toBeInTheDocument();
     unmount();
     state.matches[0].resolved_at = new Date(fixtureNow + 48 * 3600000).toISOString();
     now += 48 * 3600000; mount('/arena/fotografica?match=match-1');

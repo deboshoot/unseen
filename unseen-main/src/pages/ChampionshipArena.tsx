@@ -59,7 +59,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
   useEffect(() => {
     if (!photoArtworkIds) { setPhotoSocials({}); return; }
     const controller = new AbortController();
-    void supabase.from('opere').select('id, social_link').in('id', photoArtworkIds.split(',')).abortSignal(controller.signal)
+    void Promise.resolve(supabase.from('opere').select('id, social_link').in('id', photoArtworkIds.split(',')).abortSignal(controller.signal))
       .then(({ data: artworks, error: artworkError }) => {
         if (artworkError) throw artworkError;
         if (!controller.signal.aborted) setPhotoSocials(Object.fromEntries((artworks ?? []).map(artwork => [artwork.id, artwork.social_link ?? ''])));
@@ -88,24 +88,23 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     const tracks = entries.map(entry => entry ? { ...entry, cover_url: entry.image_url, audio_url: entry.audio_url ?? '' } : null);
     const waiting = (index: number) => <div className="champ-empty">{copy.waiting} #{(match.round === 2 ? (match.position - 1) * 2 : match.round === 3 ? 8 + (match.position - 1) * 2 : 12) + index + 1}</div>;
     const duelLabel = `${championship.name} · ${copy.rounds[match.round - 1]} · #${match.number}/15`;
-    const result = () => <p className="sr-only">{copy.secretVotes}</p>;
     return <ArenaStage key={`${championship.id}:${match.id}:${userId ?? 'anon'}`} kind={kind}
       timerValue={countdown(match.end_at, now)} timerLabel={text.duelDeadline}
       bracketUrl={bracketUrl}
       navigation={<nav className="music-demo-navigation" aria-label="Arena">
         <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
       </nav>}>
-      {kind === 'music' ? <MusicArenaMedia tracks={tracks} duelLabel={duelLabel} renderWaiting={waiting} renderTrackFooter={result} />
+      {kind === 'music' ? <MusicArenaMedia tracks={tracks} duelLabel={duelLabel} renderWaiting={waiting} />
         : <section className="music-duel photo-arena-duel" aria-label={duelLabel}>
           {entries.map((entry, index) => <article className={`music-challenger photo-arena-challenger photo-arena-challenger-${index + 1}`} key={`${match.id}-${index}`}>
             {entry ? <>
               <PhotoArenaWork entry={entry} />
-              {result()}
             </> : waiting(index)}
           </article>)}
         </section>}
       <MusicArenaVote choices={entries.flatMap(entry => entry ? [entry] : [])} selectedId={chosen ? entries[chosen - 1]?.id ?? null : null}
         selectedLabel={copy.voted} disabled={!canVote || busy || Boolean(chosen)}
+        percentages={match.vote_percentages} resultsPending={busy} onRefreshResults={() => void refetch()} showResultsHint
         onChoose={id => void vote(entries.findIndex(entry => entry?.id === id) + 1)} />
       <div className="champ-arena-share"><button type="button" className="music-share" onClick={() => void share()}><Share2 size={15} />{copy.share}</button></div>
       <p className="sr-only">{copy.rounds[match.round - 1]} · #{match.number}/15 · {championship.name}</p>
