@@ -18,6 +18,10 @@ Su un nuovo computer usa `unseen-main/.env.example` come riferimento e riavvia i
 
 La versione aggiornata online è su https://unseen-virid.vercel.app, aggiornata dal repository GitHub. Anche il link Cloudflare porta automaticamente a questo sito, mantenendo la pagina richiesta. I nuovi invii usano R2 su entrambi i percorsi di accesso.
 
+## Percentuali dopo il voto
+
+Le arene musicale e fotografica mostrano le percentuali solo dopo il voto nel singolo duello. Prima di pubblicare il frontend, esegui `node unseen-main/scripts/setup-vote-results.mjs --rehearse`, poi `node unseen-main/scripts/setup-vote-results.mjs --apply`. Lo script usa il progetto Supabase configurato, verifica i permessi con dati di prova in una transazione annullata, salva la funzione precedente e registra la migrazione. `--verify` ripete i controlli sul backend attivo senza conservare i dati di prova. Il solo push del frontend non aggiorna la funzione nel database.
+
 ## Demo dell'arena musicale riservata agli admin
 
 La demo è disponibile su https://unseen-virid.vercel.app/arena/musicale/demo solo per gli account amministratore già autorizzati dal progetto. Si apre anche dal collegamento «Demo musicale» nello studio admin. Il ruolo viene verificato con la funzione server `is_unseen_admin` prima di caricare l'anteprima. Chi non ha effettuato l'accesso viene indirizzato al login; gli utenti senza ruolo admin tornano all'arena pubblica. Durante la verifica o in caso di errore la demo non viene mostrata. Un cambio di account o la disconnessione ne revoca subito la visualizzazione.

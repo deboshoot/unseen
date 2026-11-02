@@ -1,4 +1,4 @@
--- Local change only. Apply after championship-control-room.sql when releasing.
+-- Apply after championship-control-room.sql.
 -- Reveal percentages only after the caller has voted in that specific match.
 -- Raw live tallies and direct table permissions remain unchanged.
 begin;
