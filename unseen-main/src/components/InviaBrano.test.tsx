@@ -45,8 +45,8 @@ describe("music submissions", () => {
   ])('previews and uploads %s credits with an optional second artist', async (kind, guest, credit) => {
     const { container } = render(<InviaBrano />);
     fillSubmission();
-    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione' }), { target: { value: kind } });
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome del secondo artista' }), { target: { value: guest } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' }), { target: { value: kind } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 1' }), { target: { value: guest } });
     const button = screen.getByRole('button', { name: 'Invia il brano' });
     await waitFor(() => expect(button).toBeEnabled());
     expect(container.querySelector('.music-track-info p')).toHaveTextContent(credit);
@@ -56,14 +56,80 @@ describe("music submissions", () => {
     expect(await screen.findByText('Brano ricevuto')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Invia un altro brano' }));
-    expect(screen.getByRole('textbox', { name: 'Nome del secondo artista' })).toHaveValue('');
-    expect(screen.getByRole('combobox', { name: 'Tipo di collaborazione' })).toHaveValue('feat');
+    expect(screen.getByRole('textbox', { name: 'Nome dell’artista 1' })).toHaveValue('');
+    expect(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' })).toHaveValue('feat');
+  });
+
+  it('previews and uploads multiple featured artists and co-artists, ignoring empty rows', async () => {
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 1' }), { target: { value: '  Guest One  ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 2' }), { target: { value: 'Guest Two' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 3' }), { target: { value: 'Coartist' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione 3' }), { target: { value: 'duet' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 4' }), { target: { value: '   ' } });
+    const credit = 'Artist & Coartist feat. Guest One, Guest Two';
+    expect(container.querySelector('.music-track-info p')).toHaveTextContent(credit);
+    const button = screen.getByRole('button', { name: 'Invia il brano' });
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(container.querySelector('form')!.checkValidity()).toBe(true);
+    fireEvent.click(button);
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({ artist: credit }), expect.any(Array)));
+    expect(await screen.findByText('Brano ricevuto')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Invia un altro brano' }));
+    expect(screen.getAllByRole('textbox', { name: /Nome dell’artista/ })).toHaveLength(1);
+    expect(screen.getByRole('textbox', { name: 'Nome dell’artista 1' })).toHaveValue('');
+    expect(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' })).toHaveValue('feat');
+  });
+
+  it('removes individual artists without losing the others and supports returning to a solo track', async () => {
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 1' }), { target: { value: 'Remove Me' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 2' }), { target: { value: 'Keep Me' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione 2' }), { target: { value: 'duet' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Rimuovi artista 1' }));
+    expect(screen.getByRole('textbox', { name: 'Nome dell’artista 1' })).toHaveValue('Keep Me');
+    expect(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' })).toHaveValue('duet');
+    expect(container.querySelector('.music-track-info p')).toHaveTextContent('Artist & Keep Me');
+    fireEvent.click(screen.getByRole('button', { name: 'Rimuovi artista 1' }));
+    expect(screen.queryByRole('textbox', { name: /Nome dell’artista/ })).not.toBeInTheDocument();
+    expect(container.querySelector('.music-track-info p')).toHaveTextContent(/^Artist$/);
+    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
+    expect(screen.getByRole('textbox', { name: 'Nome dell’artista 1' })).toHaveValue('');
+    const button = screen.getByRole('button', { name: 'Invia il brano' });
+    await waitFor(() => expect(button).toBeEnabled());
+    fireEvent.click(button);
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({ artist: 'Artist' }), expect.any(Array)));
+  });
+
+  it('counts all featured artists and separators toward the limit and unblocks after removal', async () => {
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 1' }), { target: { value: 'G'.repeat(100) } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 2' }), { target: { value: 'Guest' } });
+    const button = screen.getByRole('button', { name: 'Invia il brano' });
+    await waitFor(() => expect(button).toBeEnabled());
+    // 6 + 7 + 100 + 2 + 5 = 120 characters, including the comma separator.
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 2' }), { target: { value: 'Guests' } });
+    expect(button).toBeDisabled();
+    expect(screen.getByRole('alert')).toHaveTextContent('120 caratteri');
+    fireEvent.submit(container.querySelector('form')!);
+    expect(mocks.upload).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Rimuovi artista 2' }));
+    expect(button).toBeEnabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('checks the combined credit against the upload limit and allows correction', async () => {
     const { container } = render(<InviaBrano />);
     fillSubmission();
-    const guest = screen.getByRole('textbox', { name: 'Nome del secondo artista' });
+    const guest = screen.getByRole('textbox', { name: 'Nome dell’artista 1' });
     fireEvent.change(guest, { target: { value: 'G'.repeat(107) } });
     const button = screen.getByRole('button', { name: 'Invia il brano' });
     await waitFor(() => expect(button).toBeEnabled());
@@ -75,7 +141,7 @@ describe("music submissions", () => {
     fireEvent.submit(container.querySelector('form')!);
     expect(mocks.upload).not.toHaveBeenCalled();
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione' }), { target: { value: 'duet' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' }), { target: { value: 'duet' } });
     expect(button).toBeEnabled();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     fireEvent.click(button);
@@ -158,6 +224,8 @@ describe("music submissions", () => {
     expect(screen.getByRole('timer', { name: 'Tempo trascorso: 0 secondi' })).toHaveTextContent('00:00');
     expect(container.querySelector('.music-submit-progress-ring')).toBeInTheDocument();
     expect(button).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Aggiungi artista' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Rimuovi artista 1' })).toBeDisabled();
 
     await act(async () => {
       await new Promise(resolve => window.setTimeout(resolve, 1050));

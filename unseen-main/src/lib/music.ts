@@ -1,14 +1,18 @@
 import type { MusicSocials } from './music-links';
 
 export type MusicCollaboration = 'feat' | 'duet';
+export type MusicCollaborator = { name: string; kind: MusicCollaboration };
 export const MAX_ARTIST_CREDIT_LENGTH = 120;
 
 // Artist is the public credit used by moderation, records and championship snapshots.
-export const formatArtistCredit = (artist: string, collaborator: string, kind: MusicCollaboration) => {
-  const name = artist.trim();
-  const guest = collaborator.trim();
-  if (!name) return guest;
-  return guest ? `${name}${kind === 'feat' ? ' feat. ' : ' & '}${guest}` : name;
+export const formatArtistCredit = (artist: string, collaborators: readonly MusicCollaborator[]) => {
+  const names = (kind: MusicCollaboration) => collaborators
+    .filter(guest => guest.kind === kind)
+    .map(guest => guest.name.trim())
+    .filter(Boolean);
+  const leads = [artist.trim(), ...names('duet')].filter(Boolean).join(' & ');
+  const guests = names('feat').join(', ');
+  return leads && guests ? `${leads} feat. ${guests}` : leads || guests;
 };
 
 export type MusicTrack = MusicSocials & {

@@ -103,6 +103,14 @@
 .music-studio-collaboration legend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-right: 12px; color: hsl(var(--foreground)); font-size: 12px; }
 .music-studio-collaboration legend small { color: hsl(var(--primary)); font-size: 9px; }
 .music-studio-collaboration > p { margin: 5px 0 15px; color: hsl(var(--muted-foreground)); font-size: 11px; line-height: 1.8; }
+.music-studio-collaboration-list { display: grid; gap: 14px; }
+.music-studio-collaboration-row { display: flex; align-items: flex-end; gap: 8px; }
+.music-studio-collaboration-row .music-studio-collaboration-fields { flex: 1; min-width: 0; }
+.music-studio-collaboration-remove { display: grid; flex: 0 0 44px; place-items: center; height: 44px; border: 1px solid hsl(var(--border)); border-radius: 7px; color: hsl(var(--muted-foreground)); }
+.music-studio-collaboration-remove:hover { color: hsl(var(--foreground)); border-color: hsl(var(--primary)); }
+.music-studio-collaboration-add { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; margin-top: 12px; padding: 8px 12px; border: 1px dashed hsl(var(--border)); border-radius: 7px; color: hsl(var(--primary)); font-size: 11px; }
+.music-studio-collaboration-add:hover { border-color: hsl(var(--primary)); }
+.music-studio-collaboration button:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
 .music-studio-collaboration-fields { display: grid; grid-template-columns: minmax(150px, .8fr) minmax(0, 1.2fr); gap: 12px; }
 .music-studio-collaboration-fields label { display: flex; min-width: 0; flex-direction: column; gap: 8px; color: hsl(var(--muted-foreground)); font-size: 10px; }
 .music-studio-collaboration-fields select { width: 100%; min-height: 44px; padding: 11px 12px; border: 1px solid hsl(var(--border)); border-radius: 7px; background: hsl(var(--background)); color: hsl(var(--foreground)); font: inherit; font-size: 12px; color-scheme: dark; }
