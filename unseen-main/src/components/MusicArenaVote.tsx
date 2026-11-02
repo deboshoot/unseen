@@ -40,7 +40,7 @@ export default function MusicArenaVote({ choices, selectedId, selectedLabel, onC
           {selectedId === choice.id && <Check size={16} aria-hidden="true" />}
           <span>{choice.artist}</span>
           {showResults && <strong className="arena-vote-percentage" aria-hidden="true">{Math.round(animated[index])}<em>%</em></strong>}
-          <small>{selectedId === choice.id ? selectedLabel : showResults ? resultsText.provisional : text.voteFor}</small>
+          {(selectedId === choice.id || !showResults) && <small>{selectedId === choice.id ? selectedLabel : text.voteFor}</small>}
           {showResults && <span className="arena-vote-card-fill" style={{ transform: `scaleX(${animated[index] / 100})` }} aria-hidden="true" />}
         </button>)}
       </div>}
@@ -51,7 +51,7 @@ export default function MusicArenaVote({ choices, selectedId, selectedLabel, onC
         <span className={leader === 1 ? 'is-leading' : ''} style={{ width: `${animated[1]}%` }} />
       </div>
       <p aria-hidden="true">{leader !== null && <span className="arena-vote-leader-dot" />}{summary}</p>
-      <p className="sr-only" role="status">{resultsText.title}. {choices[0].artist}: {targets![0]}%. {choices[1].artist}: {targets![1]}%. {summary}. {resultsText.provisional}.</p>
+      <p className="sr-only" role="status">{resultsText.title}. {choices[0].artist}: {targets![0]}%. {choices[1].artist}: {targets![1]}%. {summary}.</p>
     </div>}
     {selectedId && !showResults && onRefreshResults && <p className="arena-vote-results-pending" role="status">
       {resultsPending ? resultsText.loading : <>{resultsText.unavailable} <button type="button" onClick={onRefreshResults}>{resultsText.retry}</button></>}
