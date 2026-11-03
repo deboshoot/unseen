@@ -31,7 +31,7 @@ Le pagine aggiornano i dati ogni 60 secondi in primo piano, al ritorno alla sche
 - **Campionati**: 16 blocchi cliccabili negli ottavi, selezione tra opere approvate con ricerca e pagine da 40, sostituzione/rimozione/spostamento delle posizioni. Le bozze di entrambe le categorie restano nella scheda del browser, separate per account admin. Dopo la programmazione: tabellone, registro voti (pagine da 100) e calendario completo. La fine e il mese della galleria sono mostrati prima dell'avvio.
 - **Contenuti**: fotografie/brani, da revisionare/approvati/rifiutati, ricerca e pagine da 20. Anteprime dei file R2 privati, approvazione/rifiuto e azioni di eliminazione secondarie.
 - **Galleria**: vincitori pubblicati automaticamente, senza assegnazioni manuali dei premi.
-- **Community**: utenti e votanti, con pagine da 100. Il riepilogo usa conteggi dal server senza scaricare tutti gli utenti o tutte le opere.
+- **Community**: utenti e votanti, con ricerca per email anche parziale, senza distinzione tra maiuscole e minuscole, e pagine da 100. La ricerca comprende tutto l'elenco e aggiorna il totale dei risultati; resta attiva passando da Utenti a Votanti e si azzera con Cancella ricerca. Il riepilogo usa conteggi dal server senza scaricare tutti gli utenti o tutte le opere.
 
 I controlli e i dati admin sono caricati solo dopo la verifica del ruolo sul server. L'uscita dall'account svuota la cache admin. I vecchi pannelli di arena e arena finale non fanno parte della nuova dashboard.
 
