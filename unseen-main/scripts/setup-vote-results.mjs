@@ -30,7 +30,7 @@ if (process.argv.includes('--apply')) {
   await fs.writeFile(path.join(folder, `rollback-${Date.now()}.sql`), before[0].definition);
   await request('database/query', 'POST', { query: sql, read_only: false });
   await verify(false);
-  const name = 'unseen_championship_vote_results';
+  const name = 'unseen_championship_vote_precision';
   let history = await request('database/migrations');
   if (!history.some(row => row.name === name)) {
     await request('database/migrations', 'PUT', { name, query: body });

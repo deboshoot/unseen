@@ -5,6 +5,7 @@ import { musicDemoCopy } from '@/i18n/music-demo-copy';
 import { voteResultsCopy } from '@/i18n/vote-results-copy';
 import { useVoteReveal } from '@/hooks/useVoteReveal';
 import type { VotePercentages } from '@/lib/championship';
+import { formatVotePercentage } from '@/lib/vote-percentage';
 
 type Props = {
   choices: { id: string; artist: string }[];
@@ -39,7 +40,7 @@ export default function MusicArenaVote({ choices, selectedId, selectedLabel, onC
         {choices.map((choice, index) => <button type="button" key={choice.id} disabled={disabled} className={`music-demo-vote-choice${selectedId === choice.id ? ' is-selected' : ''}${showResults && leader === index ? ' is-leading' : ''}`} aria-label={`${text.vote} ${choice.artist}`} aria-pressed={selectedId === choice.id} onClick={() => onChoose(choice.id)}>
           {selectedId === choice.id && <Check size={16} aria-hidden="true" />}
           <span>{choice.artist}</span>
-          {showResults && <strong className="arena-vote-percentage" aria-hidden="true">{Math.round(animated[index])}<em>%</em></strong>}
+          {showResults && <strong className="arena-vote-percentage" aria-hidden="true">{formatVotePercentage(animated[index], locale)}<em>%</em></strong>}
           {(selectedId === choice.id || !showResults) && <small>{selectedId === choice.id ? selectedLabel : text.voteFor}</small>}
           {showResults && <span className="arena-vote-card-fill" style={{ transform: `scaleX(${animated[index] / 100})` }} aria-hidden="true" />}
         </button>)}
@@ -51,7 +52,7 @@ export default function MusicArenaVote({ choices, selectedId, selectedLabel, onC
         <span className={leader === 1 ? 'is-leading' : ''} style={{ width: `${animated[1]}%` }} />
       </div>
       <p aria-hidden="true">{leader !== null && <span className="arena-vote-leader-dot" />}{summary}</p>
-      <p className="sr-only" role="status">{resultsText.title}. {choices[0].artist}: {targets![0]}%. {choices[1].artist}: {targets![1]}%. {summary}.</p>
+      <p className="sr-only" role="status">{resultsText.title}. {choices[0].artist}: {formatVotePercentage(targets![0], locale)}%. {choices[1].artist}: {formatVotePercentage(targets![1], locale)}%. {summary}.</p>
     </div>}
     {selectedId && !showResults && onRefreshResults && <p className="arena-vote-results-pending" role="status">
       {resultsPending ? resultsText.loading : <>{resultsText.unavailable} <button type="button" onClick={onRefreshResults}>{resultsText.retry}</button></>}

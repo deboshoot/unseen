@@ -28,9 +28,9 @@ begin
         ) then jsonb_build_object(
           'leading_slot',case when m.votes_1>m.votes_2 then 1 when m.votes_2>m.votes_1 then 2 else null end,
           'slot_1',case when m.votes_1::numeric+m.votes_2=0 then 0
-            else round(100.0*m.votes_1/(m.votes_1::numeric+m.votes_2)) end,
+            else round(100.0*m.votes_1/(m.votes_1::numeric+m.votes_2),2) end,
           'slot_2',case when m.votes_1::numeric+m.votes_2=0 then 0
-            else 100-round(100.0*m.votes_1/(m.votes_1::numeric+m.votes_2)) end
+            else 100-round(100.0*m.votes_1/(m.votes_1::numeric+m.votes_2),2) end
         ) else null end)
       order by m.number) from public.championship_matches m where m.championship_id=cid),
     'my_votes',coalesce((select jsonb_agg(jsonb_build_object('match_id',v.match_id,'vote_slot',v.vote_slot))

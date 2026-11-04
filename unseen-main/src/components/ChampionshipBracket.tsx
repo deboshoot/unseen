@@ -3,6 +3,7 @@ import { LockKeyhole, Plus, Trophy, X } from 'lucide-react';
 import { arenaPath, feederNumbers, isMatchOpen, matchCenter, type ChampionshipData, type ChampionshipKind, type ChampionshipMatch } from '@/lib/championship';
 import { useI18n } from '@/i18n/I18nProvider';
 import { championshipCopy } from '@/i18n/championship-copy';
+import { formatVotePercentage } from '@/lib/vote-percentage';
 
 export default function ChampionshipBracket({ data, kind, now, admin = false, onSeedClick, activeSeed }: { data?: ChampionshipData; kind: ChampionshipKind; now: number; admin?: boolean; onSeedClick?: (seed: number) => void; activeSeed?: number | null }) {
   const { locale } = useI18n();
@@ -42,7 +43,7 @@ export default function ChampionshipBracket({ data, kind, now, admin = false, on
             const body = <>
               <div className="champ-entry-image">{entry ? <img src={entry.image_url} alt="" loading="lazy" /> : <span>{match.round === 1 ? String((match.position - 1) * 2 + slot + 1).padStart(2, '0') : '·'}</span>}{lost && <X size={22} aria-label={copy.lost} />}</div>
               <div className="champ-entry-text"><strong>{entry?.title || (match.round === 1 ? `${copy.slot} ${(match.position - 1) * 2 + slot + 1}` : `${copy.waiting} #${feeders[slot]}`)}</strong><span>{entry ? `#${entry.seed} · ${entry.artist}` : '—'}</span></div>
-              {onSeedClick && match.round === 1 ? <Plus size={13} /> : entry && <span className="champ-entry-votes">{admin ? (slot === 0 ? match.votes_1 : match.votes_2) ?? '—' : percentage != null ? `${percentage}%` : match.resolved_at ? '—' : <LockKeyhole size={12} aria-label={copy.secretVotes} />}{won && <Trophy size={10} />}</span>}
+              {onSeedClick && match.round === 1 ? <Plus size={13} /> : entry && <span className="champ-entry-votes">{admin ? (slot === 0 ? match.votes_1 : match.votes_2) ?? '—' : percentage != null ? `${formatVotePercentage(percentage, locale)}%` : match.resolved_at ? '—' : <LockKeyhole size={12} aria-label={copy.secretVotes} />}{won && <Trophy size={10} />}</span>}
             </>;
             const className = `champ-entry ${lost ? 'is-lost' : ''} ${won ? 'is-winner' : ''} ${activeSeed === seed && match.round === 1 ? 'is-editing' : ''}`;
             return onSeedClick && match.round === 1 ? <button key={slot} type="button" className={`${className} champ-seed-button`} onClick={() => onSeedClick(seed)} aria-label={`Scegli partecipante posizione ${seed}${entry ? `: ${entry.title}` : ''}`}>{body}</button> : <div key={slot} className={className}>{body}</div>;

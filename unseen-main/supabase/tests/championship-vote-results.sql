@@ -68,7 +68,7 @@ do $$ declare fixture record; result jsonb; begin
 end; $$;
 reset role;
 
--- Exact ties, no votes, and rounded ties must retain the correct leader.
+-- Exact ties, no votes, and narrow margins must retain the correct leader.
 update public.championship_matches set votes_1=0,votes_2=0 where id in(select mid from vote_results_test_state);
 select set_config('request.jwt.claims',jsonb_build_object('role','authenticated','sub',(select voter from vote_results_test_state limit 1))::text,true);
 set local role authenticated;
@@ -82,7 +82,7 @@ update public.championship_matches set votes_1=500,votes_2=501 where id in(selec
 set local role authenticated;
 do $$ declare fixture record; begin
   for fixture in select * from vote_results_test_state loop
-    if public.get_championship(fixture.kind,fixture.cid)->'matches'->0->'vote_percentages' is distinct from '{"slot_1":50,"slot_2":50,"leading_slot":2}'::jsonb then raise exception 'Vantaggio arrotondato errato'; end if;
+    if public.get_championship(fixture.kind,fixture.cid)->'matches'->0->'vote_percentages' is distinct from '{"slot_1":49.95,"slot_2":50.05,"leading_slot":2}'::jsonb then raise exception 'Vantaggio decimale errato'; end if;
   end loop;
 end; $$;
 reset role;
@@ -94,6 +94,25 @@ do $$ declare fixture record; begin
   end loop;
 end; $$;
 reset role;
+
+-- Recurring fractions, one-sided results, very small leads and large totals.
+do $$ declare fixture record; sample record; p jsonb; begin
+  for sample in select * from (values
+    (1,2,33.33,66.67,2), (2,1,66.67,33.33,1),
+    (1,7,12.50,87.50,2), (1,0,100,0,1), (0,1,0,100,2),
+    (10000,10001,50,50,2), (2147483647,2147483647,50,50,null)
+  ) as cases(v1,v2,p1,p2,leader) loop
+    for fixture in select * from vote_results_test_state loop
+      update public.championship_matches set votes_1=sample.v1,votes_2=sample.v2 where id=fixture.mid;
+      p:=public.get_championship(fixture.kind,fixture.cid)->'matches'->0->'vote_percentages';
+      if p is distinct from jsonb_build_object('slot_1',sample.p1,'slot_2',sample.p2,'leading_slot',sample.leader)
+        or (p->>'slot_1')::numeric+(p->>'slot_2')::numeric<>100 then
+        raise exception 'Precisione errata per %: %/% -> %',fixture.kind,sample.v1,sample.v2,p;
+      end if;
+    end loop;
+  end loop;
+end; $$;
+update public.championship_matches set votes_1=10,votes_2=10 where id in(select mid from vote_results_test_state);
 
 -- Resolved matches remain public.
 update public.championship_matches set resolved_at=clock_timestamp(),winner_id=entry_1_id where id in(select mid from vote_results_test_state);

@@ -6,6 +6,15 @@ import ChampionshipBracket from './ChampionshipBracket';
 vi.mock('@/i18n/I18nProvider', () => ({ useI18n: () => ({ locale: 'it' }) }));
 afterEach(cleanup);
 describe('public championship bracket', () => {
+  it.each(['photo', 'music'] as const)('preserves localized decimal percentages in the %s bracket', kind => {
+    const data = championshipFixture();
+    data.my_votes = [{ match_id: 'match-1', vote_slot: 1 }];
+    data.matches[0].vote_percentages = { slot_1: 33.33, slot_2: 66.67 };
+    render(<MemoryRouter><ChampionshipBracket data={data} kind={kind} now={fixtureNow} /></MemoryRouter>);
+    expect(screen.getByText('33,33%')).toBeInTheDocument();
+    expect(screen.getByText('66,67%')).toBeInTheDocument();
+  });
+
   it('hides live results before voting, then shows percentages for a resolved match without exposing counts', () => {
     const data = championshipFixture(); data.matches[0].votes_1 = 532; data.matches[0].votes_2 = 341;
     data.matches[0].vote_percentages = { slot_1: 61, slot_2: 39 };

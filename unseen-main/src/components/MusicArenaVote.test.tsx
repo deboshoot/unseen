@@ -9,6 +9,14 @@ const choices = [{ id: 'a', artist: 'BRAMBO' }, { id: 'b', artist: 'PERTU' }];
 const defaults = { choices, selectedId: 'b', selectedLabel: 'Voto registrato', onChoose: vi.fn(), disabled: true };
 
 describe('post-vote percentages', () => {
+  it('preserves decimal results in counters, bars and accessible text', () => {
+    const { container } = render(<MusicArenaVote {...defaults} percentages={{ slot_1: 49.95, slot_2: 50.05, leading_slot: 2 }} />);
+    expect([...container.querySelectorAll('.arena-vote-percentage')].map(node => node.textContent)).toEqual(['49,95%', '50,05%']);
+    expect(screen.getByRole('status')).toHaveTextContent('BRAMBO: 49,95%. PERTU: 50,05%.');
+    expect(container.querySelector('.arena-vote-balance > span')).toHaveStyle({ width: '49.95%' });
+    expect(screen.getByRole('button', { name: 'Vota PERTU' })).toHaveClass('is-leading');
+  });
+
   it('keeps results hidden until the voter has chosen, even when cached data contains them', () => {
     render(<MusicArenaVote {...defaults} selectedId={null} disabled={false} percentages={{ slot_1: 38, slot_2: 62 }} />);
     fireEvent.click(screen.getByRole('button', { name: 'Vota' }));
