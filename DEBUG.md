@@ -20,6 +20,8 @@ La versione aggiornata online è su https://unseen-virid.vercel.app, aggiornata 
 
 ## Percentuali dopo il voto
 
+Il registro voti amministrativo distingue i votanti dalle rettifiche dell’amministrazione: queste ultime hanno `user_id` nullo e una `administration_note` esplicita, visibile solo agli admin. La registrazione della nota non incrementa i conteggi del duello. Per abilitare il campo eseguire `node unseen-main/scripts/setup-vote-administration.mjs --rehearse`, quindi `--apply`; `--verify` controlla i permessi e l’assenza di incrementi duplicati con dati di prova annullati. Le vecchie righe senza utente e senza nota continuano a essere mostrate come account eliminati.
+
 Le percentuali sono calcolate sul server con due decimali e mostrate con il separatore della lingua selezionata (per esempio, 1 voto su 3: `33,33%`, contro `66,67%`). Con almeno un voto sommano al 100%; senza voti sono entrambe zero. Il vantaggio dipende sempre dai conteggi esatti, anche quando le percentuali visualizzate coincidono. La migrazione `unseen_championship_vote_precision` aggiorna anche i database che avevano già attivato i risultati.
 
 Le arene musicale e fotografica mostrano le percentuali solo dopo il voto nel singolo duello. Prima di pubblicare il frontend, esegui `node unseen-main/scripts/setup-vote-results.mjs --rehearse`, poi `node unseen-main/scripts/setup-vote-results.mjs --apply`. Lo script usa il progetto Supabase configurato, verifica i permessi con dati di prova in una transazione annullata, salva la funzione precedente e registra la migrazione. `--verify` ripete i controlli sul backend attivo senza conservare i dati di prova. Il solo push del frontend non aggiorna la funzione nel database.

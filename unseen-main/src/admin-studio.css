@@ -30,3 +30,4 @@ div.admin-picker{width:calc(100vw - 36px);max-width:880px;max-height:86dvh;overf
 .admin-demo-entry:hover{background:hsl(var(--primary)/.12);border-color:hsl(var(--primary)/.65)}
 .admin-demo-entry>span{flex:1}.admin-demo-entry strong{display:block;font-size:14px;font-weight:600}.admin-demo-entry small{display:block;font-size:11px;color:hsl(var(--muted-foreground));margin-top:5px}.admin-demo-entry>svg{flex-shrink:0}
 @media(max-width:600px){.admin-demo-entry{padding:15px 16px;gap:12px}.admin-demo-entry strong{font-size:13px}.admin-demo-entry small{font-size:10px}}
+.admin-table .admin-vote-administration-note{min-width:220px;max-width:440px;margin:6px 0 0;white-space:normal;line-height:1.6;color:hsl(var(--muted-foreground))}
