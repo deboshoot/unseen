@@ -38,114 +38,82 @@ function fillSubmission() {
 }
 
 describe("music submissions", () => {
-  it.each([
-    ['feat', '  Guest  ', 'Artist feat. Guest'],
-    ['duet', '  Guest  ', 'Artist & Guest'],
-    ['feat', '   ', 'Artist'],
-  ])('previews and uploads %s credits with an optional second artist', async (kind, guest, credit) => {
+  it('places the Instagram username field directly below the title and artist fields', async () => {
+    const { container } = render(<InviaBrano />);
+    await act(async () => { await Promise.resolve(); });
+    const identity = container.querySelector('.music-studio-identity');
+    const instagram = container.querySelector('.music-studio-social-field');
+    const collaboration = container.querySelector('.music-studio-collaboration');
+
+    expect(identity?.nextElementSibling).toBe(instagram);
+    expect(instagram?.compareDocumentPosition(collaboration!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('previews and uploads multiple featured artists and their Instagram usernames', async () => {
     const { container } = render(<InviaBrano />);
     fillSubmission();
-    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' }), { target: { value: kind } });
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 1' }), { target: { value: guest } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Invia il brano' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Sì, c’è un feat' }));
+    const firstArtistFields = container.querySelectorAll('.music-studio-featured-artist input');
+    fireEvent.change(firstArtistFields[0], { target: { value: 'Guest Artist' } });
+    fireEvent.change(firstArtistFields[1], { target: { value: '@guest.artist' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi un altro artista' }));
+    const secondArtistFields = container.querySelectorAll('.music-studio-featured-artist input');
+    fireEvent.change(secondArtistFields[2], { target: { value: 'Another Artist' } });
     const button = screen.getByRole('button', { name: 'Invia il brano' });
     await waitFor(() => expect(button).toBeEnabled());
-    expect(container.querySelector('.music-track-info p')).toHaveTextContent(credit);
+    expect(container.querySelector('.music-track-info p')).toHaveTextContent('Artist feat. Guest Artist, Another Artist');
     expect(container.querySelector('form')!.checkValidity()).toBe(true);
     fireEvent.click(button);
-    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({ artist: credit }), expect.any(Array)));
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({
+      artist: 'Artist feat. Guest Artist, Another Artist',
+      collaborators: JSON.stringify([{ name: 'Guest Artist', instagram_username: 'guest.artist' }, { name: 'Another Artist', instagram_username: '' }]),
+    }), expect.any(Array)));
     expect(await screen.findByText('Brano ricevuto')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Invia un altro brano' }));
-    expect(screen.getByRole('textbox', { name: 'Nome dell’artista 1' })).toHaveValue('');
-    expect(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' })).toHaveValue('feat');
-  });
-
-  it('previews and uploads multiple featured artists and co-artists, ignoring empty rows', async () => {
-    const { container } = render(<InviaBrano />);
-    fillSubmission();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 1' }), { target: { value: '  Guest One  ' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 2' }), { target: { value: 'Guest Two' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 3' }), { target: { value: 'Coartist' } });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione 3' }), { target: { value: 'duet' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 4' }), { target: { value: '   ' } });
-    const credit = 'Artist & Coartist feat. Guest One, Guest Two';
-    expect(container.querySelector('.music-track-info p')).toHaveTextContent(credit);
-    const button = screen.getByRole('button', { name: 'Invia il brano' });
-    await waitFor(() => expect(button).toBeEnabled());
-    expect(container.querySelector('form')!.checkValidity()).toBe(true);
-    fireEvent.click(button);
-    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({ artist: credit }), expect.any(Array)));
-    expect(await screen.findByText('Brano ricevuto')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Invia un altro brano' }));
-    expect(screen.getAllByRole('textbox', { name: /Nome dell’artista/ })).toHaveLength(1);
-    expect(screen.getByRole('textbox', { name: 'Nome dell’artista 1' })).toHaveValue('');
-    expect(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' })).toHaveValue('feat');
-  });
-
-  it('removes individual artists without losing the others and supports returning to a solo track', async () => {
-    const { container } = render(<InviaBrano />);
-    fillSubmission();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 1' }), { target: { value: 'Remove Me' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 2' }), { target: { value: 'Keep Me' } });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione 2' }), { target: { value: 'duet' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Rimuovi artista 1' }));
-    expect(screen.getByRole('textbox', { name: 'Nome dell’artista 1' })).toHaveValue('Keep Me');
-    expect(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' })).toHaveValue('duet');
-    expect(container.querySelector('.music-track-info p')).toHaveTextContent('Artist & Keep Me');
-    fireEvent.click(screen.getByRole('button', { name: 'Rimuovi artista 1' }));
-    expect(screen.queryByRole('textbox', { name: /Nome dell’artista/ })).not.toBeInTheDocument();
-    expect(container.querySelector('.music-track-info p')).toHaveTextContent(/^Artist$/);
-    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
-    expect(screen.getByRole('textbox', { name: 'Nome dell’artista 1' })).toHaveValue('');
-    const button = screen.getByRole('button', { name: 'Invia il brano' });
-    await waitFor(() => expect(button).toBeEnabled());
-    fireEvent.click(button);
-    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({ artist: 'Artist' }), expect.any(Array)));
-  });
-
-  it('counts all featured artists and separators toward the limit and unblocks after removal', async () => {
-    const { container } = render(<InviaBrano />);
-    fillSubmission();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 1' }), { target: { value: 'G'.repeat(100) } });
-    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi artista' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 2' }), { target: { value: 'Guest' } });
-    const button = screen.getByRole('button', { name: 'Invia il brano' });
-    await waitFor(() => expect(button).toBeEnabled());
-    // 6 + 7 + 100 + 2 + 5 = 120 characters, including the comma separator.
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nome dell’artista 2' }), { target: { value: 'Guests' } });
-    expect(button).toBeDisabled();
-    expect(screen.getByRole('alert')).toHaveTextContent('120 caratteri');
-    fireEvent.submit(container.querySelector('form')!);
-    expect(mocks.upload).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Rimuovi artista 2' }));
-    expect(button).toBeEnabled();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(container.querySelectorAll('.music-studio-featured-artist')).toHaveLength(0);
   });
 
   it('checks the combined credit against the upload limit and allows correction', async () => {
     const { container } = render(<InviaBrano />);
     fillSubmission();
-    const guest = screen.getByRole('textbox', { name: 'Nome dell’artista 1' });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Invia il brano' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Sì, c’è un feat' }));
+    const guest = container.querySelector('.music-studio-featured-artist input')!;
     fireEvent.change(guest, { target: { value: 'G'.repeat(107) } });
     const button = screen.getByRole('button', { name: 'Invia il brano' });
     await waitFor(() => expect(button).toBeEnabled());
     // Artist (6) + " feat. " (7) + guest (108) exceeds the server's 120-character limit.
     fireEvent.change(guest, { target: { value: 'G'.repeat(108) } });
     expect(button).toBeDisabled();
-    expect(guest).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('textbox', { name: /Nome d’arte/ })).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByRole('alert')).toHaveTextContent('120 caratteri');
     fireEvent.submit(container.querySelector('form')!);
     expect(mocks.upload).not.toHaveBeenCalled();
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Tipo di collaborazione 1' }), { target: { value: 'duet' } });
+    fireEvent.change(guest, { target: { value: 'G'.repeat(107) } });
     expect(button).toBeEnabled();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     fireEvent.click(button);
-    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({ artist: `Artist & ${'G'.repeat(108)}` }), expect.any(Array)));
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', expect.objectContaining({ artist: `Artist feat. ${'G'.repeat(107)}` }), expect.any(Array)));
+  });
+
+  it('shows collaboration details only when collaboration is selected and clears them for a solo track', async () => {
+    render(<InviaBrano />);
+    await act(async () => { await Promise.resolve(); });
+    expect(document.querySelector('.music-studio-featured-artist')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sì, c’è un feat' }));
+    const collaborator = document.querySelector('.music-studio-featured-artist input')!;
+    fireEvent.change(collaborator, { target: { value: 'Guest' } });
+    expect(collaborator).toHaveValue('Guest');
+
+    fireEvent.click(screen.getByRole('button', { name: 'No, è un brano solista' }));
+    expect(document.querySelector('.music-studio-featured-artist')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'No, è un brano solista' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Sì, c’è un feat' }));
+    expect(document.querySelector('.music-studio-featured-artist input')).toHaveValue('');
   });
 
   it.each([12.34567, 0.03456])('submits a short clip of %s seconds through the actual submit button', async duration => {
@@ -206,7 +174,7 @@ describe("music submissions", () => {
     await waitFor(() => expect(container.querySelector(".music-track audio")?.getAttribute("src")).toBe("blob:preview/unseen-clip.wav"));
     expect(container.querySelector(".music-cover-image")?.getAttribute("src")).toBe("blob:preview/cover.png");
     fireEvent.submit(container.querySelector("form")!);
-    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', { title: 'My Track', artist: 'Artist', instagram_username: '', youtube_url: '', instagram_reel_url: '', spotify_url: '' }, [expect.objectContaining({kind:'cover',file:expect.any(File)}),expect.objectContaining({kind:'audio',file:expect.objectContaining({name:'unseen-clip.wav',type:'audio/wav'})})]));
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', { title: 'My Track', artist: 'Artist', collaborators: '[]', instagram_username: '', youtube_url: '', instagram_reel_url: '', spotify_url: '' }, [expect.objectContaining({kind:'cover',file:expect.any(File)}),expect.objectContaining({kind:'audio',file:expect.objectContaining({name:'unseen-clip.wav',type:'audio/wav'})})]));
     expect(await screen.findByText("Brano ricevuto")).toBeInTheDocument();
   });
 
@@ -224,8 +192,6 @@ describe("music submissions", () => {
     expect(screen.getByRole('timer', { name: 'Tempo trascorso: 0 secondi' })).toHaveTextContent('00:00');
     expect(container.querySelector('.music-submit-progress-ring')).toBeInTheDocument();
     expect(button).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Aggiungi artista' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Rimuovi artista 1' })).toBeDisabled();
 
     await act(async () => {
       await new Promise(resolve => window.setTimeout(resolve, 1050));

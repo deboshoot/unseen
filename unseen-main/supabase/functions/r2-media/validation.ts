@@ -10,7 +10,7 @@ export function validateSubmission(input: Record<string, unknown>, id: string): 
   const supplied = input.metadata as Record<string, unknown> | null;
   if (!supplied || typeof supplied !== 'object') throw new InputError('Scheda incompleta.');
   const metadata: Record<string, string> = {};
-  const fields = kind === 'photo' ? { titolo: 120, autore: 120, storia: 1500, social_link: 30 } : { title: 120, artist: 120, instagram_username: 200, youtube_url: 500, instagram_reel_url: 500, spotify_url: 500 };
+  const fields = kind === 'photo' ? { titolo: 120, autore: 120, storia: 1500, social_link: 30 } : { title: 120, artist: 120, collaborators: 5000, instagram_username: 200, youtube_url: 500, instagram_reel_url: 500, spotify_url: 500 };
   for (const [name, limit] of Object.entries(fields)) {
     const value = supplied[name] ?? '';
     if (typeof value !== 'string' || value.trim().length > limit) throw new InputError(`Campo ${name} non valido.`);
@@ -22,6 +22,24 @@ export function validateSubmission(input: Record<string, unknown>, id: string): 
     const username = normalizeInstagram(metadata.instagram_username);
     if (username === null) throw new InputError('Nome Instagram non valido.');
     metadata.instagram_username = username;
+    let collaborators: unknown;
+    try { collaborators = JSON.parse(metadata.collaborators || '[]'); }
+    catch { throw new InputError('Elenco degli artisti ospiti non valido.'); }
+    if (!Array.isArray(collaborators) || collaborators.length > MAX_FEATURED_ARTISTS) throw new InputError('Elenco degli artisti ospiti non valido.');
+    const normalizedCollaborators = collaborators.map(collaborator => {
+      if (!collaborator || typeof collaborator !== 'object' || Array.isArray(collaborator)) throw new InputError('Artista ospite non valido.');
+      const { name, instagram_username } = collaborator as Record<string, unknown>;
+      if (typeof name !== 'string' || !name.trim() || name.trim().length > MAX_ARTIST_CREDIT_LENGTH) throw new InputError('Nome dell’artista ospite non valido.');
+      if (typeof instagram_username !== 'string') throw new InputError('Nome Instagram non valido.');
+      const collaboratorUsername = normalizeInstagram(instagram_username);
+      if (collaboratorUsername === null) throw new InputError('Nome Instagram non valido.');
+      return { name: name.trim(), instagram_username: collaboratorUsername };
+    });
+    if (normalizedCollaborators.length) {
+      const suffix = ` feat. ${normalizedCollaborators.map(collaborator => collaborator.name).join(', ')}`;
+      if (metadata.artist.length > MAX_ARTIST_CREDIT_LENGTH || !metadata.artist.endsWith(suffix) || metadata.artist.length <= suffix.length) throw new InputError('Crediti degli artisti non validi.');
+    }
+    metadata.collaborators = JSON.stringify(normalizedCollaborators);
     for (const [name, linkKind] of [['youtube_url', 'youtube'], ['instagram_reel_url', 'reel'], ['spotify_url', 'spotify']] as const) {
       const link = normalizeMusicLink(metadata[name], linkKind);
       if (link === null) throw new InputError(`Link ${linkKind} non valido. Usa il collegamento https ufficiale al brano.`);
@@ -68,3 +86,4 @@ export function hasExpectedSignature(bytes: Uint8Array, mime: string): boolean {
   return false;
 }
 import { normalizeInstagram, normalizeMusicLink } from '../../../src/lib/music-links.ts';
+import { MAX_ARTIST_CREDIT_LENGTH, MAX_FEATURED_ARTISTS } from '../../../src/lib/music.ts';

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { LoaderCircle, Pause, Play, SkipBack, SkipForward, UserRound, X } from "lucide-react";
+import { ArrowUpRight, LoaderCircle, Pause, Play, SkipBack, SkipForward, UserRound, X } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/I18nProvider";
 import { musicCopy } from "@/i18n/music-copy";
@@ -224,7 +224,12 @@ export default function MusicRecord({ track, activeId, onActiveChange, slot, onP
         <button type="button" onClick={() => void toggle()} aria-label={playLabel} aria-pressed={playing} disabled={loading || !track.audio_url} className="music-demo-transport-play">{loading ? <LoaderCircle size={19} className="animate-spin" /> : playing ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}</button>
         <button type="button" aria-label={`${copy.seek} +5s: ${track.title}`} onClick={() => skip(5)} disabled={!duration}><SkipForward size={17} /></button>
       </div>}
-      <div className="music-track-info"><div><div className="music-track-heading"><h2>{track.title}</h2></div><p>{track.artist}</p></div>{!demoTransport && <button type="button" onClick={() => void toggle()} aria-label={playLabel} aria-pressed={playing} disabled={loading || !track.audio_url} className="music-small-play">{playing ? <Pause size={18} /> : <Play size={18} />}</button>}</div>
+      <div className="music-track-info"><div><div className="music-track-heading"><h2>{track.title}</h2></div><p>{track.artist}</p>{track.collaborators?.some(feature => normalizeInstagram(feature.instagram_username) !== '') && <div className="music-featured-artist-links" aria-label="Instagram degli artisti ospiti">
+        {track.collaborators.map(feature => {
+          const username = normalizeInstagram(feature.instagram_username);
+          return username ? <a key={`${feature.name}-${username}`} href={`https://www.instagram.com/${username}/`} target="_blank" rel="noopener noreferrer" aria-label={`${feature.name}, Instagram @${username}`}>@{username}<ArrowUpRight size={11} /></a> : null;
+        })}
+      </div>}</div>{!demoTransport && <button type="button" onClick={() => void toggle()} aria-label={playLabel} aria-pressed={playing} disabled={loading || !track.audio_url} className="music-small-play">{playing ? <Pause size={18} /> : <Play size={18} />}</button>}</div>
       {!demoTransport && <MusicSocialLinks track={track} />}
       {demoTransport &&
         <Dialog open={profileExpanded} onOpenChange={setProfileExpanded}>

@@ -6,7 +6,8 @@ alter table public.music_tracks
   add column youtube_url text not null default '' check (youtube_url='' or youtube_url ~ '^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}$'),
   add column instagram_reel_url text not null default '' check (instagram_reel_url='' or instagram_reel_url ~ '^https://www\.instagram\.com/reel/[A-Za-z0-9_-]+/$'),
   add column spotify_url text not null default '' check (spotify_url='' or spotify_url ~ '^https://open\.spotify\.com/track/[A-Za-z0-9]{22}$'),
-  add column audio_duration_seconds double precision check (audio_duration_seconds>0 and audio_duration_seconds<=40);
+  add column audio_duration_seconds double precision check (audio_duration_seconds>0 and audio_duration_seconds<=40),
+  add column collaborators jsonb not null default '[]'::jsonb check (case when jsonb_typeof(collaborators)='array' then jsonb_array_length(collaborators)<=8 else false end);
 
 alter table public.championship_entries
   add column instagram_username text not null default '',
@@ -34,9 +35,9 @@ begin
     select p_id,p_user_id,image_id,upload.metadata->>'titolo',upload.metadata->>'autore',upload.metadata->>'storia',upload.metadata->>'social_link',p_public_url||'/'||object_key,'pending'
       from public.media_assets where id=image_id;
   else
-    insert into public.music_tracks(id,user_id,title,artist,cover_url,audio_url,cover_asset_id,audio_asset_id,status,instagram_username,youtube_url,instagram_reel_url,spotify_url,audio_duration_seconds)
+    insert into public.music_tracks(id,user_id,title,artist,cover_url,audio_url,cover_asset_id,audio_asset_id,status,instagram_username,youtube_url,instagram_reel_url,spotify_url,audio_duration_seconds,collaborators)
     select p_id,p_user_id,upload.metadata->>'title',upload.metadata->>'artist',p_public_url||'/'||c.object_key,p_public_url||'/'||a.object_key,cover_id,audio_id,'pending',
-      coalesce(upload.metadata->>'instagram_username',''),coalesce(upload.metadata->>'youtube_url',''),coalesce(upload.metadata->>'instagram_reel_url',''),coalesce(upload.metadata->>'spotify_url',''),(upload.metadata->>'audio_duration_seconds')::double precision
+      coalesce(upload.metadata->>'instagram_username',''),coalesce(upload.metadata->>'youtube_url',''),coalesce(upload.metadata->>'instagram_reel_url',''),coalesce(upload.metadata->>'spotify_url',''),(upload.metadata->>'audio_duration_seconds')::double precision,coalesce((upload.metadata->>'collaborators')::jsonb,'[]'::jsonb)
       from public.media_assets c,public.media_assets a where c.id=cover_id and a.id=audio_id;
   end if;
   update public.r2_uploads set state='complete' where id=p_id;

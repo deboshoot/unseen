@@ -1,12 +1,12 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, Check, Headphones, ImagePlus, LoaderCircle, Music2, Plus, ShieldCheck, X } from 'lucide-react';
+import { ArrowUpRight, Check, Headphones, ImagePlus, LoaderCircle, Music2, Plus, ShieldCheck, Trash2, UserRound, UsersRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import MusicRecord from './MusicRecord';
 import AudioClipEditor from './AudioClipEditor';
 import { supabase } from '@/supabaseClient';
-import { musicFileError, AUDIO_FILE_ACCEPT, formatAudioTime, formatArtistCredit, MAX_ARTIST_CREDIT_LENGTH, type MusicCollaboration, type MusicCollaborator } from '@/lib/music';
+import { musicFileError, AUDIO_FILE_ACCEPT, formatAudioTime, formatArtistCredit, MAX_ARTIST_CREDIT_LENGTH, MAX_FEATURED_ARTISTS, type FeaturedArtist } from '@/lib/music';
 import { decodeAudioFile, MAX_CLIP_SECONDS, renderAudioClip, type AudioSource } from '@/lib/audio-clip';
 import { normalizeInstagram, normalizeMusicLink } from '@/lib/music-links';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -43,8 +43,9 @@ export default function InviaBrano() {
   const credits = musicCollaborationCopy[locale];
   const navigate = useNavigate();
   const [title, setTitle] = useState(''); const [artist, setArtist] = useState('');
-  const [collaborators, setCollaborators] = useState<(MusicCollaborator & { id: number })[]>([{ id: 0, name: '', kind: 'feat' }]);
-  const nextCollaboratorId = useRef(1);
+  const [featuredArtists, setFeaturedArtists] = useState<(FeaturedArtist & { id: number })[]>([]);
+  const nextFeaturedArtistId = useRef(0);
+  const isCollaboration = featuredArtists.length > 0;
   const collaborationHintId = useId(); const artistCreditErrorId = useId();
   const [instagram, setInstagram] = useState(''); const [youtube, setYoutube] = useState(''); const [reel, setReel] = useState(''); const [spotify, setSpotify] = useState('');
   const [cover, setCover] = useState<File | null>(null); const [audio, setAudio] = useState<File | null>(null);
@@ -57,11 +58,12 @@ export default function InviaBrano() {
   const clipFile = prepared && prepared.source === buffer && prepared.start === start && prepared.end === end ? prepared.file : null;
   const username = normalizeInstagram(instagram); const youtubeUrl = normalizeMusicLink(youtube, 'youtube'); const reelUrl = normalizeMusicLink(reel, 'reel'); const spotifyUrl = normalizeMusicLink(spotify, 'spotify');
   const invalidSocial = username === null || youtubeUrl === null || reelUrl === null || spotifyUrl === null;
-  const artistCredit = formatArtistCredit(artist, collaborators);
+  const artistCredit = formatArtistCredit(artist, featuredArtists.map(feature => feature.name));
   const invalidArtistCredit = artistCredit.length > MAX_ARTIST_CREDIT_LENGTH;
-  const updateCollaborator = (id: number, changes: Partial<MusicCollaborator>) => {
-    setCollaborators(current => current.map(guest => guest.id === id ? { ...guest, ...changes } : guest));
-  };
+  const missingFeaturedArtistName = featuredArtists.some(feature => !feature.name.trim());
+  const invalidFeaturedInstagram = featuredArtists.some(feature => normalizeInstagram(feature.instagram_username) === null);
+  const addFeaturedArtist = () => setFeaturedArtists(current => current.length >= MAX_FEATURED_ARTISTS ? current : [...current, { id: nextFeaturedArtistId.current++, name: '', instagram_username: '' }]);
+  const updateFeaturedArtist = (id: number, patch: Partial<FeaturedArtist>) => setFeaturedArtists(current => current.map(feature => feature.id === id ? { ...feature, ...patch } : feature));
 
   useEffect(() => {
     let active = true;
@@ -127,15 +129,17 @@ export default function InviaBrano() {
     if (submitting.current) return;
     if (!cover || !clipFile) { toast.error(copy.chooseFiles); return; }
     if (!title.trim() || !artist.trim()) return;
+    if (featuredArtists.some(feature => !feature.name.trim())) { toast.error(credits.collaboratorRequired); return; }
     if (invalidArtistCredit) { toast.error(credits.artistCreditTooLong); return; }
+    if (invalidFeaturedInstagram) { toast.error(text.invalidInstagram); return; }
     if (invalidSocial) { toast.error(username === null ? text.invalidInstagram : text.invalidLink); return; }
     submitting.current = true; setElapsedSeconds(0); setLoading(true); setActiveId(null);
     try {
       const { data: { session }, error } = await supabase.auth.getSession(); if (error) throw error;
       if (!session) { toast.info(copy.login); navigate(`/auth?redirect=${encodeURIComponent('/submit?tipo=musica')}`); return; }
       const optimizedCover = await optimizeImage(cover, 1600);
-      await uploadSubmission('music', { title: title.trim(), artist: artistCredit, instagram_username: username || '', youtube_url: youtubeUrl || '', instagram_reel_url: reelUrl || '', spotify_url: spotifyUrl || '' }, [{ kind: 'cover', file: optimizedCover }, { kind: 'audio', file: clipFile }]);
-      setSubmitted(true); setCover(null); setAudio(null); setTitle(''); setArtist(''); setCollaborators([{ id: nextCollaboratorId.current++, name: '', kind: 'feat' }]); setInstagram(''); setYoutube(''); setReel(''); setSpotify(''); toast.success(copy.received);
+      await uploadSubmission('music', { title: title.trim(), artist: artistCredit, collaborators: JSON.stringify(featuredArtists.map(({ name, instagram_username }) => ({ name: name.trim(), instagram_username: normalizeInstagram(instagram_username) || '' }))), instagram_username: username || '', youtube_url: youtubeUrl || '', instagram_reel_url: reelUrl || '', spotify_url: spotifyUrl || '' }, [{ kind: 'cover', file: optimizedCover }, { kind: 'audio', file: clipFile }]);
+      setSubmitted(true); setCover(null); setAudio(null); setTitle(''); setArtist(''); setFeaturedArtists([]); nextFeaturedArtistId.current = 0; setInstagram(''); setYoutube(''); setReel(''); setSpotify(''); toast.success(copy.received);
     } catch (error) { toast.error(text.uploadError, { description: error instanceof Error ? error.message : undefined }); }
     finally { submitting.current = false; setLoading(false); }
   };
@@ -185,36 +189,53 @@ export default function InviaBrano() {
       <section className="music-studio-section music-studio-identity-section">
         <div className="music-studio-section-heading"><span>02</span><div><h2>{text.stepDetails}</h2><p>{text.identityHint}</p></div></div>
         <div className="music-studio-identity"><label><span>{copy.title} *</span><input value={title} onChange={event => setTitle(event.target.value)} maxLength={120} required disabled={loading} placeholder={copy.title} /></label><label><span>{copy.artist} *</span><input value={artist} onChange={event => setArtist(event.target.value)} maxLength={MAX_ARTIST_CREDIT_LENGTH} required disabled={loading} placeholder={copy.artist} aria-invalid={invalidArtistCredit} aria-describedby={invalidArtistCredit ? artistCreditErrorId : undefined} /></label></div>
-        <fieldset className="music-studio-collaboration" disabled={loading} aria-describedby={collaborationHintId}>
-          <legend>{credits.collaboration}<small>{text.optional}</small></legend>
-          <p id={collaborationHintId}>{credits.collaborationHint}</p>
-          <div className="music-studio-collaboration-list">{collaborators.map((guest, index) => <div key={guest.id} className="music-studio-collaboration-row">
-            <div className="music-studio-collaboration-fields">
-              <label><span>{credits.collaborationType}<span className="sr-only"> {index + 1}</span></span><select value={guest.kind} onChange={event => updateCollaborator(guest.id, { kind: event.target.value as MusicCollaboration })}><option value="feat">{credits.featuring}</option><option value="duet">{credits.secondArtist}</option></select></label>
-              <label><span>{credits.collaborator} {index + 1}</span><input value={guest.name} onChange={event => updateCollaborator(guest.id, { name: event.target.value })} maxLength={MAX_ARTIST_CREDIT_LENGTH} placeholder={credits.collaboratorPlaceholder} aria-invalid={invalidArtistCredit} aria-describedby={invalidArtistCredit ? artistCreditErrorId : undefined} /></label>
-            </div>
-            <button type="button" className="music-studio-collaboration-remove" aria-label={`${credits.removeArtist} ${index + 1}`} onClick={() => setCollaborators(current => current.filter(item => item.id !== guest.id))}><X size={16} aria-hidden="true" /></button>
-          </div>)}</div>
-          <button type="button" className="music-studio-collaboration-add" onClick={() => { const id = nextCollaboratorId.current++; setCollaborators(current => [...current, { id, name: '', kind: 'feat' }]); }}><Plus size={15} aria-hidden="true" />{credits.addArtist}</button>
-        </fieldset>
-        {invalidArtistCredit && <p id={artistCreditErrorId} className="music-studio-error" role="alert">{credits.artistCreditTooLong}</p>}
         <label className="music-studio-social-field"><span className="music-studio-social-label"><SocialBrandMark platform="instagram" />{text.instagram}<small>{text.optional}</small></span><input value={instagram} onChange={event => setInstagram(event.target.value)} maxLength={200} disabled={loading} placeholder="@username" aria-invalid={username === null} autoCapitalize="none" autoCorrect="off" /><small>{text.instagramHint}</small></label>
         {username && <a className="music-studio-profile-link" href={`https://www.instagram.com/${username}/`} target="_blank" rel="noopener noreferrer">@{username}<ArrowUpRight size={12} /></a>}
         {username === null && <p className="music-studio-error" role="alert">{text.invalidInstagram}</p>}
+        <div className={`music-studio-collaboration${isCollaboration ? ' is-active' : ''}`}>
+          <div className="music-studio-collaboration-intro">
+            <span className="music-studio-collaboration-icon"><UsersRound size={18} /></span>
+            <div><strong>{credits.collaborationQuestion}</strong><p id={collaborationHintId}>{credits.collaborationHint}</p></div>
+          </div>
+          <div className="music-studio-collaboration-options" role="group" aria-label={credits.collaborationQuestion}>
+            <button type="button" className={!isCollaboration ? 'is-selected' : ''} aria-pressed={!isCollaboration} onClick={() => setFeaturedArtists([])} disabled={loading}>
+              <UserRound size={17} /><span>{credits.soloTrack}</span>{!isCollaboration && <Check size={15} className="music-studio-collaboration-check" />}
+            </button>
+            <button type="button" className={isCollaboration ? 'is-selected' : ''} aria-pressed={isCollaboration} aria-describedby={collaborationHintId} onClick={() => { if (!isCollaboration) addFeaturedArtist(); }} disabled={loading}>
+              <UsersRound size={17} /><span>{credits.collabTrack}</span>{isCollaboration && <Check size={15} className="music-studio-collaboration-check" />}
+            </button>
+          </div>
+          {isCollaboration && <div className="music-studio-featured-artists">
+            {featuredArtists.map((feature, index) => {
+              const invalidInstagram = normalizeInstagram(feature.instagram_username) === null;
+              return <div key={feature.id} className="music-studio-featured-artist">
+                <div className="music-studio-featured-artist-heading"><span>{credits.collaborator} {index + 1}</span>{featuredArtists.length > 1 && <button type="button" onClick={() => setFeaturedArtists(current => current.filter(item => item.id !== feature.id))} aria-label={`${credits.removeCollaborator} ${index + 1}`} disabled={loading}><Trash2 size={14} /></button>}</div>
+                <label><span>{credits.collaborator}</span><input value={feature.name} onChange={event => updateFeaturedArtist(feature.id, { name: event.target.value })} maxLength={MAX_ARTIST_CREDIT_LENGTH} required disabled={loading} placeholder={credits.collaboratorPlaceholder} aria-invalid={invalidArtistCredit} aria-describedby={invalidArtistCredit ? artistCreditErrorId : undefined} /></label>
+                <label><span className="music-studio-featured-instagram-label"><SocialBrandMark platform="instagram" />{credits.collaboratorInstagram}<small>{text.optional}</small></span><input value={feature.instagram_username} onChange={event => updateFeaturedArtist(feature.id, { instagram_username: event.target.value })} maxLength={200} disabled={loading} placeholder="@username" aria-invalid={invalidInstagram} autoCapitalize="none" autoCorrect="off" /></label>
+                {invalidInstagram && <p className="music-studio-error" role="alert">{text.invalidInstagram}</p>}
+              </div>;
+            })}
+            <button type="button" className="music-studio-add-featured-artist" onClick={addFeaturedArtist} disabled={loading || featuredArtists.length >= MAX_FEATURED_ARTISTS}>
+              <Plus size={16} />{credits.addCollaborator}
+            </button>
+            {featuredArtists.length >= MAX_FEATURED_ARTISTS && <p className="music-studio-featured-limit">{credits.maxCollaborators}</p>}
+          </div>}
+        </div>
+        {invalidArtistCredit && <p id={artistCreditErrorId} className="music-studio-error" role="alert">{credits.artistCreditTooLong}</p>}
       </section>
       <section className="music-studio-section music-studio-links-section">
         <div className="music-studio-section-heading"><span>03</span><div><h2>{text.stepLinks}<small>{text.optional}</small></h2><p>{text.linksHint}</p></div></div>
         <div className="music-studio-external-links">{fields.map(({ label, value, set, platform, placeholder, invalid }) => <label key={label} className={`music-studio-link-field music-studio-link-${platform}`}><span><SocialBrandMark platform={platform} />{label}</span><input type="url" value={value} onChange={event => set(event.target.value)} disabled={loading} placeholder={placeholder} maxLength={500} aria-invalid={invalid} /></label>)}</div>
         {[youtubeUrl, reelUrl, spotifyUrl].includes(null) && <p className="music-studio-error" role="alert">{text.invalidLink}</p>}
       </section>
-      <section className="music-studio-send"><label><input type="checkbox" required disabled={loading} /><span>{copy.rights}</span></label><p>{copy.review}</p><button type="submit" className="submit-primary-button" disabled={loading || !cover || !clipFile || invalidSocial || invalidArtistCredit}>{loading ? <LoaderCircle size={17} className="animate-spin" /> : <ArrowUpRight size={17} />}{loading ? copy.sending : copy.send}</button>{loading && <div className="music-submit-progress" aria-busy="true">
+      <section className="music-studio-send"><label><input type="checkbox" required disabled={loading} /><span>{copy.rights}</span></label><p>{copy.review}</p><button type="submit" className="submit-primary-button" disabled={loading || !cover || !clipFile || invalidSocial || invalidArtistCredit || missingFeaturedArtistName || invalidFeaturedInstagram}>{loading ? <LoaderCircle size={17} className="animate-spin" /> : <ArrowUpRight size={17} />}{loading ? copy.sending : copy.send}</button>{loading && <div className="music-submit-progress" aria-busy="true">
         <div className="music-submit-progress-spinner" aria-hidden="true"><svg className="music-submit-progress-ring" viewBox="0 0 48 48"><circle className="music-submit-progress-track" cx="24" cy="24" r="20" /><circle className="music-submit-progress-indicator" cx="24" cy="24" r="20" /></svg><Music2 className="music-submit-progress-icon" size={16} /></div>
         <div className="music-submit-progress-copy" role="status" aria-live="polite"><strong>{text.uploading}</strong><p>{text.uploadingHint}</p></div>
         <div className="music-submit-progress-timer"><span>{text.elapsed}</span><strong role="timer" aria-label={text.elapsedTime(elapsedSeconds)}>{`${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}`}</strong></div>
       </div>}<p className="music-studio-privacy"><ShieldCheck size={13} />{text.privacy}</p></section>
     </motion.div>
     <motion.aside initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="music-studio-preview"><div className="music-studio-preview-heading"><span>{text.previewBadge}</span><span>{text.maxClip}</span></div>
-      {coverUrl ? <MusicRecord key={audioUrl || 'cover-only'} track={{ id: 'submission-preview', title: title || copy.title, artist: formatArtistCredit(artist.trim() || copy.artist, collaborators), cover_url: coverUrl, audio_url: clipFile ? audioUrl : '', instagram_username: username, youtube_url: youtubeUrl, instagram_reel_url: reelUrl, spotify_url: spotifyUrl }} activeId={activeId} onActiveChange={setActiveId} /> : <div className="music-studio-empty"><div className="music-studio-empty-art" aria-hidden="true"><div className="music-studio-empty-disc" /><div className="music-studio-empty-sleeve"><Music2 size={35} strokeWidth={1} /><strong>YOUR<br />NEXT SOUND.</strong><span>UNSEEN / SOUND SERIES</span></div></div><p>{text.previewHint}</p></div>}
+      {coverUrl ? <MusicRecord key={audioUrl || 'cover-only'} track={{ id: 'submission-preview', title: title || copy.title, artist: formatArtistCredit(artist.trim() || copy.artist, featuredArtists.map(feature => feature.name)), collaborators: featuredArtists.map(({ name, instagram_username }) => ({ name, instagram_username: normalizeInstagram(instagram_username) || '' })), cover_url: coverUrl, audio_url: clipFile ? audioUrl : '', instagram_username: username, youtube_url: youtubeUrl, instagram_reel_url: reelUrl, spotify_url: spotifyUrl }} activeId={activeId} onActiveChange={setActiveId} /> : <div className="music-studio-empty"><div className="music-studio-empty-art" aria-hidden="true"><div className="music-studio-empty-disc" /><div className="music-studio-empty-sleeve"><Music2 size={35} strokeWidth={1} /><strong>YOUR<br />NEXT SOUND.</strong><span>UNSEEN / SOUND SERIES</span></div></div><p>{text.previewHint}</p></div>}
       <div className="music-studio-preview-note"><ShieldCheck size={18} /><div><strong>{text.ready}</strong><p>{text.summary}</p></div></div>
     </motion.aside>
   </motion.form>;

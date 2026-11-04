@@ -87,6 +87,9 @@
 .music-track-info { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 17px 0 8px; }
 .music-track-info h2 { font-size: 24px; font-weight: 500; letter-spacing: -.025em; color: hsl(0 0% 96.7%); word-break: break-word; }
 .music-track-info p { font-size: 10px; letter-spacing: .2em; color: hsl(0 0% 71%); margin-top: 4px; overflow-wrap: anywhere; }
+.music-featured-artist-links { display: flex; flex-wrap: wrap; gap: 7px 12px; margin-top: 7px; }
+.music-featured-artist-links a { display: inline-flex; align-items: center; gap: 4px; color: hsl(var(--primary)); font-size: 10px; }
+.music-featured-artist-links a:hover { text-decoration: underline; }
 .music-small-play { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; border: 1px solid hsl(var(--primary) / 0.4); color: hsl(var(--primary)); background: hsl(var(--primary) / 0.078); }
 .music-progress { width: 100%; height: 14px; accent-color: hsl(var(--primary)); cursor: pointer; display: block; }
 .music-time { display: flex; justify-content: space-between; color: hsl(0 0% 64.1%); font-size: 9px; font-variant-numeric: tabular-nums; margin-top: 4px; }

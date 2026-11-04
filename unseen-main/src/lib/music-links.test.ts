@@ -19,10 +19,18 @@ describe('music links', () => {
     expect(normalizeMusicLink('https://open.spotify.com/playlist/0123456789012345678901','spotify')).toBeNull();
     expect(normalizeMusicLink('https://www.instagram.com/my.artist/','reel')).toBeNull();
   });
-  it('normalizes on the server too and discards client duration and story', () => {
-    const submission=validateSubmission({kind:'music',metadata:{title:' Track ',artist:'Artist',instagram_username:'@my.artist',youtube_url:'https://youtu.be/dQw4w9WgXcQ',audio_duration_seconds:'1',story:'ignored'},files:[{kind:'cover',mime:'image/png',bytes:100},{kind:'audio',mime:'audio/wav',bytes:88244}]},crypto.randomUUID());
+  it('normalizes artist Instagram tags on the server and discards client duration and story', () => {
+    const submission=validateSubmission({kind:'music',metadata:{title:' Track ',artist:'Artist feat. Guest',collaborators:JSON.stringify([{name:' Guest ',instagram_username:'@guest.artist'}]),instagram_username:'@my.artist',youtube_url:'https://youtu.be/dQw4w9WgXcQ',audio_duration_seconds:'1',story:'ignored'},files:[{kind:'cover',mime:'image/png',bytes:100},{kind:'audio',mime:'audio/wav',bytes:88244}]},crypto.randomUUID());
     expect(submission.metadata.instagram_username).toBe('my.artist'); expect(submission.metadata.youtube_url).toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    expect(JSON.parse(submission.metadata.collaborators)).toEqual([{name:'Guest',instagram_username:'guest.artist'}]);
     expect(submission.metadata).not.toHaveProperty('audio_duration_seconds'); expect(submission.metadata).not.toHaveProperty('story');
     expect(() => validateSubmission({kind:'music',metadata:{title:'Track',artist:'Artist'},files:[{kind:'cover',mime:'image/png',bytes:100},{kind:'audio',mime:'audio/mpeg',bytes:100}]},crypto.randomUUID())).toThrow();
+  });
+  it('rejects invalid collaborator handles and inconsistent artist credits', () => {
+    const files=[{kind:'cover',mime:'image/png',bytes:100},{kind:'audio',mime:'audio/wav',bytes:88244}];
+    expect(() => validateSubmission({kind:'music',metadata:{title:'Track',artist:'Artist feat. Guest',collaborators:JSON.stringify([{name:'Guest',instagram_username:'https://instagram.com.evil.example/guest'}])},files},crypto.randomUUID())).toThrow('Nome Instagram non valido.');
+    expect(() => validateSubmission({kind:'music',metadata:{title:'Track',artist:'Artist feat. Other',collaborators:JSON.stringify([{name:'Guest',instagram_username:''}])},files},crypto.randomUUID())).toThrow('Crediti degli artisti non validi.');
+    const artists=Array.from({length:9},(_,index)=>({name:`Artist ${index}`,instagram_username:''}));
+    expect(() => validateSubmission({kind:'music',metadata:{title:'Track',artist:'Artist',collaborators:JSON.stringify(artists)},files},crypto.randomUUID())).toThrow('Elenco degli artisti ospiti non valido.');
   });
 });
