@@ -3,6 +3,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { championshipFixture, fixtureNow } from '@/test/championship-fixture';
 import ChampionshipArena from './ChampionshipArena';
+import { ServiceRequestError } from '@/lib/service-availability';
 
 const mocks = vi.hoisted(() => ({ rpc: vi.fn(), from: vi.fn(), select: vi.fn(), in: vi.fn(), abortSignal: vi.fn(), getSession: vi.fn(), refetch: vi.fn() }));
 let state: ReturnType<typeof championshipFixture>;
@@ -75,6 +76,17 @@ describe('arena loading', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Non riesco a caricare il campionato.');
     expect(container.querySelector('.champ-hero')).toBeNull();
     expect(screen.queryByText('Arena musicale in arrivo')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Riprova' }));
+    expect(mocks.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('explains service restrictions and does not offer voting on stale data', () => {
+    loadError = new ServiceRequestError('exceed_cached_egress_quota', 402);
+    const { container } = render(musicArena());
+    expect(screen.getByRole('alert')).toHaveTextContent('I duelli e il voto sono temporaneamente indisponibili.');
+    expect(screen.getByRole('alert')).toHaveTextContent('I voti già registrati sono conservati.');
+    expect(container.querySelector('.music-duel')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Vota' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Riprova' }));
     expect(mocks.refetch).toHaveBeenCalledTimes(1);
   });

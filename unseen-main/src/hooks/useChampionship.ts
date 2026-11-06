@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/supabaseClient';
 import { type ChampionshipData, type ChampionshipKind } from '@/lib/championship';
+import { isServiceRestricted, ServiceRequestError } from '@/lib/service-availability';
 
 export function useChampionship(kind: ChampionshipKind, id?: string | null, options: { refetchOnWindowFocus?: boolean } = {}) {
   const queryClient = useQueryClient();
@@ -26,23 +27,27 @@ export function useChampionship(kind: ChampionshipKind, id?: string | null, opti
     queryKey: ['championship', kind, id ?? null, userId],
     enabled: sessionReady,
     queryFn: async ({ signal }) => {
-      const { data, error } = await supabase.rpc('get_championship', { p_kind: kind, p_id: id || null }).abortSignal(signal);
-      if (error) throw new Error(error.message);
+      const { data, error, status } = await supabase.rpc('get_championship', { p_kind: kind, p_id: id || null }).abortSignal(signal);
+      if (error) throw new ServiceRequestError(error.message, status);
       const result = data as ChampionshipData;
       return { ...result, clockOffset: Date.parse(result.server_now) - Date.now() };
     },
-    staleTime: 30000, refetchInterval: 60000, refetchIntervalInBackground: false,
-    refetchOnWindowFocus: options.refetchOnWindowFocus,
+    retry: (failureCount, error) => !isServiceRestricted(error) && failureCount < 2,
+    staleTime: 30000,
+    refetchInterval: query => isServiceRestricted(query.state.error) ? false : 60000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: query => !isServiceRestricted(query.state.error) && (options.refetchOnWindowFocus ?? true),
+    refetchOnReconnect: query => !isServiceRestricted(query.state.error),
   });
   const now = clock + (query.data?.clockOffset ?? 0);
   const { refetch } = query;
   useEffect(() => { const timer = window.setInterval(() => setClock(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
   const boundary = query.data?.championship?.status === 'scheduled' ? query.data.championship.start_at : query.data?.matches.find(match => !match.resolved_at)?.end_at;
   useEffect(() => {
-    if (boundary && Date.parse(boundary) <= now && refreshedBoundary.current !== `${id ?? kind}:${boundary}`) {
+    if (!isServiceRestricted(query.error) && boundary && Date.parse(boundary) <= now && refreshedBoundary.current !== `${id ?? kind}:${boundary}`) {
       refreshedBoundary.current = `${id ?? kind}:${boundary}`;
       void refetch();
     }
-  }, [boundary, now, refetch, id, kind]);
+  }, [boundary, now, refetch, id, kind, query.error]);
   return { ...query, isLoading: !sessionReady || query.isLoading, now, userId };
 }

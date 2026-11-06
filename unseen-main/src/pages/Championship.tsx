@@ -7,6 +7,7 @@ import { arenaPath, currentMatch, type Championship as ChampionshipType, type Ch
 import { championshipCopy } from '@/i18n/championship-copy';
 import { useI18n } from '@/i18n/I18nProvider';
 import ChampionshipBracket from '@/components/ChampionshipBracket';
+import { isServiceRestricted } from '@/lib/service-availability';
 import '@/championship.css';
 
 export default function Championship() {
@@ -40,7 +41,7 @@ export default function Championship() {
           <button className={kind === 'music' ? 'is-selected' : ''} onClick={() => setParams({ tipo: 'musica' })}><Music2 size={16} />{copy.music}</button>
         </div>
       </header>
-      {isLoading ? <p role="status" className="champ-notice">{copy.loading}</p> : error ? <div role="alert" className="champ-notice"><p>{copy.error}</p><button className="champ-button" onClick={() => void refetch()}>{copy.retry}</button></div> : <>
+      {isLoading ? <p role="status" className="champ-notice">{copy.loading}</p> : error ? <div role="alert" className="champ-notice"><p>{isServiceRestricted(error) ? copy.serviceUnavailable : copy.error}</p><button className="champ-button" onClick={() => void refetch()}>{copy.retry}</button></div> : <>
         {championship ? <section className="champ-summary">
           <div><span className={`champ-status ${championship.status}`}>{copy[championship.status]}</span><h2>{championship.name}</h2><p>{copy.starts} {date(championship.start_at)} · {copy.ends} {date(championship.end_at)}</p></div>
           <div className="champ-progress"><strong>{String(finished).padStart(2, '0')}<span>/15</span></strong><p>{copy.progress}</p><div><span style={{ width: `${finished / 15 * 100}%` }} /></div></div>

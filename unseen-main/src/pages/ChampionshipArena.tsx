@@ -13,6 +13,7 @@ import MusicArenaVote from '@/components/MusicArenaVote';
 import PhotoArenaWork from '@/components/PhotoArenaWork';
 import ArenaComingSoon from '@/components/ArenaComingSoon';
 import { musicDemoCopy } from '@/i18n/music-demo-copy';
+import { isServiceRestricted, ServiceRequestError } from '@/lib/service-availability';
 import '@/championship.css';
 import '@/photo-arena.css';
 
@@ -43,10 +44,10 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate(`/auth?redirect=${encodeURIComponent(matchUrl)}`); return; }
-      const { error } = await supabase.rpc('cast_championship_vote', { p_match_id: match.id, p_vote_slot: slot });
-      if (error) throw error;
+      const { error, status } = await supabase.rpc('cast_championship_vote', { p_match_id: match.id, p_vote_slot: slot });
+      if (error) throw new ServiceRequestError(error.message, status);
       setLocalVote({ matchId: match.id, slot, userId: session.user.id }); toast.success(copy.voted); await refetch();
-    } catch (error) { toast.error(copy.voteError, { description: error instanceof Error ? error.message : undefined }); void refetch(); }
+    } catch (error) { toast.error(copy.voteError, { description: isServiceRestricted(error) ? copy.serviceUnavailable : error instanceof Error ? error.message : undefined }); void refetch(); }
     finally { busyRef.current = false; setBusy(false); }
   };
   const share = async () => {
@@ -57,7 +58,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) toast.error(copy.error); }
   };
   useEffect(() => {
-    if (!photoArtworkIds) { setPhotoSocials({}); return; }
+    if (!photoArtworkIds || isServiceRestricted(error)) { setPhotoSocials({}); return; }
     const controller = new AbortController();
     void Promise.resolve(supabase.from('opere').select('id, social_link').in('id', photoArtworkIds.split(',')).abortSignal(controller.signal))
       .then(({ data: artworks, error: artworkError }) => {
@@ -68,12 +69,12 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
         if (!controller.signal.aborted) toast.error(copy.error, { description: error instanceof Error ? error.message : undefined });
       });
     return () => controller.abort();
-  }, [photoArtworkIds, copy.error]);
+  }, [photoArtworkIds, copy.error, error]);
   if (params.get('duelId')) return <Navigate replace to={`/archivio${arenaPath(kind)}?${params.toString()}`} />;
   // Resolve loading and errors before mounting the arena layout.
   if (isLoading || error) return <main className="champ-page" aria-busy={isLoading}><div className="champ-container champ-arena-container">
     <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
-    {isLoading ? <p role="status" className="champ-notice">{copy.loading}</p> : <div role="alert" className="champ-notice"><p>{copy.error}</p><button className="champ-button" onClick={() => void refetch()}>{copy.retry}</button></div>}
+    {isLoading ? <p role="status" className="champ-notice">{copy.loading}</p> : <div role="alert" className="champ-notice"><p>{isServiceRestricted(error) ? copy.serviceUnavailable : copy.error}</p><button className="champ-button" onClick={() => void refetch()}>{copy.retry}</button></div>}
   </div></main>;
   const showOpening = !championship || championship.status === 'scheduled';
   if (showOpening) return <ArenaComingSoon kind={kind} startsAt={championship?.status === 'scheduled' ? championship.start_at : undefined} />;
