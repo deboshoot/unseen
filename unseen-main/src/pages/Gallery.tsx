@@ -12,6 +12,7 @@ import type { ChampionshipKind } from '@/lib/championship';
 import { galleryChampionSelect, galleryMonthLabel, type GalleryChampion } from '@/lib/championship-gallery';
 import MusicRecord from '@/components/MusicRecord';
 import '@/gallery-champions.css';
+import { isServiceRestricted, ServiceRequestError } from '@/lib/service-availability';
 
 type GalleryWork = { id: string; titolo: string; autore: string; immagine_url: string; storia: string; social_link: string };
 type GalleryMonth = { id: string; month_key: string; month_label: string; winner_id: string; people_choice_id: string; jury_choice_id: string };
@@ -35,11 +36,15 @@ export default function Gallery() {
   const champions = useQuery({
     queryKey: ['gallery-champions', kind, page],
     queryFn: async ({ signal }) => {
-      const { data, error, count } = await supabase.from('championship_gallery').select(galleryChampionSelect, { count: 'exact' }).eq('kind', kind).order('month_key', { ascending: false }).order('published_at', { ascending: false }).range(page * 24, page * 24 + 23).abortSignal(signal);
-      if (error) throw error;
+      const { data, error, count, status } = await supabase.from('championship_gallery').select(galleryChampionSelect, { count: 'exact' }).eq('kind', kind).order('month_key', { ascending: false }).order('published_at', { ascending: false }).range(page * 24, page * 24 + 23).abortSignal(signal);
+      if (error) throw new ServiceRequestError(error.message, status);
       return { rows: (data ?? []) as unknown as GalleryChampion[], count: count ?? 0 };
     },
-    staleTime: 30000, refetchInterval: 60000,
+    staleTime: 300000,
+    retry: (failureCount, error) => !isServiceRestricted(error) && failureCount < 2,
+    refetchInterval: false,
+    refetchOnWindowFocus: query => !isServiceRestricted(query.state.error),
+    refetchOnReconnect: query => !isServiceRestricted(query.state.error),
   });
 
   useEffect(() => {
