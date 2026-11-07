@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useI18n } from '@/i18n/I18nProvider';
 import { homeExperienceCopy } from '@/i18n/home-experience-copy';
+import { homeArtistCopy } from '@/i18n/home-artist-copy';
 import PortalScene from '@/components/home/PortalScene';
 import Starfield from '@/components/home/Starfield';
 import WorldCard from '@/components/home/WorldCard';
@@ -13,6 +14,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 export default function Index() {
   const { t, locale } = useI18n();
   const copy = homeExperienceCopy[locale];
+  const artistCopy = homeArtistCopy[locale];
   const reduce = useHomeReducedMotion();
   return <main className="home-experience">
     <Starfield />
@@ -25,6 +27,10 @@ export default function Index() {
           <div className="home-hero-actions">
             <Link to="/gallery" className="home-enter-link">{t('home.galleryCta')}<ArrowUpRight size={17} /></Link>
             <Link to="/arena" className="home-arena-link">{t('home.arenaCta')}<ArrowUpRight size={16} /></Link>
+          </div>
+          <div className="home-artist-cta">
+            <p>{artistCopy.invitation}</p>
+            <Link to="/submit">{artistCopy.submit}<ArrowUpRight size={15} /></Link>
           </div>
         </div>
       </div>

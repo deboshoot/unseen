@@ -1,10 +1,11 @@
 import { Fragment, type ReactNode } from 'react';
-import { ArrowUpRight, Camera, Headphones } from 'lucide-react';
+import { ArrowUpRight, Camera, Headphones, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '@/i18n/I18nProvider';
 import { musicCopy } from '@/i18n/music-copy';
 import { musicDemoCopy } from '@/i18n/music-demo-copy';
 import { photoComingCopy } from '@/i18n/photo-coming-copy';
+import { arenaChampionshipCopy } from '@/i18n/arena-championship-copy';
 import type { ChampionshipKind } from '@/lib/championship';
 import '@/championship.css';
 import '@/music-demo.css';
@@ -24,6 +25,7 @@ type Props = {
 export default function ArenaStage({ kind, timerValue, timerLabel, navigation, bracketUrl, children, countdownExtra, startsAt }: Props) {
   const { locale } = useI18n();
   const text = musicDemoCopy[locale];
+  const championshipText = arenaChampionshipCopy[locale];
   const isMusic = kind === 'music';
   const footer = isMusic ? musicCopy[locale].submitIntro : photoComingCopy[locale].footer;
   const submit = isMusic ? musicCopy[locale].submit : photoComingCopy[locale].submit;
@@ -51,7 +53,18 @@ export default function ArenaStage({ kind, timerValue, timerLabel, navigation, b
         {startsAt && <p className="music-demo-starts">{text.starts} {new Date(startsAt).toLocaleString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p>}
       </header>
       {children}
-      <footer className="music-footer"><SubmitIcon size={18} /><p>{footer}</p><Link to={`/submit?tipo=${isMusic ? 'musica' : 'foto'}`}>{submit}<ArrowUpRight size={14} /></Link><Link to={bracketUrl}>{text.bracket}<ArrowUpRight size={14} /></Link></footer>
+      <section className="arena-championship-card" aria-labelledby="arena-championship-title">
+        <div className="arena-championship-copy">
+          <span className="arena-championship-icon"><Trophy size={21} strokeWidth={1.6} /></span>
+          <div>
+            <p className="arena-championship-eyebrow">{championshipText.eyebrow}</p>
+            <h2 id="arena-championship-title">{championshipText.title}</h2>
+            <p className="arena-championship-description">{championshipText.description}</p>
+          </div>
+        </div>
+        <Link className="arena-championship-link" to={bracketUrl}>{text.bracket}<ArrowUpRight size={16} /></Link>
+      </section>
+      <footer className="music-footer"><SubmitIcon size={18} /><p>{footer}</p><Link to={`/submit?tipo=${isMusic ? 'musica' : 'foto'}`}>{submit}<ArrowUpRight size={14} /></Link></footer>
     </div>
   </main>;
 }

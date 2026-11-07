@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { motion, useMotionValue, useMotionValueEvent, useScroll } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import Arena from "./Arena";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -26,7 +26,7 @@ function ArenaDoor({ kind, title, category, description, enter, badge }: DoorPro
   const reset = () => { engaged.current = false; progress.set(0.12 + scrollYProgress.get() * 0.7); };
   const id = `arena-entry-${kind}`;
 
-  return <motion.div className={`arena-entry arena-entry-${kind}`}
+  return <motion.div id={`arena-entry-${kind}`} className={`arena-entry arena-entry-${kind}`}
     initial={reduced ? false : { opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, amount: 0.1 }} transition={{ duration: 0.85, ease, delay: kind === 'music' ? 0.1 : 0 }}>
     <Link className="arena-entry-link" to={kind === 'photo' ? '/arena/fotografica' : '/arena/musicale'}
@@ -52,6 +52,12 @@ export default function ArenaChoice() {
   const { locale, t } = useI18n();
   const copy = musicCopy[locale];
   const reduced = useHomeReducedMotion();
+  const scrollToArena = (kind: 'photo' | 'music') => {
+    document.getElementById(`arena-entry-${kind}`)?.scrollIntoView({
+      behavior: reduced ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  };
   // Preserve links to existing photographic duels and shared photographs.
   if (params.has("duelId") || params.has("photoId")) return <Arena />;
 
@@ -59,10 +65,20 @@ export default function ArenaChoice() {
   return <main className="arena-gateway" aria-labelledby="arena-gateway-title">
     <Starfield/>
     <div className="arena-gateway-inner">
-      <motion.header className="arena-gateway-heading" initial={reduced ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.85, ease }}>
-        <p className="arena-gateway-eyebrow"><i/>UNSEEN / ARENA</p>
-        <div className="arena-gateway-intro"><h1 id="arena-gateway-title">{words.join(' ')} <em>{finalWord}.</em></h1><p>{copy.chooseIntro}</p></div>
-      </motion.header>
+      <section className="arena-gateway-picker" aria-labelledby="arena-gateway-title">
+        <motion.header className="arena-gateway-heading" initial={reduced ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.85, ease }}>
+          <p className="arena-gateway-eyebrow"><i/>UNSEEN / ARENA</p>
+          <div className="arena-gateway-intro"><h1 id="arena-gateway-title">{words.join(' ')} <em>{finalWord}.</em></h1><p>{copy.chooseIntro}</p></div>
+        </motion.header>
+        <div className="arena-gateway-choices" role="group" aria-label={copy.choose}>
+          <button type="button" onClick={() => scrollToArena('photo')}>
+            <span>01</span>{copy.photography}<ArrowDown size={16}/>
+          </button>
+          <button type="button" onClick={() => scrollToArena('music')}>
+            <span>02</span>{copy.music}<ArrowDown size={16}/>
+          </button>
+        </div>
+      </section>
       <section className="arena-gateway-doors" aria-label={copy.choose}>
         <ArenaDoor kind="photo" title={copy.photography} category={photoArtworkCopy[locale].category} description={copy.photoDescription} enter={copy.enter}/>
         <ArenaDoor kind="music" title={copy.music} category={musicArtworkCopy[locale].category} description={copy.musicDescription} enter={copy.enter} badge={copy.new}/>

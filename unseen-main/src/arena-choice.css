@@ -1,14 +1,22 @@
-.arena-gateway { position:relative; isolation:isolate; min-height:100svh; padding:150px 0 0; color:#eeece4; background:#000; --arena-accent:hsl(var(--primary)); }
+.arena-gateway { position:relative; isolation:isolate; min-height:100svh; padding:96px 0 0; color:#eeece4; background:#000; --arena-accent:hsl(var(--primary)); }
 .arena-gateway-inner { width:calc(100% - 96px); max-width:1232px; margin:0 auto; }
-.arena-gateway-heading { padding-bottom:46px; }
+.arena-gateway-picker { min-height:calc(100svh - 96px); display:flex; flex-direction:column; justify-content:center; padding:24px 0 72px; }
+.arena-gateway-heading { padding-bottom:0; }
 .arena-gateway-eyebrow { display:flex; align-items:center; gap:11px; color:var(--arena-accent); font-size:9px; letter-spacing:.18em; }
 .arena-gateway-eyebrow>i { width:4px; height:4px; border-radius:50%; background:var(--arena-accent); }
 .arena-gateway-intro { display:flex; align-items:flex-end; justify-content:space-between; gap:50px; margin-top:22px; }
 .arena-gateway-intro h1 { max-width:850px; font-family:'Outfit',sans-serif; font-weight:400; font-size:clamp(46px,5.8vw,84px); letter-spacing:-.055em; line-height:1.08; text-wrap:balance; }
 .arena-gateway-intro h1 em { font-family:'Instrument Serif',serif; font-weight:400; font-size:1.15em; }
 .arena-gateway-intro>p { flex:0 0 245px; padding-bottom:6px; color:#97999d; font-size:12px; line-height:1.9; }
+.arena-gateway-choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; width:min(100%,680px); margin-top:42px; }
+.arena-gateway-choices>button { display:flex; align-items:center; gap:16px; min-height:64px; padding:0 22px; border:1px solid #eeece433; border-radius:2px; color:#eeece4; text-align:left; font-size:12px; letter-spacing:.1em; text-transform:uppercase; transition:border-color .3s ease,background .3s ease,transform .3s ease; }
+.arena-gateway-choices>button>span { color:var(--arena-accent); font-size:9px; letter-spacing:.12em; }
+.arena-gateway-choices>button>svg { margin-left:auto; color:#aaa; transition:transform .3s ease,color .3s ease; }
+.arena-gateway-choices>button:hover { transform:translateY(-2px); border-color:hsl(var(--primary) / .7); background:#ffffff08; }
+.arena-gateway-choices>button:hover>svg { transform:translateY(3px); color:var(--arena-accent); }
+.arena-gateway-choices>button:focus-visible { outline:1px solid var(--arena-accent); outline-offset:5px; }
 .arena-gateway-doors { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); border-top:1px solid #ffffff21; }
-.arena-entry { position:relative; min-width:0; }
+.arena-entry { position:relative; min-width:0; scroll-margin-top:84px; }
 .arena-entry+.arena-entry { border-left:1px solid #ffffff1c; }
 .arena-entry-link { position:relative; display:block; height:100%; padding:25px 36px 35px; isolation:isolate; }
 .arena-entry-meta { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#a8a8a6; font-size:9px; letter-spacing:.16em; text-transform:uppercase; }
@@ -52,14 +60,17 @@
   .arena-entry-music .home-instrument-product { width:min(50%,calc(var(--arena-visual-height)*.56)); }
 }
 @media(max-width:700px) {
-  .arena-gateway { padding-top:118px; }
+  .arena-gateway { padding-top:76px; }
   .arena-gateway-inner { width:calc(100% - 48px); }
-  .arena-gateway-heading { padding-bottom:30px; }
+  .arena-gateway-picker { min-height:calc(100svh - 76px); padding:22px 0 48px; }
   .arena-gateway-intro { display:block; margin-top:20px; }
   .arena-gateway-intro h1 { max-width:380px; font-size:clamp(44px,12vw,66px); }
   .arena-gateway-intro>p { max-width:280px; padding:0; margin-top:18px; font-size:12px; }
+  .arena-gateway-choices { grid-template-columns:minmax(0,1fr); gap:10px; max-width:420px; margin-top:30px; }
+  .arena-gateway-choices>button { min-height:56px; padding:0 18px; }
   .arena-gateway-doors { grid-template-columns:minmax(0,1fr); }
   .arena-entry+.arena-entry { border-left:0; border-top:1px solid #ffffff21; }
+  .arena-entry { scroll-margin-top:72px; }
   .arena-entry-link { padding:24px 0 34px; }
   .arena-entry-link::after { right:0; left:0; }
   .arena-entry-visual { --arena-visual-height:clamp(240px,69vw,350px); margin:8px -8px 0; }

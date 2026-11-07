@@ -1,5 +1,22 @@
 .music-studio-page{background:hsl(var(--background))}
 .music-studio-hero{padding-bottom:4px}.music-studio-hero h1{font-size:clamp(36px,5vw,64px);font-weight:600;letter-spacing:-.055em}.music-studio-badge{display:inline-flex;align-items:center;gap:8px;margin-bottom:25px;font-size:9px;letter-spacing:.22em;color:hsl(var(--primary))}.music-studio-badge>span{width:5px;height:5px;border-radius:50%;background:currentColor}
+.submit-choice { display:flex; min-height:calc(100svh - 12rem); flex-direction:column; justify-content:center; padding:24px 0 64px; }
+.submit-choice-heading { max-width:760px; margin:0 auto 46px; text-align:center; }
+.submit-choice-heading .music-studio-badge { margin-bottom:22px; }
+.submit-choice-heading h1 { font-size:clamp(38px,6vw,68px); font-weight:600; letter-spacing:-.06em; line-height:1.04; }
+.submit-choice-heading>p:last-child { margin:16px auto 0; color:hsl(var(--muted-foreground)); font-size:14px; line-height:1.8; }
+.submit-choice-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; max-width:900px; width:100%; margin:0 auto; }
+.submit-choice-card { display:flex; min-height:260px; flex-direction:column; align-items:flex-start; padding:28px; border:1px solid hsl(var(--border)); border-radius:20px; background:linear-gradient(145deg,hsl(var(--card)/.72),hsl(var(--card)/.25)); color:hsl(var(--foreground)); text-align:left; box-shadow:0 12px 40px hsl(var(--background)/.12),inset 0 1px hsl(var(--foreground)/.035); transition:transform .35s cubic-bezier(.22,1,.36,1),border-color .3s,background .3s,box-shadow .3s; }
+.submit-choice-card:hover { transform:translateY(-4px); border-color:hsl(var(--primary)/.4); background:linear-gradient(145deg,hsl(var(--card)/.95),hsl(var(--card)/.5)); box-shadow:0 20px 55px hsl(var(--background)/.2),inset 0 1px hsl(var(--foreground)/.06); }
+.submit-choice-card:focus-visible { outline:2px solid hsl(var(--primary)); outline-offset:4px; }
+.submit-choice-icon { display:grid; width:48px; height:48px; place-items:center; border:1px solid hsl(var(--primary)/.22); border-radius:14px; color:hsl(var(--primary)); background:hsl(var(--primary)/.055); }
+.submit-choice-card-copy { display:flex; flex-direction:column; gap:9px; margin-top:28px; }
+.submit-choice-card-copy>strong { font-size:22px; font-weight:550; letter-spacing:-.035em; }
+.submit-choice-card-copy>span { max-width:310px; color:hsl(var(--muted-foreground)); font-size:12px; line-height:1.8; }
+.submit-choice-action { display:inline-flex; align-items:center; gap:9px; margin-top:auto; padding-top:24px; color:hsl(var(--primary)); font-size:11px; font-weight:500; }
+.submit-choice-action svg { transition:transform .25s ease; }
+.submit-choice-card:hover .submit-choice-action svg { transform:translate(2px,-2px); }
+.submit-form-section { scroll-margin-top:100px; }
 .music-studio-form{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr);align-items:start;gap:30px}.music-studio-fields{display:flex;flex-direction:column;gap:22px}.music-studio-section{padding:28px;border:1px solid hsl(var(--border));border-radius:14px;background:hsl(var(--card)/.45)}
 .music-studio-section-heading{display:flex;gap:17px;margin-bottom:24px;align-items:flex-start}.music-studio-section-heading>span{display:grid;place-items:center;min-width:29px;height:29px;border:1px solid hsl(var(--primary)/.25);border-radius:8px;color:hsl(var(--primary));font-size:10px}.music-studio-section-heading h2{font-size:17px;font-weight:500;letter-spacing:-.02em;display:flex;align-items:center;gap:12px}.music-studio-section-heading p{font-size:11px;line-height:1.8;color:hsl(var(--muted-foreground));margin-top:6px}.music-studio-section-heading h2>small{font-size:9px;font-weight:400;color:hsl(var(--muted-foreground));letter-spacing:0}
 .music-studio-uploads{display:grid;grid-template-columns:1fr 1fr;gap:14px}.music-studio-upload{position:relative;display:flex;align-items:flex-start;flex-direction:column;gap:10px;min-width:0;padding:20px 17px;border:1px dashed hsl(var(--border));border-radius:10px;background:hsl(var(--background)/.55);cursor:pointer;transition:border-color .2s,background .2s}.music-studio-upload:hover,.music-studio-upload:focus-within{border-color:hsl(var(--primary));background:hsl(var(--primary)/.025)}.music-studio-upload>svg{color:hsl(var(--primary));margin-bottom:3px}.music-studio-upload strong{font-size:12px;font-weight:500}.music-studio-upload>small{font-size:9px;line-height:1.6;color:hsl(var(--muted-foreground))}.music-studio-upload>span{display:inline-flex;align-items:center;gap:7px;border-bottom:1px solid hsl(var(--primary)/.4);padding-bottom:3px;font-size:10px;color:hsl(var(--primary));margin-top:5px}.music-studio-upload em{display:flex;align-items:center;gap:5px;max-width:100%;font-size:9px;color:hsl(var(--muted-foreground));font-style:normal;word-break:break-all}.music-studio-upload.has-file{border-style:solid;border-color:hsl(var(--primary)/.35)}
@@ -838,5 +855,22 @@
   .music-studio-upload,
   .music-studio-upload-art-placeholder,
   .music-studio-upload-visual > img,
-  .music-studio-upload-action { transition: none !important; }
+  .music-studio-upload-action,
+  .submit-choice-card,
+  .submit-choice-action svg { transition: none !important; }
+}
+@media(max-width:640px) {
+  .submit-choice { min-height:calc(100svh - 9rem); padding:16px 0 42px; }
+  .submit-choice-heading { margin-bottom:30px; }
+  .submit-choice-heading .music-studio-badge { margin-bottom:18px; }
+  .submit-choice-heading h1 { font-size:clamp(36px,10vw,50px); }
+  .submit-choice-heading>p:last-child { max-width:300px; margin-top:12px; font-size:12px; }
+  .submit-choice-options { grid-template-columns:minmax(0,1fr); gap:12px; }
+  .submit-choice-card { min-height:190px; padding:21px; border-radius:16px; }
+  .submit-choice-icon { width:42px; height:42px; border-radius:12px; }
+  .submit-choice-card-copy { gap:6px; margin-top:17px; }
+  .submit-choice-card-copy>strong { font-size:19px; }
+  .submit-choice-card-copy>span { font-size:11px; }
+  .submit-choice-action { padding-top:16px; }
+  .submit-form-section { scroll-margin-top:76px; }
 }
