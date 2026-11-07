@@ -32,6 +32,19 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 describe('arena loading', () => {
+  it('keeps the real duel readable from recovery data while disabling every vote and avoiding blocked photo requests', () => {
+    state.recoveryAt = new Date(fixtureNow).toISOString();
+    state.entries.forEach(entry => { entry.image_url = `https://mpqphroecgfwonclmkyb.supabase.co/storage/v1/object/public/galleria/${entry.id}.jpg`; });
+    const { container } = mount();
+    expect(screen.getByRole('status')).toHaveTextContent('Consultazione temporanea');
+    expect(screen.getByText('Work 1')).toBeInTheDocument();
+    const button = screen.getByRole('button', { name: 'Vota' });
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    expect(mocks.rpc).not.toHaveBeenCalled();
+    expect(mocks.from).not.toHaveBeenCalled();
+    expect(container.querySelector('img[src*="supabase.co/storage"]')).toBeNull();
+  });
   function musicArena(url = '/arena/musicale') {
     return <MemoryRouter initialEntries={[url]}><ChampionshipArena kind="music" /></MemoryRouter>;
   }

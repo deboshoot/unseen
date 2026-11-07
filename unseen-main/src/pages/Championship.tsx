@@ -9,6 +9,9 @@ import { useI18n } from '@/i18n/I18nProvider';
 import ChampionshipBracket from '@/components/ChampionshipBracket';
 import { isServiceRestricted } from '@/lib/service-availability';
 import '@/championship.css';
+import RecoveryNotice from '@/components/RecoveryNotice';
+import RecoveryImage from '@/components/RecoveryImage';
+import { loadPublicRecovery } from '@/lib/public-recovery';
 
 export default function Championship() {
   const [params, setParams] = useSearchParams();
@@ -20,9 +23,13 @@ export default function Championship() {
   const [history, setHistory] = useState<ChampionshipType[]>([]);
   useEffect(() => {
     let mounted = true;
+    if (data?.recoveryAt) {
+      void loadPublicRecovery().then(snapshot => { if (mounted) setHistory(snapshot.championships.filter(row => row.kind === kind).sort((a, b) => Date.parse(b.start_at) - Date.parse(a.start_at))); }).catch(() => {});
+      return () => { mounted = false; };
+    }
     void supabase.from('championships').select('id,kind,name,start_at,end_at,status,winner_id').eq('kind', kind).order('start_at', { ascending: false }).limit(24).then(({ data }) => { if (mounted) setHistory(data ?? []); });
     return () => { mounted = false; };
-  }, [kind, data?.championship?.id]);
+  }, [kind, data?.championship?.id, data?.recoveryAt]);
   const championship = data?.championship;
   const published = championship && championship.status !== 'scheduled' && Date.parse(championship.start_at) <= now;
   const live = data ? currentMatch(data, now) : null;
@@ -41,17 +48,18 @@ export default function Championship() {
           <button className={kind === 'music' ? 'is-selected' : ''} onClick={() => setParams({ tipo: 'musica' })}><Music2 size={16} />{copy.music}</button>
         </div>
       </header>
+      {data?.recoveryAt && <RecoveryNotice at={data.recoveryAt} onRetry={() => void refetch()} />}
       {isLoading ? <p role="status" className="champ-notice">{copy.loading}</p> : error ? <div role="alert" className="champ-notice"><p>{isServiceRestricted(error) ? copy.serviceUnavailable : copy.error}</p><button className="champ-button" onClick={() => void refetch()}>{copy.retry}</button></div> : <>
         {championship ? <section className="champ-summary">
           <div><span className={`champ-status ${championship.status}`}>{copy[championship.status]}</span><h2>{championship.name}</h2><p>{copy.starts} {date(championship.start_at)} · {copy.ends} {date(championship.end_at)}</p></div>
           <div className="champ-progress"><strong>{String(finished).padStart(2, '0')}<span>/15</span></strong><p>{copy.progress}</p><div><span style={{ width: `${finished / 15 * 100}%` }} /></div></div>
           {live && <Link className="champ-button" to={`${arenaPath(kind)}?campionato=${championship.id}`}>{copy.live} · #{live.number}<ArrowUpRight size={16} /></Link>}
         </section> : <section className="champ-empty"><Trophy size={28} /><h2>{copy.empty}</h2><p>{copy.emptyText}</p><Link className="champ-button" to={`/submit?tipo=${kind === 'music' ? 'musica' : 'foto'}`}>{copy.submit}<ArrowUpRight size={16} /></Link></section>}
-        {winner && <section className="champ-winner"><img src={winner.image_url} alt={winner.title} /><div><p><Trophy size={16} />{copy.champion}</p><h2>{winner.title}</h2><span>{winner.artist} · #{winner.seed}</span></div></section>}
+        {winner && <section className="champ-winner"><RecoveryImage recovery={Boolean(data?.recoveryAt)} src={winner.image_url} alt={winner.title} /><div><p><Trophy size={16} />{copy.champion}</p><h2>{winner.title}</h2><span>{winner.artist} · #{winner.seed}</span></div></section>}
         <div className="champ-board-heading"><h2>{copy.bracket}</h2><span>{copy.scroll}</span></div>
         <ChampionshipBracket data={published ? data : undefined} kind={kind} now={now} />
         <div className="champ-rule"><p>{copy.duration}</p><p>{copy.tieRule}</p></div>
-        {published && data?.entries.length > 0 && <section className="champ-participants"><h2>16 {copy.participants}</h2><div>{data.entries.map(entry => <article key={entry.id} className={eliminated.has(entry.id) ? 'is-lost' : ''}><div><img src={entry.image_url} alt={entry.title} loading="lazy" />{eliminated.has(entry.id) && <X aria-label={copy.lost} size={38} />}</div><span>#{entry.seed} · {entry.artist}</span><h3>{entry.title}</h3></article>)}</div></section>}
+        {published && data?.entries.length > 0 && <section className="champ-participants"><h2>16 {copy.participants}</h2><div>{data.entries.map(entry => <article key={entry.id} className={eliminated.has(entry.id) ? 'is-lost' : ''}><div><RecoveryImage recovery={Boolean(data.recoveryAt)} src={entry.image_url} alt={entry.title} loading="lazy" />{eliminated.has(entry.id) && <X aria-label={copy.lost} size={38} />}</div><span>#{entry.seed} · {entry.artist}</span><h3>{entry.title}</h3></article>)}</div></section>}
       </>}
       {history.length > 1 && <label className="champ-history">{copy.history}<select value={id || championship?.id || ''} onChange={event => setParams({ tipo: kind === 'music' ? 'musica' : 'foto', id: event.target.value })}>{history.map(item => <option key={item.id} value={item.id}>{item.name} · {copy[item.status]}</option>)}</select></label>}
     </div>

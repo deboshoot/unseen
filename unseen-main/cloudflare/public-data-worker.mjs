@@ -24,6 +24,14 @@ export default {
     if (origin && !allowed.includes(origin)) return reply(null, 403);
     if (request.method === 'OPTIONS') return reply(null, 204);
     if (request.headers.has('Authorization') || request.headers.has('Cookie')) return reply(null, 400);
+    if (url.pathname === '/recovery/public-v1.json' && request.method === 'GET') {
+      // This is a fixed, sanitized static export. No database/API calls here.
+      const snapshot = await env.PUBLIC_RECOVERY.get('recovery/public-v1.json');
+      if (!snapshot) return reply(null, 404);
+      if (Date.now() - snapshot.uploaded.getTime() > 86400000) return reply(null, 410);
+      return new Response(snapshot.body, { headers: { ...cors, 'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=60', 'ETag': snapshot.httpEtag } });
+    }
     const rpc = url.pathname === '/rest/v1/rpc/get_championship';
     const table = url.pathname.split('/')[3];
     let body, ttl = rpc ? 15 : 300;
@@ -78,6 +86,8 @@ export default {
     const outputHeaders = { 'Content-Type': 'application/json', 'X-Unseen-Cache': 'MISS',
       ...(response.headers.has('Content-Range') ? { 'Content-Range': response.headers.get('Content-Range') } : {}) };
     if (response.ok) {
+      // Retire the independent copy as soon as normal public service returns.
+      if (env.PUBLIC_RECOVERY) ctx.waitUntil(env.PUBLIC_RECOVERY.delete('recovery/public-v1.json'));
       if (rpc) {
         const data = JSON.parse(text);
         // Defense in depth: a personalized or live-score response cannot be shared.

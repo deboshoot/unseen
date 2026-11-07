@@ -19,6 +19,18 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe('Cloudflare anonymous read cache', () => {
+  it('serves only the fixed public recovery object without any upstream call', async () => {
+    const get = vi.fn().mockResolvedValue({ body: '{"version":1}', httpEtag: '"checked"', uploaded: new Date() });
+    const response = await worker.fetch(new Request('https://data.example/recovery/public-v1.json'), { ...env, PUBLIC_RECOVERY: { get } }, ctx);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ version: 1 });
+    expect(get).toHaveBeenCalledWith('recovery/public-v1.json');
+    expect(upstream).not.toHaveBeenCalled();
+  });
+  it('does not serve a recovery copy older than one day', async () => {
+    const get = vi.fn().mockResolvedValue({ body: '{}', uploaded: new Date(Date.now() - 86400001) });
+    expect((await worker.fetch(new Request('https://data.example/recovery/public-v1.json'), { ...env, PUBLIC_RECOVERY: { get } }, ctx)).status).toBe(410);
+  });
   it('shares anonymous reads, preserves the database clock offset and uses only the public key', async () => {
     vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-07T00:00:00Z'));
     upstream.mockResolvedValue(new Response(JSON.stringify(data()), { headers: { 'Content-Type': 'application/json' } }));

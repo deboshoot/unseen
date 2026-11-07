@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import RecoveryImage from './RecoveryImage';
 
 export type ArtworkDetailModalProps = {
   open: boolean;
@@ -10,6 +11,7 @@ export type ArtworkDetailModalProps = {
   titleId?: string;
   children: React.ReactNode;
   immersive?: boolean;
+  recovery?: boolean;
   /** Area fissa in basso nel pannello (es. voto) — resta visibile mentre si scrolla il testo sopra */
   footer?: React.ReactNode;
 };
@@ -26,6 +28,7 @@ export function ArtworkDetailModal({
   titleId = "artwork-detail-title",
   children,
   immersive = false,
+  recovery = false,
   footer,
 }: ArtworkDetailModalProps) {
   useEffect(() => {
@@ -79,7 +82,7 @@ export function ArtworkDetailModal({
             {immersive ? (
               <div className="artwork-immersive-content flex min-h-full w-full flex-col">
                 <div className="artwork-immersive-media flex w-full items-center justify-center px-3 pb-4 pt-16 sm:px-8 sm:pb-5">
-                  <img
+                  <RecoveryImage recovery={recovery}
                     src={imageSrc}
                     alt={imageAlt}
                     decoding="async"
@@ -94,7 +97,7 @@ export function ArtworkDetailModal({
             <div className="artwork-detail-shell flex flex-col overflow-hidden rounded-[1.35rem] md:max-h-[min(90vh,920px)] md:flex-row md:items-stretch">
               {/* Immagine: sopra su mobile, sinistra su desktop (più spazio) */}
               <div className="relative flex min-h-[min(38vh,360px)] w-full flex-shrink-0 items-center justify-center bg-neutral-950/95 px-3 py-5 sm:min-h-[min(42vh,400px)] md:min-h-0 md:min-w-0 md:flex-[1.2] md:self-stretch md:px-5 md:py-8">
-                <img
+                <RecoveryImage recovery={recovery}
                   src={imageSrc}
                   alt={imageAlt}
                   decoding="async"

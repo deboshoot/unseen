@@ -16,6 +16,7 @@ import { musicDemoCopy } from '@/i18n/music-demo-copy';
 import { isServiceRestricted, ServiceRequestError } from '@/lib/service-availability';
 import '@/championship.css';
 import '@/photo-arena.css';
+import RecoveryNotice from '@/components/RecoveryNotice';
 
 export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) {
   const [params] = useSearchParams();
@@ -31,7 +32,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
   const requested = params.get('match');
   // A shared URL cannot select a past or future duel outside its 48-hour window.
   const match = data ? currentMatch(data, now) : null;
-  const canVote = Boolean(championship && match && isMatchOpen(match, championship, now));
+  const canVote = Boolean(!data?.recoveryAt && championship && match && isMatchOpen(match, championship, now));
   const chosen = data?.my_votes.find(vote => vote.match_id === match?.id)?.vote_slot ?? (localVote && localVote.matchId === match?.id && localVote.userId === userId ? localVote.slot : null);
   const bracketUrl = `/campionato?tipo=${kind === 'music' ? 'musica' : 'foto'}${championship ? `&id=${championship.id}` : ''}`;
   const matchUrl = championship && match ? `${arenaPath(kind)}?campionato=${championship.id}&match=${match.id}` : arenaPath(kind);
@@ -58,7 +59,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) toast.error(copy.error); }
   };
   useEffect(() => {
-    if (!photoArtworkIds || isServiceRestricted(error)) { setPhotoSocials({}); return; }
+    if (!photoArtworkIds || data?.recoveryAt || isServiceRestricted(error)) { setPhotoSocials({}); return; }
     const controller = new AbortController();
     void Promise.resolve(supabase.from('opere').select('id, social_link').in('id', photoArtworkIds.split(',')).abortSignal(controller.signal))
       .then(({ data: artworks, error: artworkError }) => {
@@ -69,7 +70,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
         if (!controller.signal.aborted) toast.error(copy.error, { description: error instanceof Error ? error.message : undefined });
       });
     return () => controller.abort();
-  }, [photoArtworkIds, copy.error, error]);
+  }, [photoArtworkIds, copy.error, error, data?.recoveryAt]);
   if (params.get('duelId')) return <Navigate replace to={`/archivio${arenaPath(kind)}?${params.toString()}`} />;
   // Resolve loading and errors before mounting the arena layout.
   if (isLoading || error) return <main className="champ-page" aria-busy={isLoading}><div className="champ-container champ-arena-container">
@@ -95,17 +96,18 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
       navigation={<nav className="music-demo-navigation" aria-label="Arena">
         <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
       </nav>}>
+      {data.recoveryAt && <RecoveryNotice at={data.recoveryAt} onRetry={() => void refetch()} />}
       {kind === 'music' ? <MusicArenaMedia tracks={tracks} duelLabel={duelLabel} renderWaiting={waiting} />
         : <section className="music-duel photo-arena-duel" aria-label={duelLabel}>
           {entries.map((entry, index) => <article className={`music-challenger photo-arena-challenger photo-arena-challenger-${index + 1}`} key={`${match.id}-${index}`}>
             {entry ? <>
-              <PhotoArenaWork entry={entry} />
+              <PhotoArenaWork entry={entry} recovery={Boolean(data.recoveryAt)} />
             </> : waiting(index)}
           </article>)}
         </section>}
       <MusicArenaVote choices={entries.flatMap(entry => entry ? [entry] : [])} selectedId={chosen ? entries[chosen - 1]?.id ?? null : null}
         selectedLabel={copy.voted} disabled={!canVote || busy || Boolean(chosen)}
-        percentages={match.vote_percentages} resultsPending={busy} onRefreshResults={() => void refetch()} showResultsHint
+        percentages={match.vote_percentages} resultsPending={busy} onRefreshResults={() => void refetch()} showResultsHint={!data.recoveryAt}
         onChoose={id => void vote(entries.findIndex(entry => entry?.id === id) + 1)} />
       <div className="champ-arena-share"><button type="button" className="music-share" onClick={() => void share()}><Share2 size={15} />{copy.share}</button></div>
       <p className="sr-only">{copy.rounds[match.round - 1]} · #{match.number}/15 · {championship.name}</p>

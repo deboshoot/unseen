@@ -6,10 +6,12 @@ import { photoArenaCopy } from '@/i18n/photo-arena-copy';
 import type { ChampionshipEntry } from '@/lib/championship';
 import { normalizeInstagram } from '@/lib/music-links';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './ui/dialog';
+import { loadPublicRecovery } from '@/lib/public-recovery';
+import RecoveryImage from './RecoveryImage';
 
 type Detail = { status: 'idle' | 'loading' | 'ready' | 'error'; description: string };
 
-export default function PhotoArenaWork({ entry, lost = false }: { entry: ChampionshipEntry; lost?: boolean }) {
+export default function PhotoArenaWork({ entry, lost = false, recovery = false }: { entry: ChampionshipEntry; lost?: boolean; recovery?: boolean }) {
   const { locale } = useI18n();
   const text = photoArenaCopy[locale];
   const instagramUsername = normalizeInstagram(entry.instagram_username ?? '');
@@ -29,6 +31,13 @@ export default function PhotoArenaWork({ entry, lost = false }: { entry: Champio
     setDetail({ status: 'loading', description: '' });
     void (async () => {
       try {
+        if (recovery) {
+          const snapshot = await loadPublicRecovery(controller.signal);
+          const artwork = snapshot.artworks.find(work => work.id === entry.artwork_id);
+          if (!artwork) throw new Error('Description unavailable');
+          if (active) setDetail({ status: 'ready', description: artwork.storia?.trim() ?? '' });
+          return;
+        }
         // The public artwork policy permits only published photos. Load only
         // the requested description, without requiring administrative access.
         const { data, error } = await supabase.from('opere').select('storia').eq('id', entry.artwork_id).abortSignal(controller.signal).maybeSingle();
@@ -42,13 +51,13 @@ export default function PhotoArenaWork({ entry, lost = false }: { entry: Champio
       }
     })();
     return () => { active = false; controller.abort(); };
-  }, [open, entry.artwork_id, retry]);
+  }, [open, entry.artwork_id, retry, recovery]);
 
   return <Dialog open={open} onOpenChange={setOpen}>
     <figure className={`photo-arena-work${lost ? ' is-lost' : ''}`}>
       <DialogTrigger asChild>
         <button type="button" className="photo-arena-image-button" aria-label={`${text.expand}: ${entry.title}`}>
-          <img className="photo-arena-image-preview" src={entry.image_url} alt={entry.title} />
+          <RecoveryImage recovery={recovery} className="photo-arena-image-preview" src={entry.image_url} alt={entry.title} />
         </button>
       </DialogTrigger>
       <figcaption className="photo-arena-caption"><h2>{entry.title}</h2><p>{entry.artist}</p>
@@ -57,7 +66,7 @@ export default function PhotoArenaWork({ entry, lost = false }: { entry: Champio
     </figure>
     <DialogContent className="photo-arena-dialog">
       <DialogDescription className="sr-only">{text.detail}</DialogDescription>
-      <div className="photo-arena-dialog-media"><img src={entry.image_url} alt={entry.title} decoding="async" /></div>
+      <div className="photo-arena-dialog-media"><RecoveryImage recovery={recovery} src={entry.image_url} alt={entry.title} decoding="async" /></div>
       <div className="photo-arena-dialog-copy">
         <DialogTitle>{entry.title}</DialogTitle>
         <p className="photo-arena-dialog-artist">{entry.artist}</p>

@@ -13,6 +13,9 @@ import { galleryChampionSelect, galleryMonthLabel, type GalleryChampion } from '
 import MusicRecord from '@/components/MusicRecord';
 import '@/gallery-champions.css';
 import { isServiceRestricted, ServiceRequestError } from '@/lib/service-availability';
+import { loadPublicRecovery } from '@/lib/public-recovery';
+import RecoveryNotice from '@/components/RecoveryNotice';
+import RecoveryImage from '@/components/RecoveryImage';
 
 type GalleryWork = { id: string; titolo: string; autore: string; immagine_url: string; storia: string; social_link: string };
 type GalleryMonth = { id: string; month_key: string; month_label: string; winner_id: string; people_choice_id: string; jury_choice_id: string };
@@ -31,41 +34,63 @@ export default function Gallery() {
   const [selectedWork, setSelectedWork] = useState<GalleryWork | null>(null);
   const [archiveLoading, setArchiveLoading] = useState(true);
   const [archiveError, setArchiveError] = useState(false);
+  const [archiveRecoveryAt, setArchiveRecoveryAt] = useState<string | null>(null);
   const [archiveRevision, setArchiveRevision] = useState(0);
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
   const champions = useQuery({
     queryKey: ['gallery-champions', kind, page],
     queryFn: async ({ signal }) => {
       const { data, error, count, status } = await supabase.from('championship_gallery').select(galleryChampionSelect, { count: 'exact' }).eq('kind', kind).order('month_key', { ascending: false }).order('published_at', { ascending: false }).range(page * 24, page * 24 + 23).abortSignal(signal);
-      if (error) throw new ServiceRequestError(error.message, status);
+      if (error) {
+        const failure = new ServiceRequestError(error.message, status);
+        if (isServiceRestricted(failure)) {
+          try {
+            const snapshot = await loadPublicRecovery(signal);
+            const all = snapshot.gallery.filter(row => row.kind === kind);
+            return { rows: all.slice(page * 24, page * 24 + 24), count: all.length, recoveryAt: snapshot.captured_at };
+          } catch { throw failure; }
+        }
+        throw failure;
+      }
       return { rows: (data ?? []) as unknown as GalleryChampion[], count: count ?? 0 };
     },
     staleTime: 300000,
     retry: (failureCount, error) => !isServiceRestricted(error) && failureCount < 2,
     refetchInterval: false,
-    refetchOnWindowFocus: query => !isServiceRestricted(query.state.error),
-    refetchOnReconnect: query => !isServiceRestricted(query.state.error),
+    refetchOnWindowFocus: query => !query.state.data?.recoveryAt && !isServiceRestricted(query.state.error),
+    refetchOnReconnect: query => !query.state.data?.recoveryAt && !isServiceRestricted(query.state.error),
   });
 
   useEffect(() => {
     let alive = true;
     setArchiveLoading(true); setArchiveError(false);
     void (async () => {
-      const { data, error } = await supabase.from('gallery_months').select('id, month_key, month_label, winner_id, people_choice_id, jury_choice_id').order('month_key', { ascending: false });
-      if (error) throw error;
+      const { data, error, status } = await supabase.from('gallery_months').select('id, month_key, month_label, winner_id, people_choice_id, jury_choice_id').order('month_key', { ascending: false });
+      if (error) throw new ServiceRequestError(error.message, status);
       const galleryMonths = (data ?? []) as GalleryMonth[];
       const ids = [...new Set(galleryMonths.flatMap(month => [month.winner_id, month.people_choice_id, month.jury_choice_id]).filter(Boolean))];
-      const works = ids.length ? await supabase.from('opere').select('id, titolo, immagine_url, autore, storia, social_link').in('id', ids) : { data: [], error: null };
-      if (works.error) throw works.error;
+      const works = ids.length ? await supabase.from('opere').select('id, titolo, immagine_url, autore, storia, social_link').in('id', ids) : { data: [], error: null, status: 200 };
+      if (works.error) throw new ServiceRequestError(works.error.message, works.status);
       if (alive) {
         setMonths(galleryMonths);
         setArtworks(Object.fromEntries(((works.data ?? []) as GalleryWork[]).map(work => [work.id, work])));
+        setArchiveRecoveryAt(null);
       }
-    })().catch(() => { if (alive) setArchiveError(true); }).finally(() => { if (alive) setArchiveLoading(false); });
+    })().catch(async error => {
+      if (isServiceRestricted(error)) {
+        try {
+          const snapshot = await loadPublicRecovery();
+          if (alive) { setMonths(snapshot.months); setArtworks(Object.fromEntries(snapshot.artworks.map(work => [work.id, work]))); setArchiveRecoveryAt(snapshot.captured_at); }
+          return;
+        } catch { /* Preserve the visible error if the recovery copy is unavailable. */ }
+      }
+      if (alive) setArchiveError(true);
+    }).finally(() => { if (alive) setArchiveLoading(false); });
     return () => { alive = false; };
   }, [archiveRevision]);
 
   const rows = champions.data?.rows ?? [];
+  const recoveryAt = champions.data?.recoveryAt ?? (kind === 'photo' ? archiveRecoveryAt : null);
   const legacy = kind === 'photo' ? months.filter(month => artworks[month.winner_id]) : [];
   const featuredChampion = rows[0];
   const featuredMonth = !featuredChampion ? legacy[0] : undefined;
@@ -84,7 +109,7 @@ export default function Gallery() {
     const expanded = expandedMonth === month.id;
     return <div className="collection-awards">
       <button type="button" className="collection-awards-toggle" aria-expanded={expanded} aria-controls={`awards-${month.id}`} onClick={() => setExpandedMonth(expanded ? null : month.id)}><span>{expanded ? text.hideAwards : text.otherAwards}<small>{String(selections.length).padStart(2, '0')}</small></span><ChevronDown size={17} /></button>
-      {expanded && <div id={`awards-${month.id}`} className="collection-awards-grid">{selections.map(item => <GalleryCard key={item.label} work={artworks[item.id]} category={item.label} onOpen={() => setSelectedWork(artworks[item.id])} />)}</div>}
+      {expanded && <div id={`awards-${month.id}`} className="collection-awards-grid">{selections.map(item => <GalleryCard key={item.label} work={artworks[item.id]} recovery={Boolean(recoveryAt)} category={item.label} onOpen={() => setSelectedWork(artworks[item.id])} />)}</div>}
     </div>;
   };
 
@@ -101,6 +126,7 @@ export default function Gallery() {
       </div>
 
       {loading && <div className="collection-loading" role="status"><span />{text.loading}</div>}
+      {recoveryAt && <RecoveryNotice at={recoveryAt} onRetry={() => { void champions.refetch(); setArchiveRevision(value => value + 1); }} />}
       {champions.error && <div className="collection-notice" role="alert">{text.loadError}<button onClick={() => void champions.refetch()}>{text.retry}<ArrowRight size={14} /></button></div>}
       {kind === 'photo' && archiveError && <div className="collection-notice" role="alert">{text.archiveError}<button onClick={() => setArchiveRevision(value => value + 1)}>{text.retry}<ArrowRight size={14} /></button></div>}
 
@@ -109,7 +135,7 @@ export default function Gallery() {
         <div className={`collection-exhibition ${kind === 'music' ? 'is-music' : ''}`}>
           <div className="collection-exhibition-media">
             {kind === 'music' && featuredChampion ? <MusicRecord track={{ ...featuredChampion.entry, cover_url: featuredChampion.entry.image_url, audio_url: featuredChampion.entry.audio_url ?? '' }} activeId={activeAudio} onActiveChange={setActiveAudio} /> : <button type="button" className="collection-artwork" onClick={() => setSelectedWork(featuredWork)} aria-label={`${text.enlarge}: ${featuredWork.titolo}`}>
-              <span className="collection-mount"><img src={featuredWork.immagine_url} alt={featuredWork.titolo} decoding="async" /></span>
+              <span className="collection-mount"><RecoveryImage recovery={Boolean(recoveryAt)} src={featuredWork.immagine_url} alt={featuredWork.titolo} decoding="async" /></span>
               <span className="collection-artwork-caption"><span>UNSEEN COLLECTION</span><span>{text.enlarge}<Plus size={14} /></span></span>
             </button>}
           </div>
@@ -136,7 +162,7 @@ export default function Gallery() {
         <div className="collection-section-line"><p><span>02 /</span> {text.previous}</p><span>{text.archiveNote}</span></div>
         <div className={`collection-grid ${kind === 'music' ? 'is-music' : ''}`}>
           {rows.slice(1).map(item => <article className="collection-entry" key={item.championship_id}><p className="collection-entry-period">{galleryMonthLabel(item.month_key, locale)}</p>{kind === 'music' ? <MusicRecord track={{ ...item.entry, cover_url: item.entry.image_url, audio_url: item.entry.audio_url ?? '' }} activeId={activeAudio} onActiveChange={setActiveAudio} /> : <GalleryCard work={championWork(item)} category={text.monthlyChampion} onOpen={() => setSelectedWork(championWork(item))} />}<Link className="collection-tournament" to={championshipPath(kind, item.championship_id)}>{item.championship.name}<ArrowUpRight size={14} /></Link></article>)}
-          {remainingMonths.map(month => <article className="collection-entry" key={month.id}><p className="collection-entry-period">{galleryMonthLabel(month.month_key, locale)}</p><GalleryCard work={artworks[month.winner_id]} category={text.photoWinner} onOpen={() => setSelectedWork(artworks[month.winner_id])} />{awards(month)}</article>)}
+          {remainingMonths.map(month => <article className="collection-entry" key={month.id}><p className="collection-entry-period">{galleryMonthLabel(month.month_key, locale)}</p><GalleryCard recovery={Boolean(recoveryAt)} work={artworks[month.winner_id]} category={text.photoWinner} onOpen={() => setSelectedWork(artworks[month.winner_id])} />{awards(month)}</article>)}
         </div>
       </section>}
 
@@ -145,15 +171,15 @@ export default function Gallery() {
       <footer className="collection-invitation"><div><p className="collection-eyebrow">{text.footerLabel}</p><h2>{text.footerTitle}<br /><em>{text.footerEmphasis}</em></h2></div><div><p>{text.footerNote}</p><Link className="collection-submit-link" to={submitPath}>{kind === 'music' ? text.submitMusic : text.submitPhoto}<ArrowDownRight size={20} /></Link></div><span className="collection-signature" aria-hidden="true">UNSEEN</span></footer>
     </div>
 
-    <ArtworkDetailModal open={!!selectedWork} onClose={() => setSelectedWork(null)} imageSrc={selectedWork?.immagine_url ?? ''} imageAlt={selectedWork?.titolo ?? ''} titleId="gallery-detail-title">
+    <ArtworkDetailModal recovery={Boolean(recoveryAt)} open={!!selectedWork} onClose={() => setSelectedWork(null)} imageSrc={selectedWork?.immagine_url ?? ''} imageAlt={selectedWork?.titolo ?? ''} titleId="gallery-detail-title">
       {selectedWork && <><p className="font-body text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{text.collection}</p><h2 id="gallery-detail-title" className="mt-2 font-display text-2xl font-medium text-foreground md:text-3xl">{selectedWork.titolo}</h2><div className="flex flex-wrap items-center gap-2 font-body text-sm text-foreground"><span>{selectedWork.autore}</span>{getInstagramProfile(selectedWork.social_link) && <a href={getInstagramProfile(selectedWork.social_link)!.href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@{getInstagramProfile(selectedWork.social_link)!.username}</a>}</div><p className="font-body text-base leading-relaxed text-muted-foreground md:text-lg">{selectedWork.storia || text.noDescription}</p></>}
     </ArtworkDetailModal>
   </main>;
 }
 
-function GalleryCard({ work, category, onOpen }: { work: GalleryWork; category: string; onOpen: () => void }) {
+function GalleryCard({ work, category, onOpen, recovery = false }: { work: GalleryWork; category: string; onOpen: () => void; recovery?: boolean }) {
   return <button type="button" className="collection-piece" onClick={onOpen}>
-    <span className="collection-piece-mount"><img src={work.immagine_url} alt={work.titolo} loading="lazy" decoding="async" /><span className="collection-piece-open" aria-hidden="true"><Plus size={20} /></span></span>
+    <span className="collection-piece-mount"><RecoveryImage recovery={recovery} src={work.immagine_url} alt={work.titolo} loading="lazy" decoding="async" /><span className="collection-piece-open" aria-hidden="true"><Plus size={20} /></span></span>
     <span className="collection-piece-caption"><span className="collection-eyebrow">{category}</span><span className="collection-piece-title">{work.titolo}</span><span className="collection-piece-author">{work.autore}</span><ArrowUpRight size={17} aria-hidden="true" /></span>
   </button>;
 }

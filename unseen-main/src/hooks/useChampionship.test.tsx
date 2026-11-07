@@ -3,12 +3,33 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useChampionship } from './useChampionship';
 import { championshipFixture } from '@/test/championship-fixture';
-const mocks = vi.hoisted(() => ({ getSession: vi.fn(), rpc: vi.fn(), onChange: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getSession: vi.fn(), rpc: vi.fn(), onChange: vi.fn(), recovery: vi.fn() }));
 vi.mock('@/supabaseClient', () => ({ supabase: { rpc: mocks.rpc, auth: { getSession: mocks.getSession, onAuthStateChange: mocks.onChange } } }));
-beforeEach(() => vi.clearAllMocks());
+vi.mock('@/lib/public-recovery', async importOriginal => ({ ...await importOriginal<typeof import('@/lib/public-recovery')>(), loadPublicRecovery: mocks.recovery }));
+beforeEach(() => { vi.clearAllMocks(); mocks.recovery.mockRejectedValue(new Error('Recovery unavailable')); });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 function Probe() { const { data } = useChampionship('photo'); return <p>{data?.championship?.name ?? 'Waiting'}</p>; }
 describe('championship account isolation', () => {
+  it('opens an identified public recovery copy during a restriction without polling or personal votes, then returns to live data on retry', async () => {
+    mocks.getSession.mockResolvedValue({ data: { session: null } });
+    mocks.onChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } });
+    const fixture = championshipFixture();
+    const captured_at = new Date().toISOString();
+    mocks.recovery.mockResolvedValue({ version: 1, captured_at, championships: [fixture.championship], entries: fixture.entries,
+      matches: fixture.matches.map(match => ({ ...match, votes_1: null, votes_2: null })), artworks: [], months: [], gallery: [] });
+    mocks.rpc.mockReturnValue({ abortSignal: () => Promise.resolve({ data: null, error: { message: 'restricted' }, status: 402 }) });
+    const client = new QueryClient();
+    render(<QueryClientProvider client={client}><Probe /></QueryClientProvider>);
+    await screen.findByText('UNSEEN test');
+    expect(client.getQueryData(['championship', 'photo', null, null])).toMatchObject({ recoveryAt: captured_at, my_votes: [], clockOffset: 0 });
+    vi.useFakeTimers();
+    await act(async () => { await vi.advanceTimersByTimeAsync(120000); });
+    expect(mocks.rpc).toHaveBeenCalledTimes(1);
+    mocks.rpc.mockReturnValue({ abortSignal: () => Promise.resolve({ data: fixture, error: null, status: 200 }) });
+    await act(async () => { await client.refetchQueries({ queryKey: ['championship'] }); });
+    expect(client.getQueryData(['championship', 'photo', null, null])).not.toHaveProperty('recoveryAt');
+    client.clear();
+  });
   it('stops retrying and polling during a quota restriction, and resumes after a successful manual retry', async () => {
     mocks.getSession.mockResolvedValue({ data: { session: null } });
     mocks.onChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } });

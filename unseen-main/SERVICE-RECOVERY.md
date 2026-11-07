@@ -89,3 +89,28 @@ poi controllare `legacy_photos=0` e `legacy_bracket_images=0` con il controllo
 disponibilità. Finché il trasferimento non è eseguito, le vecchie foto dipendono
 ancora da Supabase e rimangono la principale causa da eliminare. Nessun sistema
 di cache o storage offre consumi illimitati: verificare le quote dei due servizi.
+
+## Copia pubblica per consultazione durante il blocco
+
+`publish-public-recovery.mjs --apply` esporta una copia statica su R2 e ne verifica
+il checksum. È un'esportazione una tantum per recupero; le richieste del sito non
+usano la Management API. `public-recovery-data.mjs` applica una lista esplicita dei
+campi pubblici: niente account, identificativi dei votanti, note admin, opere non
+approvate, partecipanti di tornei non ancora iniziati o conteggi dei duelli aperti.
+Il Worker serve esclusivamente l'oggetto fisso `recovery/public-v1.json`.
+La copia scade dopo 24 ore e viene ritirata dal Worker alla prima lettura pubblica
+Supabase riuscita. Questo evita di mantenere un archivio pubblico indipendente
+oltre il recupero del servizio; un nuovo export richiede il comando esplicito.
+
+Su HTTP 402, galleria e campionati caricano questa copia indipendente. Mostrano
+data e ora Europe/Rome, sospendono polling e voto e mantengono un controllo manuale
+per tornare ai dati live dopo lo sblocco. Il sito non simula voti o avanzamenti:
+lo scheduler Supabase resta invariato e la copia può diventare obsoleta. Le foto
+legacy bloccate sono indicate come indisponibili; audio e immagini già su R2
+continuano a usare i propri file originali. I dettagli delle opere approvate
+restano consultabili. Login, invii e voti richiedono ancora API Supabase attive.
+
+Un eventuale mese Pro può consentire sblocco e trasferimento completo, ma il
+ritorno al piano Free va deciso dopo avere verificato tutti i consumi. Il downgrade
+Supabase è immediato, non programmato automaticamente a fine mese. Non è stato
+attivato alcun piano a pagamento da questi script.
