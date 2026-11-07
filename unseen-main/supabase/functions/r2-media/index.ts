@@ -20,7 +20,7 @@ type Asset = { id: string; owner_id: string; bucket: string; object_key: string;
 async function rpc<T>(name: string, parameters: Record<string, unknown>): Promise<T> {
   const { data, error } = await db.rpc(name, parameters);
   if (error) {
-    if (error.message.includes('Limite giornaliero')) throw new InputError(error.message);
+    if (error.message.includes('Limite giornaliero') || error.message.startsWith('Spazio media quasi esaurito:')) throw new InputError(error.message);
     throw new Error(`Database operation failed: ${name}`);
   }
   return data as T;

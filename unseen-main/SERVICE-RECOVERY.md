@@ -1,5 +1,51 @@
 # Ripristino dopo una restrizione Supabase
 
+## Stato dopo lo sblocco del 7 novembre 2026
+
+Entrambe le arene rispondono HTTP 200. Le 67 foto precedenti sono state copiate
+su R2 con confronto di byte, MIME e SHA-256: 41 pubbliche e 26 private. Anche i
+15 riferimenti nei tabelloni sono stati aggiornati. Nessun collegamento delle
+opere o dei tabelloni punta più a Supabase Storage. I 351 voti precedenti sono
+stati confrontati con il backup e risultano invariati; calendario e posizioni
+dei partecipanti sono preservati.
+
+I 127 oggetti originali rimangono nel bucket Supabase `galleria`, ora privato:
+non servono più traffico pubblico e non sono stati cancellati. Il Worker cache
+usa una versione delle chiavi nuova a ogni deploy per abbandonare subito le
+risposte precedenti. La copia pubblica di emergenza è stata ritirata e il sito
+usa le API live. Prove annullate hanno verificato il voto in entrambe le arene,
+incremento singolo, rifiuto dei duplicati e dei voti futuri, segretezza dei
+conteggi e accesso anonimo negato. Upload, login con account temporaneo,
+moderazione, anteprime private e audio Range/CORS sono stati verificati con
+file e utenti temporanei poi rimossi. Il redirect Google è operativo; la prova
+non effettua il login interattivo a un account Google personale.
+
+```text
+node scripts/verify-legacy-migration.mjs
+node scripts/verify-restored-service.mjs
+node scripts/check-capacity.mjs
+```
+
+`verify-legacy-migration.mjs --seal` è stato usato una sola volta per rendere
+privati gli originali dopo i controlli. La configurazione precedente e i verbali
+di ciascuna foto restano nella cartella locale ignorata `../debug.local/legacy-media`.
+
+`unseen_r2_capacity_guard` limita l'ammissione di nuovi invii a 500 complessivi
+ogni 24 ore, oltre ai cinque per utente già esistenti. Un budget conservativo di
+8 miliardi di byte conteggia copie potenziali dei media, sessioni preparate,
+temporanei recenti e cancellazioni in attesa. Solo i nuovi invii vengono fermati
+quando il budget è esaurito; letture e voti restano operativi. È una protezione
+dell'applicazione, non un tetto alla fatturazione dell'intero account Cloudflare.
+Scritture esterne, altri progetti e operazioni dei provider richiedono comunque
+controllo. `check-capacity.mjs` produce avvisi locali e salva il verbale in
+`../debug.local/supabase-egress/capacity.json`; non invia notifiche automatiche.
+
+Prima del downgrade controllare alcuni giorni di traffico normale e verificare
+anche egress, quote dell'organizzazione, eventuali extra e data di rinnovo nel
+pannello Supabase. Le ottimizzazioni non azzerano il consumo storico del ciclo.
+
+## Diagnosi durante la restrizione
+
 Il 7 novembre 2026 le API pubbliche di entrambe le arene e i download Storage
 rispondevano HTTP 402 con `exceed_cached_egress_quota`. Il database era sano
 (circa 31 MB), con 351 voti registrati e scheduler dei campionati attivo.

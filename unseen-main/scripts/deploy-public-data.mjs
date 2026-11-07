@@ -16,6 +16,7 @@ form.append('metadata', new Blob([JSON.stringify({ main_module: 'public-data-wor
   { type: 'plain_text', name: 'SUPABASE_URL', text: env.VITE_SUPABASE_URL },
   { type: 'plain_text', name: 'SUPABASE_ANON_KEY', text: key },
   { type: 'plain_text', name: 'ALLOWED_ORIGINS', text: cloudflare.MEDIA_ALLOWED_ORIGINS },
+  { type: 'plain_text', name: 'CACHE_VERSION', text: new Date().toISOString() },
   { type: 'r2_bucket', name: 'PUBLIC_RECOVERY', bucket_name: cloudflare.R2_PUBLIC_BUCKET },
 ] })], { type: 'application/json' }));
 form.append('public-data-worker.mjs', new Blob([await fs.readFile(path.join(app, 'cloudflare/public-data-worker.mjs'))], { type: 'application/javascript+module' }), 'public-data-worker.mjs');

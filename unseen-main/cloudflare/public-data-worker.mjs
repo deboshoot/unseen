@@ -58,6 +58,7 @@ export default {
     if (range && (Number(range.split('-')[1]) - Number(range.split('-')[0]) > 99 || Number(range.split('-')[1]) < Number(range.split('-')[0]))) return reply(null, 400);
     const count = request.headers.get('Prefer')?.includes('count=exact') ?? false;
     const key = new URL(url);
+    key.searchParams.set('_version', env.CACHE_VERSION ?? '1');
     key.searchParams.set('_range', range ?? '');
     key.searchParams.set('_count', String(count));
     const cacheKey = new Request(key, { method: 'GET' });
