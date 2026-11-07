@@ -12,7 +12,7 @@ const bootstrap = async () => {
 	createRoot(document.getElementById("root")!).render(
 		<I18nProvider initialLocale={locale} initialDictionary={dictionary}>
 			<App />
-			{window.location.hostname.endsWith('.vercel.app') && <Analytics />}
+			{(window.location.hostname.endsWith('.vercel.app') || ['unseenfoundation.app', 'www.unseenfoundation.app'].includes(window.location.hostname)) && <Analytics />}
 		</I18nProvider>,
 	);
 };
