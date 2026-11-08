@@ -8,10 +8,11 @@ import AudioClipEditor from './AudioClipEditor';
 import { supabase } from '@/supabaseClient';
 import { musicFileError, AUDIO_FILE_ACCEPT, formatAudioTime, formatArtistCredit, MAX_ARTIST_CREDIT_LENGTH, MAX_FEATURED_ARTISTS, type FeaturedArtist } from '@/lib/music';
 import { decodeAudioFile, MAX_CLIP_SECONDS, renderAudioClip, type AudioSource } from '@/lib/audio-clip';
-import { normalizeInstagram, normalizeMusicLink } from '@/lib/music-links';
+import { isSpotifyAlbumLink, normalizeInstagram, normalizeMusicLink } from '@/lib/music-links';
 import { useI18n } from '@/i18n/I18nProvider';
 import { musicCopy } from '@/i18n/music-copy';
 import { musicSubmitCopy } from '@/i18n/music-submit-copy';
+import { musicLinkErrors } from '@/i18n/music-link-errors';
 import { musicCollaborationCopy } from '@/i18n/music-collaboration-copy';
 import { optimizeImage } from '@/lib/optimize-image';
 import { uploadSubmission } from '@/lib/media-upload';
@@ -39,7 +40,7 @@ function SocialBrandMark({ platform }: { platform: SocialPlatform }) {
 }
 
 export default function InviaBrano() {
-  const { locale } = useI18n(); const copy = musicCopy[locale]; const text = musicSubmitCopy[locale];
+  const { locale } = useI18n(); const copy = musicCopy[locale]; const text = musicSubmitCopy[locale]; const linkErrors = musicLinkErrors[locale];
   const credits = musicCollaborationCopy[locale];
   const navigate = useNavigate();
   const [title, setTitle] = useState(''); const [artist, setArtist] = useState('');
@@ -58,6 +59,7 @@ export default function InviaBrano() {
   const clipFile = prepared && prepared.source === buffer && prepared.start === start && prepared.end === end ? prepared.file : null;
   const username = normalizeInstagram(instagram); const youtubeUrl = normalizeMusicLink(youtube, 'youtube'); const reelUrl = normalizeMusicLink(reel, 'reel'); const spotifyUrl = normalizeMusicLink(spotify, 'spotify');
   const invalidSocial = username === null || youtubeUrl === null || reelUrl === null || spotifyUrl === null;
+  const linkError = isSpotifyAlbumLink(spotify) ? linkErrors.spotifyAlbum : linkErrors.invalidLink;
   const artistCredit = formatArtistCredit(artist, featuredArtists.map(feature => feature.name));
   const invalidArtistCredit = artistCredit.length > MAX_ARTIST_CREDIT_LENGTH;
   const missingFeaturedArtistName = featuredArtists.some(feature => !feature.name.trim());
@@ -132,7 +134,7 @@ export default function InviaBrano() {
     if (featuredArtists.some(feature => !feature.name.trim())) { toast.error(credits.collaboratorRequired); return; }
     if (invalidArtistCredit) { toast.error(credits.artistCreditTooLong); return; }
     if (invalidFeaturedInstagram) { toast.error(text.invalidInstagram); return; }
-    if (invalidSocial) { toast.error(username === null ? text.invalidInstagram : text.invalidLink); return; }
+    if (invalidSocial) { toast.error(username === null ? text.invalidInstagram : linkError); return; }
     submitting.current = true; setElapsedSeconds(0); setLoading(true); setActiveId(null);
     try {
       const { data: { session }, error } = await supabase.auth.getSession(); if (error) throw error;
@@ -226,7 +228,7 @@ export default function InviaBrano() {
       <section className="music-studio-section music-studio-links-section">
         <div className="music-studio-section-heading"><span>03</span><div><h2>{text.stepLinks}<small>{text.optional}</small></h2><p>{text.linksHint}</p></div></div>
         <div className="music-studio-external-links">{fields.map(({ label, value, set, platform, placeholder, invalid }) => <label key={label} className={`music-studio-link-field music-studio-link-${platform}`}><span><SocialBrandMark platform={platform} />{label}</span><input type="url" value={value} onChange={event => set(event.target.value)} disabled={loading} placeholder={placeholder} maxLength={500} aria-invalid={invalid} /></label>)}</div>
-        {[youtubeUrl, reelUrl, spotifyUrl].includes(null) && <p className="music-studio-error" role="alert">{text.invalidLink}</p>}
+        {[youtubeUrl, reelUrl, spotifyUrl].includes(null) && <p className="music-studio-error" role="alert">{linkError}</p>}
       </section>
       <section className="music-studio-send"><label><input type="checkbox" required disabled={loading} /><span>{copy.rights}</span></label><p>{copy.review}</p><button type="submit" className="submit-primary-button" disabled={loading || !cover || !clipFile || invalidSocial || invalidArtistCredit || missingFeaturedArtistName || invalidFeaturedInstagram}>{loading ? <LoaderCircle size={17} className="animate-spin" /> : <ArrowUpRight size={17} />}{loading ? copy.sending : copy.send}</button>{loading && <div className="music-submit-progress" aria-busy="true">
         <div className="music-submit-progress-spinner" aria-hidden="true"><svg className="music-submit-progress-ring" viewBox="0 0 48 48"><circle className="music-submit-progress-track" cx="24" cy="24" r="20" /><circle className="music-submit-progress-indicator" cx="24" cy="24" r="20" /></svg><Music2 className="music-submit-progress-icon" size={16} /></div>

@@ -261,4 +261,24 @@ describe("music submissions", () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Video YouTube' }), { target: { value: 'https://youtu.be/dQw4w9WgXcQ' } });
     expect(screen.getByRole('button', { name: 'Invia il brano' })).toBeEnabled();
   });
+
+  it('explains that Spotify albums are unsupported and keeps generic link errors optional', async () => {
+    render(<InviaBrano />);
+    fillSubmission();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Invia il brano' })).toBeEnabled());
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Brano su Spotify' }), {
+      target: { value: 'https://open.spotify.com/intl-it/album/4S2CcOqpemwyMNOQiYslaN' },
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('I link ad album Spotify non sono accettati');
+    expect(screen.getByRole('alert')).toHaveTextContent('singola traccia');
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Brano su Spotify' }), { target: { value: '' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Video YouTube' }), {
+      target: { value: 'https://youtube.com.attacker.invalid/watch?v=dQw4w9WgXcQ' },
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('Uno o più link non sono validi');
+    expect(screen.getByRole('alert')).toHaveTextContent('i link sono facoltativi');
+    expect(screen.getByRole('alert')).not.toHaveTextContent('servono');
+  });
 });

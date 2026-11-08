@@ -1,6 +1,20 @@
 export type MusicLinkKind = 'youtube' | 'reel' | 'spotify';
 export type MusicSocials = { instagram_username?: string | null; youtube_url?: string | null; instagram_reel_url?: string | null; spotify_url?: string | null };
 
+export function isSpotifyAlbumLink(value: string): boolean {
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === 'https:'
+      && url.hostname === 'open.spotify.com'
+      && !url.username
+      && !url.password
+      && !url.port
+      && /^\/(?:intl-[a-z]{2}\/)?album(?:\/|$)/i.test(url.pathname);
+  } catch {
+    return false;
+  }
+}
+
 export function normalizeInstagram(value: string): string | null {
   const input = value.trim();
   if (!input) return '';

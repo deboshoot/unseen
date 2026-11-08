@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeInstagram, normalizeMusicLink } from './music-links';
+import { isSpotifyAlbumLink, normalizeInstagram, normalizeMusicLink } from './music-links';
 import { validateSubmission } from '../../supabase/functions/r2-media/validation';
 
 describe('music links', () => {
@@ -18,6 +18,13 @@ describe('music links', () => {
     expect(normalizeMusicLink('javascript:alert(1)','youtube')).toBeNull();
     expect(normalizeMusicLink('https://open.spotify.com/playlist/0123456789012345678901','spotify')).toBeNull();
     expect(normalizeMusicLink('https://www.instagram.com/my.artist/','reel')).toBeNull();
+  });
+  it('distinguishes official Spotify album links from track links', () => {
+    expect(isSpotifyAlbumLink('https://open.spotify.com/intl-it/album/4S2CcOqpemwyMNOQiYslaN')).toBe(true);
+    expect(isSpotifyAlbumLink('https://open.spotify.com/album/4S2CcOqpemwyMNOQiYslaN?si=share')).toBe(true);
+    expect(isSpotifyAlbumLink('https://open.spotify.com/intl-it/track/0123456789012345678901')).toBe(false);
+    expect(isSpotifyAlbumLink('https://spotify.com/album/4S2CcOqpemwyMNOQiYslaN')).toBe(false);
+    expect(isSpotifyAlbumLink('not a link')).toBe(false);
   });
   it('normalizes artist Instagram tags on the server and discards client duration and story', () => {
     const submission=validateSubmission({kind:'music',metadata:{title:' Track ',artist:'Artist feat. Guest',collaborators:JSON.stringify([{name:' Guest ',instagram_username:'@guest.artist'}]),instagram_username:'@my.artist',youtube_url:'https://youtu.be/dQw4w9WgXcQ',audio_duration_seconds:'1',story:'ignored'},files:[{kind:'cover',mime:'image/png',bytes:100},{kind:'audio',mime:'audio/wav',bytes:88244}]},crypto.randomUUID());
