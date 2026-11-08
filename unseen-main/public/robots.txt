@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://unseen-virid.vercel.app/sitemap.xml
+Sitemap: https://unseenfoundation.app/sitemap.xml
