@@ -44,8 +44,8 @@ describe('music arena demo content', () => {
     expect(screen.queryByText(/Artisti immaginari e loop originali/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Premi “Vota” e scegli/)).not.toBeInTheDocument();
     expect(container.querySelectorAll('.music-slot')).toHaveLength(0);
-    expect(screen.getByRole('heading', { name: 'ARENA DIGITALE' })).toBeInTheDocument();
-    expect(screen.getByText('framing the unseen')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Arena' })).toBeInTheDocument();
+    expect(screen.queryByText('framing the unseen')).not.toBeInTheDocument();
     expect(screen.getByRole('timer')).toBeInTheDocument();
     expect(screen.queryByText('ENDS IN')).not.toBeInTheDocument();
     expect(screen.getByRole('timer')).toHaveTextContent('48 : 00 : 00');

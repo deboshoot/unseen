@@ -433,7 +433,7 @@ const Arena = () => {
       >
         <div className="arena-heading mb-8 text-center">
           <p className="arena-kicker">{t("arena.competition")}</p>
-          <h1 className="arena-title">ARENA</h1>
+          <h1 className="arena-title">Arena</h1>
           <p className="arena-subtitle">Due opere. Una scelta. Il pubblico decide.</p>
           <p className="text-muted-foreground text-xs tracking-[0.4em] uppercase font-body mb-3 mt-8">
             {finalArenaId ? `${t("arena.timeRemaining")} · Arena Finale` : isDuelActive ? t("arena.timeRemaining") : t("arena.championshipStatus")}

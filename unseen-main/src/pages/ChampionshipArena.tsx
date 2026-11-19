@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Share2, Trophy } from 'lucide-react';
+import { Share2, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/supabaseClient';
 import { useChampionship } from '@/hooks/useChampionship';
@@ -74,7 +74,6 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
   if (params.get('duelId')) return <Navigate replace to={`/archivio${arenaPath(kind)}?${params.toString()}`} />;
   // Resolve loading and errors before mounting the arena layout.
   if (isLoading || error) return <main className="champ-page" aria-busy={isLoading}><div className="champ-container champ-arena-container">
-    <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
     {isLoading ? <p role="status" className="champ-notice">{copy.loading}</p> : <div role="alert" className="champ-notice"><p>{isServiceRestricted(error) ? copy.serviceUnavailable : copy.error}</p><button className="champ-button" onClick={() => void refetch()}>{copy.retry}</button></div>}
   </div></main>;
   const showOpening = !championship || championship.status === 'scheduled';
@@ -93,9 +92,7 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     return <ArenaStage key={`${championship.id}:${match.id}:${userId ?? 'anon'}`} kind={kind}
       timerValue={countdown(match.end_at, now)} timerLabel={text.duelDeadline}
       bracketUrl={bracketUrl}
-      navigation={<nav className="music-demo-navigation" aria-label="Arena">
-        <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
-      </nav>}>
+      navigation={null}>
       {data.recoveryAt && <RecoveryNotice at={data.recoveryAt} onRetry={() => void refetch()} />}
       {kind === 'music' ? <MusicArenaMedia tracks={tracks} duelLabel={duelLabel} renderWaiting={waiting} />
         : <section className="music-duel photo-arena-duel" aria-label={duelLabel}>
@@ -114,7 +111,6 @@ export default function ChampionshipArena({ kind }: { kind: ChampionshipKind }) 
     </ArenaStage>;
   }
   return <main className={`champ-page ${kind === 'music' ? 'music-arena' : ''}`}><div className="champ-container champ-arena-container">
-    <Link className="music-back" to="/arena"><ArrowLeft size={15} />Arena</Link>
     <header className="champ-hero"><p className="champ-eyebrow">UNSEEN · {kind === 'music' ? copy.music : copy.photo} · {copy.title}</p><h1>ARENA<span>.</span></h1><p>{championship?.name ?? copy.intro}</p>
       <div className="champ-arena-actions"><Link className="champ-button" to={bracketUrl}><Trophy size={16} />{copy.bracket}</Link></div>
     </header>

@@ -34,8 +34,7 @@ export default function ArenaStage({ kind, timerValue, timerLabel, navigation, b
     <div className="champ-container champ-arena-container">
       {navigation}
       <header className="champ-hero music-demo-hero">
-        <h1>ARENA DIGITALE</h1>
-        <p className="music-demo-tagline">framing the unseen</p>
+        <h1>Arena<span aria-hidden="true">.</span></h1>
         <section className="music-demo-countdown" aria-label={timerLabel}>
           <span className="music-demo-clock-caption" aria-hidden="true">{timerLabel}</span>
           <strong role="timer" aria-live="off" aria-label={`${timerLabel}: ${timerValue}`}>

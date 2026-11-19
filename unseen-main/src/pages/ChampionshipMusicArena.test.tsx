@@ -35,8 +35,9 @@ describe('official music arena using the demo presentation', () => {
     const { container, rerender } = render(page());
     expect(screen.getByText('Arena musicale in arrivo')).toBeInTheDocument();
     data.championship!.status = 'running'; now = fixtureNow; rerender(page());
-    expect(screen.getByRole('heading', { name: 'ARENA DIGITALE' })).toBeInTheDocument();
-    expect(screen.getByText('framing the unseen')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Arena' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Arena' })).not.toBeInTheDocument();
+    expect(screen.queryByText('framing the unseen')).not.toBeInTheDocument();
     expect(screen.getByRole('timer')).toHaveTextContent('48 : 00 : 00');
     expect(container.querySelectorAll('.music-demo-clock-digit')).toHaveLength(6);
     expect(container.querySelectorAll('.music-waveform-arena span')).toHaveLength(21);

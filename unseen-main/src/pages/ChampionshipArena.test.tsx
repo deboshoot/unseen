@@ -108,7 +108,8 @@ describe('arena loading', () => {
 describe('championship arena voting', () => {
   it('uses the same arena presentation for real photographs, without music controls or cropped images', () => {
     const { container } = mount();
-    expect(screen.getByRole('heading', { name: 'ARENA DIGITALE' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Arena' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Arena' })).not.toBeInTheDocument();
     expect(screen.getByRole('timer')).toHaveTextContent('48 : 00 : 00');
     expect(container.querySelectorAll('.photo-arena-image-preview')).toHaveLength(2);
     expect(screen.getByRole('img', { name: 'Work 1' })).toHaveAttribute('src', '/image-1.webp');
