@@ -13,8 +13,11 @@ describe('OAuth return destinations', () => {
     expect(target).toBe('/admin');
     expect(isAdminDestination(target)).toBe(true);
   });
-  it('requires authorization for the music demo but not the public arena', () => {
+  it('requires authorization for previews and keeps the published pages public', () => {
     expect(isAdminDestination(loginDestination('/arena/musicale/demo?preview=1'))).toBe(true);
+    expect(loginDestination('/ADMIN/GALLERIA/DEMO/')).toBe('/admin/galleria/demo');
+    expect(isAdminDestination(loginDestination('/ADMIN/GALLERIA/DEMO/'))).toBe(true);
     expect(isAdminDestination('/arena/musicale')).toBe(false);
+    expect(isAdminDestination('/gallery')).toBe(false);
   });
 });

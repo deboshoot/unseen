@@ -10,6 +10,7 @@ import AdminGallery from '@/components/admin/AdminGallery';
 import AdminCommunity from '@/components/admin/AdminCommunity';
 import '@/admin-studio.css';
 import { useI18n } from '@/i18n/I18nProvider';
+import { adminGalleryDemoPath } from '@/lib/auth-redirect';
 
 type Tab = 'championships' | 'submissions' | 'gallery' | 'community';
 type Overview = { pending_photos: number; pending_music: number; approved_photos: number; approved_music: number; open_championships: number; championship_votes: number; users: number; gallery_champions: number };
@@ -74,7 +75,10 @@ export default function AdminDashboard() {
   const review = (kind: ChampionshipKind) => { setSubmissionKind(kind); setTab('submissions'); };
   if (!authorized) return <main className="min-h-screen flex items-center justify-center"><p role="status">{t('auth.loading')}</p></main>;
   return <main className="admin-studio"><div className="admin-studio-container">
-    <Link className="admin-demo-entry" to="/arena/musicale/demo"><Headphones size={20} /><span><strong>Demo musicale</strong><small>Apri l’anteprima riservata dello studio</small></span><ArrowUpRight size={20} /></Link>
+    <div className="admin-demo-links">
+      <Link className="admin-demo-entry" to="/arena/musicale/demo"><Headphones size={20} /><span><strong>Demo musicale</strong><small>Apri l’anteprima riservata dello studio</small></span><ArrowUpRight size={20} /></Link>
+      <Link className="admin-demo-entry" to={adminGalleryDemoPath}><Image size={20} /><span><strong>Demo galleria</strong><small>Esplora la nuova sala dei vinili</small></span><ArrowUpRight size={20} /></Link>
+    </div>
     <header className="admin-studio-header"><div><span className="admin-eyebrow">UNSEEN / CONTROL ROOM</span><h1>Il tuo studio<span>.</span></h1><p>Due campionati. Un flusso semplice, dalla candidatura alla galleria.</p></div><div className="admin-account"><span><LockKeyhole size={13} />Amministratore</span><small>{email}</small><Link to="/arena/musicale/demo">Demo musicale<ArrowUpRight size={13} /></Link><Link to="/campionato">Apri il sito<ArrowUpRight size={13} /></Link></div></header>
     <div className="admin-overview"><button onClick={() => review('photo')}><span><Camera size={16} />Fotografie da revisionare</span><strong>{overview.data?.pending_photos ?? '—'}</strong><small>{overview.data?.approved_photos ?? '—'} approvate<ChevronRight size={14} /></small></button><button onClick={() => review('music')}><span><Music2 size={16} />Brani da revisionare</span><strong>{overview.data?.pending_music ?? '—'}</strong><small>{overview.data?.approved_music ?? '—'} approvati<ChevronRight size={14} /></small></button><button onClick={() => setTab('championships')}><span><Trophy size={16} />Campionati attivi</span><strong>{overview.data?.open_championships ?? '—'}<em>/2</em></strong><small>{overview.data?.championship_votes.toLocaleString('it-IT') ?? '—'} voti nei campionati<ChevronRight size={14} /></small></button><button onClick={() => setTab('community')}><span><Users size={16} />La community</span><strong>{overview.data?.users.toLocaleString('it-IT') ?? '—'}</strong><small>Utenti registrati<ChevronRight size={14} /></small></button></div>
     {overview.error && <p className="admin-error" role="alert">Riepilogo non disponibile. <button onClick={() => void overview.refetch()}>Riprova</button></p>}

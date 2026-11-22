@@ -1,7 +1,10 @@
+export const adminGalleryDemoPath = '/admin/galleria/demo';
+
+const adminRoutes = new Set(['/admin', '/arena/musicale/demo', adminGalleryDemoPath]);
 const routes = new Set([
   '/', '/arena', '/arena/fotografica', '/arena/musicale', '/campionato',
   '/archivio/arena/fotografica', '/archivio/arena/musicale', '/gallery',
-  '/regolamento', '/submit', '/admin', '/arena/musicale/demo',
+  '/regolamento', '/submit', ...adminRoutes,
 ]);
 
 /** Keep OAuth return destinations on a known application route. */
@@ -18,5 +21,5 @@ export function loginDestination(value: string | null): string {
 
 export function isAdminDestination(destination: string): boolean {
   const { pathname } = new URL(destination, 'https://unseen.invalid');
-  return pathname === '/admin' || pathname === '/arena/musicale/demo';
+  return adminRoutes.has(pathname);
 }

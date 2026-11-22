@@ -13,6 +13,7 @@ function mount(destination = '/admin') {
     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/admin" element={<p>Private dashboard</p>} />
     <Route path="/arena/musicale/demo" element={<p>Private demo</p>} />
+    <Route path="/admin/galleria/demo" element={<p>Private gallery demo</p>} />
     <Route path="/arena/*" element={<p>Public arena</p>} />
     <Route path="/auth" element={<p>Login</p>} />
   </Routes><Location /></MemoryRouter>);
@@ -26,7 +27,7 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe('login return routing', () => {
-  it.each(['/admin', '/arena/musicale/demo'])('never opens %s for an ordinary signed-in account', async destination => {
+  it.each(['/admin', '/arena/musicale/demo', '/admin/galleria/demo'])('never opens %s for an ordinary signed-in account', async destination => {
     mount(destination);
     expect(screen.getByRole('status')).toHaveTextContent('Accesso in corso…');
     expect(screen.getByRole('main')).not.toHaveTextContent(/admin|studio|Private dashboard|Private demo/i);
@@ -48,6 +49,12 @@ describe('login return routing', () => {
     expect(screen.queryByText('Private dashboard')).not.toBeInTheDocument();
     await act(async () => approve({ data: true, error: null }));
     expect(await screen.findByText('Private dashboard')).toBeInTheDocument();
+  });
+  it('returns an administrator to the gallery preview after login', async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: true, error: null });
+    mount('/admin/galleria/demo');
+    expect(await screen.findByText('Private gallery demo')).toBeInTheDocument();
+    expect(mocks.rpc).toHaveBeenCalledWith('is_unseen_admin');
   });
   it('returns a voter to the chosen match without querying admin permissions', async () => {
     mount('/arena/fotografica?duelId=match-1');
