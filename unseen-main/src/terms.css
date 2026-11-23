@@ -1,0 +1,25 @@
+.terms-page{min-height:100vh;padding:112px 24px 96px;background:radial-gradient(ellipse at 50% 0%,hsl(var(--primary)/.08),transparent 42%),hsl(var(--background));color:hsl(var(--foreground))}
+.terms-container{max-width:880px;margin:0 auto}
+.terms-back{display:inline-flex;align-items:center;gap:8px;color:hsl(var(--muted-foreground));font-size:12px;text-decoration:none}
+.terms-back:hover,.terms-index a:hover,.terms-section a:hover{color:hsl(var(--primary))}
+.terms-header{padding:48px 0 32px;border-bottom:1px solid hsl(var(--border))}
+.terms-eyebrow{display:flex;align-items:center;gap:8px;color:hsl(var(--primary));font-size:10px;font-weight:600;letter-spacing:.2em}
+.terms-header h1{margin-top:20px;font-family:var(--font-display);font-size:clamp(34px,6vw,58px);font-weight:600;line-height:1.04;letter-spacing:-.04em}
+.terms-header h1 span{color:hsl(var(--primary))}
+.terms-header>p,.terms-lead{margin-top:16px;color:hsl(var(--muted-foreground));font-size:14px;line-height:1.8}
+.terms-draft-notice{display:grid;gap:8px;margin:24px 0;padding:16px 18px;border:1px solid hsl(var(--primary)/.35);border-radius:12px;background:hsl(var(--primary)/.06);font-size:12px;line-height:1.75}
+.terms-draft-notice strong{color:hsl(var(--primary));font-size:11px;letter-spacing:.04em}
+.terms-draft-notice span{color:hsl(var(--muted-foreground))}
+.terms-index{display:flex;flex-wrap:wrap;gap:10px;margin:25px 0 42px}
+.terms-index a{padding:9px 13px;border:1px solid hsl(var(--border));border-radius:999px;color:hsl(var(--foreground));font-size:11px;text-decoration:none}
+.terms-document{scroll-margin-top:100px;margin:0 0 44px}
+.terms-document>h2{padding-bottom:14px;border-bottom:1px solid hsl(var(--border));font-family:var(--font-display);font-size:25px;font-weight:500;letter-spacing:-.02em}
+.terms-section{padding:22px 0 4px}
+.terms-section h3{margin-bottom:10px;font-size:14px;font-weight:600}
+.terms-section p,.terms-document>p{margin:0 0 12px;color:hsl(var(--muted-foreground));font-size:13px;line-height:1.9}
+.terms-document a{color:hsl(var(--primary));text-underline-offset:3px}
+.terms-document .terms-section-heading{margin:28px 0 10px;font-family:var(--font-display);font-size:16px;font-weight:600}
+.terms-document .terms-list-item{position:relative;padding-left:18px}
+.terms-document .terms-list-item::before{content:"•";position:absolute;left:2px;color:hsl(var(--primary))}
+.terms-document section{scroll-margin-top:100px}
+@media(max-width:600px){.terms-page{padding:96px 19px 72px}.terms-header{padding-top:36px}.terms-section p,.terms-document>p{font-size:12px}}
