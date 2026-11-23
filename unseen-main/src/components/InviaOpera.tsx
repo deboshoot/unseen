@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '../supabaseClient'; 
@@ -8,9 +8,12 @@ import { getInstagramProfile } from '@/lib/instagram';
 import { useI18n } from '@/i18n/I18nProvider';
 import { optimizeImage } from '@/lib/optimize-image';
 import { uploadSubmission } from '@/lib/media-upload';
+import { submissionConsentCopy } from '@/i18n/submission-consent-copy';
+import { SUBMISSION_TERMS_VERSION } from '@/lib/submission-terms';
 
 export default function InviaOpera() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const consentCopy = submissionConsentCopy[locale];
   const navigate = useNavigate();
   const submitting = useRef(false);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
@@ -22,6 +25,8 @@ export default function InviaOpera() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -77,6 +82,14 @@ export default function InviaOpera() {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting.current) return;
+    if (!consentAccepted) {
+      toast.error(consentCopy.required);
+      return;
+    }
+    if (!termsAccepted) {
+      toast.error(consentCopy.termsRequired);
+      return;
+    }
     if (!file) {
       toast.error(t('submit.missingFile'), {
         description: t('submit.missingFileDescription'),
@@ -96,12 +109,20 @@ export default function InviaOpera() {
       }
       const instagramProfile = getInstagramProfile(social);
       const optimizedImage = await optimizeImage(file);
-      await uploadSubmission('photo', { titolo, autore, storia, social_link: instagramProfile?.username ?? '' }, [{ kind: 'image', file: optimizedImage }]);
+      await uploadSubmission('photo', {
+        titolo,
+        autore,
+        storia,
+        social_link: instagramProfile?.username ?? '',
+        age_rights_accepted: true,
+        terms_accepted: true,
+        terms_version: SUBMISSION_TERMS_VERSION,
+      }, [{ kind: 'image', file: optimizedImage }]);
 
       toast.success(t('submit.success'), {
         description: t('submit.successDescription'),
       });
-      setTitolo(''); setAutore(''); setStoria(''); setSocial(''); clearSelection(); setSubmitted(true);
+      setTitolo(''); setAutore(''); setStoria(''); setSocial(''); clearSelection(); setConsentAccepted(false); setTermsAccepted(false); setSubmitted(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t('submit.unexpectedError');
       toast.error(t('submit.uploadError'), {
@@ -242,6 +263,33 @@ export default function InviaOpera() {
 
           <div className="submit-action-area">
             <p className="submit-action-note">La fotografia verrà verificata prima di entrare nella galleria.</p>
+            <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm leading-6 text-muted-foreground">
+              <input
+                type="checkbox"
+                required
+                checked={consentAccepted}
+                onChange={event => setConsentAccepted(event.target.checked)}
+                disabled={loading}
+                className="mt-1 h-4 w-4 shrink-0 accent-primary"
+              />
+              <span>{consentCopy.photo}</span>
+            </label>
+            <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm leading-6 text-muted-foreground">
+              <input
+                type="checkbox"
+                required
+                checked={termsAccepted}
+                onChange={event => setTermsAccepted(event.target.checked)}
+                disabled={loading}
+                className="mt-1 h-4 w-4 shrink-0 accent-primary"
+              />
+              <span>{consentCopy.termsAcceptance}</span>
+            </label>
+            <p className="mt-2 pl-7 text-sm">
+              <Link to="/termini" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+                {consentCopy.termsLink}
+              </Link>
+            </p>
             <motion.button
               type="submit" 
               disabled={loading}

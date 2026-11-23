@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Check, Headphones, ImagePlus, LoaderCircle, Music2, Plus, ShieldCheck, Trash2, UserRound, UsersRound } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import MusicRecord from './MusicRecord';
 import AudioClipEditor from './AudioClipEditor';
@@ -12,6 +12,8 @@ import { isSpotifyAlbumLink, normalizeInstagram, normalizeMusicLink } from '@/li
 import { useI18n } from '@/i18n/I18nProvider';
 import { musicCopy } from '@/i18n/music-copy';
 import { musicSubmitCopy } from '@/i18n/music-submit-copy';
+import { submissionConsentCopy } from '@/i18n/submission-consent-copy';
+import { SUBMISSION_TERMS_VERSION } from '@/lib/submission-terms';
 import { musicLinkErrors } from '@/i18n/music-link-errors';
 import { musicCollaborationCopy } from '@/i18n/music-collaboration-copy';
 import { optimizeImage } from '@/lib/optimize-image';
@@ -40,7 +42,7 @@ function SocialBrandMark({ platform }: { platform: SocialPlatform }) {
 }
 
 export default function InviaBrano() {
-  const { locale } = useI18n(); const copy = musicCopy[locale]; const text = musicSubmitCopy[locale]; const linkErrors = musicLinkErrors[locale];
+  const { locale } = useI18n(); const copy = musicCopy[locale]; const text = musicSubmitCopy[locale]; const linkErrors = musicLinkErrors[locale]; const consentCopy = submissionConsentCopy[locale];
   const credits = musicCollaborationCopy[locale];
   const navigate = useNavigate();
   const [title, setTitle] = useState(''); const [artist, setArtist] = useState('');
@@ -56,6 +58,8 @@ export default function InviaBrano() {
   const [start, setStart] = useState(0); const [end, setEnd] = useState(0); const [prepared, setPrepared] = useState<PreparedClip | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); const [elapsedSeconds, setElapsedSeconds] = useState(0); const [submitted, setSubmitted] = useState(false); const submitting = useRef(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const clipFile = prepared && prepared.source === buffer && prepared.start === start && prepared.end === end ? prepared.file : null;
   const username = normalizeInstagram(instagram); const youtubeUrl = normalizeMusicLink(youtube, 'youtube'); const reelUrl = normalizeMusicLink(reel, 'reel'); const spotifyUrl = normalizeMusicLink(spotify, 'spotify');
   const invalidSocial = username === null || youtubeUrl === null || reelUrl === null || spotifyUrl === null;
@@ -129,6 +133,8 @@ export default function InviaBrano() {
   const send = async (event: FormEvent) => {
     event.preventDefault();
     if (submitting.current) return;
+    if (!consentAccepted) { toast.error(consentCopy.required); return; }
+    if (!termsAccepted) { toast.error(consentCopy.termsRequired); return; }
     if (!cover || !clipFile) { toast.error(copy.chooseFiles); return; }
     if (!title.trim() || !artist.trim()) return;
     if (featuredArtists.some(feature => !feature.name.trim())) { toast.error(credits.collaboratorRequired); return; }
@@ -140,8 +146,8 @@ export default function InviaBrano() {
       const { data: { session }, error } = await supabase.auth.getSession(); if (error) throw error;
       if (!session) { toast.info(copy.login); navigate(`/auth?redirect=${encodeURIComponent('/submit?tipo=musica')}`); return; }
       const optimizedCover = await optimizeImage(cover, 1600);
-      await uploadSubmission('music', { title: title.trim(), artist: artistCredit, collaborators: JSON.stringify(featuredArtists.map(({ name, instagram_username }) => ({ name: name.trim(), instagram_username: normalizeInstagram(instagram_username) || '' }))), instagram_username: username || '', youtube_url: youtubeUrl || '', instagram_reel_url: reelUrl || '', spotify_url: spotifyUrl || '' }, [{ kind: 'cover', file: optimizedCover }, { kind: 'audio', file: clipFile }]);
-      setSubmitted(true); setCover(null); setAudio(null); setTitle(''); setArtist(''); setFeaturedArtists([]); nextFeaturedArtistId.current = 0; setInstagram(''); setYoutube(''); setReel(''); setSpotify(''); toast.success(copy.received);
+      await uploadSubmission('music', { title: title.trim(), artist: artistCredit, collaborators: JSON.stringify(featuredArtists.map(({ name, instagram_username }) => ({ name: name.trim(), instagram_username: normalizeInstagram(instagram_username) || '' }))), instagram_username: username || '', youtube_url: youtubeUrl || '', instagram_reel_url: reelUrl || '', spotify_url: spotifyUrl || '', age_rights_accepted: true, terms_accepted: true, terms_version: SUBMISSION_TERMS_VERSION }, [{ kind: 'cover', file: optimizedCover }, { kind: 'audio', file: clipFile }]);
+      setSubmitted(true); setCover(null); setAudio(null); setTitle(''); setArtist(''); setFeaturedArtists([]); nextFeaturedArtistId.current = 0; setInstagram(''); setYoutube(''); setReel(''); setSpotify(''); setConsentAccepted(false); setTermsAccepted(false); toast.success(copy.received);
     } catch (error) { toast.error(text.uploadError, { description: error instanceof Error ? error.message : undefined }); }
     finally { submitting.current = false; setLoading(false); }
   };
@@ -230,7 +236,12 @@ export default function InviaBrano() {
         <div className="music-studio-external-links">{fields.map(({ label, value, set, platform, placeholder, invalid }) => <label key={label} className={`music-studio-link-field music-studio-link-${platform}`}><span><SocialBrandMark platform={platform} />{label}</span><input type="url" value={value} onChange={event => set(event.target.value)} disabled={loading} placeholder={placeholder} maxLength={500} aria-invalid={invalid} /></label>)}</div>
         {[youtubeUrl, reelUrl, spotifyUrl].includes(null) && <p className="music-studio-error" role="alert">{linkError}</p>}
       </section>
-      <section className="music-studio-send"><label><input type="checkbox" required disabled={loading} /><span>{copy.rights}</span></label><p>{copy.review}</p><button type="submit" className="submit-primary-button" disabled={loading || !cover || !clipFile || invalidSocial || invalidArtistCredit || missingFeaturedArtistName || invalidFeaturedInstagram}>{loading ? <LoaderCircle size={17} className="animate-spin" /> : <ArrowUpRight size={17} />}{loading ? copy.sending : copy.send}</button>{loading && <div className="music-submit-progress" aria-busy="true">
+      <section className="music-studio-send">
+        <label><input type="checkbox" required checked={consentAccepted} onChange={event => setConsentAccepted(event.target.checked)} disabled={loading} /><span>{consentCopy.music}</span></label>
+        <label className="music-studio-terms-label"><input type="checkbox" required checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} disabled={loading} /><span>{consentCopy.termsAcceptance}</span></label>
+        <p><Link to="/termini" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">{consentCopy.termsLink}</Link></p>
+        <p>{copy.review}</p>
+        <button type="submit" className="submit-primary-button" disabled={loading || !cover || !clipFile || invalidSocial || invalidArtistCredit || missingFeaturedArtistName || invalidFeaturedInstagram}>{loading ? <LoaderCircle size={17} className="animate-spin" /> : <ArrowUpRight size={17} />}{loading ? copy.sending : copy.send}</button>{loading && <div className="music-submit-progress" aria-busy="true">
         <div className="music-submit-progress-spinner" aria-hidden="true"><svg className="music-submit-progress-ring" viewBox="0 0 48 48"><circle className="music-submit-progress-track" cx="24" cy="24" r="20" /><circle className="music-submit-progress-indicator" cx="24" cy="24" r="20" /></svg><Music2 className="music-submit-progress-icon" size={16} /></div>
         <div className="music-submit-progress-copy" role="status" aria-live="polite"><strong>{text.uploading}</strong><p>{text.uploadingHint}</p></div>
         <div className="music-submit-progress-timer"><span>{text.elapsed}</span><strong role="timer" aria-label={text.elapsedTime(elapsedSeconds)}>{`${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}`}</strong></div>

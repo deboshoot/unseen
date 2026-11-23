@@ -1,12 +1,17 @@
+import type { AnchorHTMLAttributes } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { SUBMISSION_TERMS_VERSION } from "@/lib/submission-terms";
 import InviaBrano from "./InviaBrano";
 
 const mocks = vi.hoisted(() => ({
   session: vi.fn(), upload: vi.fn(), navigate: vi.fn(), error: vi.fn(), info: vi.fn(), decode: vi.fn(), clip: vi.fn(),
 }));
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: "it" }) }));
-vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
+vi.mock("react-router-dom", () => ({
+  Link: ({ to, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }) => <a href={to} {...props} />,
+  useNavigate: () => mocks.navigate,
+}));
 vi.mock("sonner", () => ({ toast: { error: mocks.error, info: mocks.info, success: vi.fn() } }));
 vi.mock("@/supabaseClient", () => ({ supabase: {
   auth: { getSession: mocks.session },
@@ -34,7 +39,8 @@ function fillSubmission() {
   fireEvent.change(screen.getByLabelText("File audio"), { target: { files: [new File(["audio"], "track.mp3", { type: "audio/mpeg" })] } });
   fireEvent.change(screen.getByRole("textbox", { name: /Titolo del brano/ }), { target: { value: "My Track" } });
   fireEvent.change(screen.getByRole("textbox", { name: /Nome d’arte/ }), { target: { value: "Artist" } });
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(screen.getByRole("checkbox", { name: /più di 16 anni/ }));
+  fireEvent.click(screen.getByRole("checkbox", { name: /Termini di servizio/ }));
 }
 
 describe("music submissions", () => {
@@ -174,8 +180,36 @@ describe("music submissions", () => {
     await waitFor(() => expect(container.querySelector(".music-track audio")?.getAttribute("src")).toBe("blob:preview/unseen-clip.wav"));
     expect(container.querySelector(".music-cover-image")?.getAttribute("src")).toBe("blob:preview/cover.png");
     fireEvent.submit(container.querySelector("form")!);
-    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', { title: 'My Track', artist: 'Artist', collaborators: '[]', instagram_username: '', youtube_url: '', instagram_reel_url: '', spotify_url: '' }, [expect.objectContaining({kind:'cover',file:expect.any(File)}),expect.objectContaining({kind:'audio',file:expect.objectContaining({name:'unseen-clip.wav',type:'audio/wav'})})]));
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('music', { title: 'My Track', artist: 'Artist', collaborators: '[]', instagram_username: '', youtube_url: '', instagram_reel_url: '', spotify_url: '', age_rights_accepted: true, terms_accepted: true, terms_version: SUBMISSION_TERMS_VERSION }, [expect.objectContaining({kind:'cover',file:expect.any(File)}),expect.objectContaining({kind:'audio',file:expect.objectContaining({name:'unseen-clip.wav',type:'audio/wav'})})]));
     expect(await screen.findByText("Brano ricevuto")).toBeInTheDocument();
+  });
+
+  it('requires age and rights consent before uploading a track', async () => {
+    const { container } = render(<InviaBrano />);
+    fillSubmission();
+    const button = screen.getByRole('button', { name: 'Invia il brano' });
+    await waitFor(() => expect(button).toBeEnabled());
+    const consent = screen.getByRole('checkbox', { name: /più di 16 anni/ });
+    const terms = screen.getByRole('checkbox', { name: /Termini di servizio/ });
+    expect(consent).toBeRequired();
+    expect(consent).toHaveAccessibleName(/più di 16 anni/);
+    expect(terms).toBeRequired();
+    expect(screen.getByRole('link', { name: /Leggi i Termini di servizio/ })).toHaveAttribute('href', '/termini');
+
+    fireEvent.click(consent);
+    fireEvent.submit(container.querySelector('form')!);
+    expect(mocks.upload).not.toHaveBeenCalled();
+    expect(mocks.error).toHaveBeenCalledWith(expect.stringContaining('più di 16 anni'));
+
+    fireEvent.click(consent);
+    fireEvent.click(terms);
+    fireEvent.submit(container.querySelector('form')!);
+    expect(mocks.upload).not.toHaveBeenCalled();
+    expect(mocks.error).toHaveBeenLastCalledWith(expect.stringContaining('Termini di servizio'));
+
+    fireEvent.click(terms);
+    fireEvent.submit(container.querySelector('form')!);
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalled());
   });
 
   it('shows an animated, accessible elapsed-time indicator while a submission is pending', async () => {

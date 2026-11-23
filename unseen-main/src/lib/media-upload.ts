@@ -33,7 +33,7 @@ export async function mediaRequest<T>(body: Record<string, unknown>): Promise<T>
 }
 
 /** Solo JSON verso Supabase; ogni file viaggia direttamente verso l'URL R2 firmato. */
-export async function uploadSubmission(kind: MediaKind, metadata: Record<string, string>, files: UploadFile[]) {
+export async function uploadSubmission(kind: MediaKind, metadata: Record<string, string | boolean>, files: UploadFile[]) {
   const ticket = await mediaRequest<UploadTicket>({ action: 'prepare', kind, metadata, files: files.map(({ kind, file }) => ({ kind, bytes: file.size, mime: file.type === 'image/jpg' ? 'image/jpeg' : file.type })) });
   if (ticket.files.length !== files.length || new Set(ticket.files.map(item => item.kind)).size !== files.length) throw new Error('Risposta di caricamento non valida.');
   await Promise.all(ticket.files.map(async item => {

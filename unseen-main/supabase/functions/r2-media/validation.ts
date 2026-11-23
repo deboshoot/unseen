@@ -9,6 +9,8 @@ export function validateSubmission(input: Record<string, unknown>, id: string): 
   const kind = input.kind;
   const supplied = input.metadata as Record<string, unknown> | null;
   if (!supplied || typeof supplied !== 'object') throw new InputError('Scheda incompleta.');
+  if (supplied.age_rights_accepted !== true) throw new InputError('Conferma l’età e i diritti sui contenuti.');
+  if (supplied.terms_accepted !== true || supplied.terms_version !== SUBMISSION_TERMS_VERSION) throw new InputError('Accetta la versione corrente dei termini per continuare.');
   const metadata: Record<string, string> = {};
   const fields = kind === 'photo' ? { titolo: 120, autore: 120, storia: 1500, social_link: 30 } : { title: 120, artist: 120, collaborators: 5000, instagram_username: 200, youtube_url: 500, instagram_reel_url: 500, spotify_url: 500 };
   for (const [name, limit] of Object.entries(fields)) {
@@ -16,6 +18,9 @@ export function validateSubmission(input: Record<string, unknown>, id: string): 
     if (typeof value !== 'string' || value.trim().length > limit) throw new InputError(`Campo ${name} non valido.`);
     metadata[name] = value.trim();
   }
+  metadata.age_rights_accepted = 'true';
+  metadata.terms_accepted = 'true';
+  metadata.terms_version = SUBMISSION_TERMS_VERSION;
   if (!(kind === 'photo' ? metadata.titolo && metadata.autore : metadata.title && metadata.artist)) throw new InputError('Inserisci titolo e autore.');
   if (metadata.social_link && !/^[a-zA-Z0-9._]{1,30}$/.test(metadata.social_link)) throw new InputError('Nome Instagram non valido.');
   if (kind === 'music') {
@@ -87,3 +92,4 @@ export function hasExpectedSignature(bytes: Uint8Array, mime: string): boolean {
 }
 import { normalizeInstagram, normalizeMusicLink } from '../../../src/lib/music-links.ts';
 import { MAX_ARTIST_CREDIT_LENGTH, MAX_FEATURED_ARTISTS } from '../../../src/lib/music.ts';
+import { SUBMISSION_TERMS_VERSION } from '../../../src/lib/submission-terms.ts';

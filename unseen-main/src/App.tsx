@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/lib/query-client";
 import { adminGalleryDemoPath } from "@/lib/auth-redirect";
 import AdminPreviewGate from "@/components/admin/AdminPreviewGate";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +17,7 @@ import Championship from "./pages/Championship";
 import ChampionshipArena from "./pages/ChampionshipArena";
 import Gallery from "./pages/Gallery";
 import Regolamento from "./pages/Regolamento";
+import Terms from "./pages/Terms";
 import Submit from "./pages/Submit";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
@@ -45,6 +46,8 @@ const App = () => (
           <Route path="/archivio/arena/musicale" element={<MusicArena />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/regolamento" element={<Regolamento />} />
+          <Route path="/termini" element={<Terms />} />
+          <Route path="/privacy" element={<Navigate to="/termini#privacy" replace />} />
           <Route path="/submit" element={<Submit />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />

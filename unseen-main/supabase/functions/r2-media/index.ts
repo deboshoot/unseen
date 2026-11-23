@@ -81,6 +81,28 @@ async function complete(id: string, userId: string) {
   });
 }
 
+async function recordSubmissionConsent(id: string, userId: string) {
+  const { data: upload, error: lookupError } = await db.from('r2_uploads')
+    .select('kind, metadata, created_at')
+    .eq('id', id)
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (lookupError || !upload) throw new Error('Submission consent lookup failed');
+  if (upload.metadata.age_rights_accepted !== 'true' || upload.metadata.terms_accepted !== 'true') {
+    throw new InputError('Le conferme obbligatorie non sono state registrate.');
+  }
+  const { error } = await db.from('submission_consents').upsert({
+    submission_id: id,
+    user_id: userId,
+    submission_kind: upload.kind,
+    terms_version: upload.metadata.terms_version,
+    age_rights_confirmed: true,
+    terms_accepted: true,
+    accepted_at: upload.created_at,
+  }, { onConflict: 'submission_id' });
+  if (error) throw new Error('Submission consent persistence failed');
+}
+
 async function assetList(ids: string[]) {
   const { data, error } = await db.from('media_assets').select('id,owner_id,bucket,object_key,is_public,mime_type,bytes').in('id', ids);
   if (error) throw new Error('Media lookup failed');
@@ -175,6 +197,7 @@ Deno.serve(async request => {
       const id = crypto.randomUUID();
       const submission = validateSubmission(input, id);
       await rpc('r2_reserve_upload', { p_id: id, p_user_id: user.id, p_kind: submission.kind, p_metadata: submission.metadata, p_files: submission.files });
+      await recordSubmissionConsent(id, user.id);
       const files = await Promise.all(submission.files.map(async file => {
         // Browser sets Content-Length automatically for File/Blob requests.
         const signed = await s3.sign(new Request(`${urlFor(privateBucket, file.uploadKey)}?X-Amz-Expires=900`, { method: 'PUT', headers: { 'Content-Type': file.mime, 'Content-Length': String(file.bytes) } }), { aws: { signQuery: true, allHeaders: true } });
@@ -182,7 +205,11 @@ Deno.serve(async request => {
       }));
       return reply({ id, files });
     }
-    if (input.action === 'complete' && validId(input.id)) return reply(await complete(input.id, user.id));
+    if (input.action === 'complete' && validId(input.id)) {
+      const result = await complete(input.id, user.id);
+      await recordSubmissionConsent(input.id, user.id);
+      return reply(result);
+    }
     if (input.action === 'preview') {
       if (!Array.isArray(input.ids) || input.ids.length > 100 || !input.ids.every(validId)) throw new InputError('Anteprime non valide.');
       const assets = await assetList([...new Set(input.ids as string[])]);
