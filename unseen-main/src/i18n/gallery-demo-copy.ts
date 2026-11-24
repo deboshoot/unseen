@@ -2,7 +2,7 @@
 import type { Locale } from './index';
 
 const it = {
-  title: 'Galleria', back: 'Studio admin', private: 'Anteprima riservata', copy: 'Copia link',
+  title: 'Galleria', back: 'Studio admin', menu: 'Menu galleria', private: 'Anteprima riservata', copy: 'Copia link',
   copied: 'Link copiato', copyError: 'Impossibile copiare il link',
   fullscreen: 'Schermo intero', exitFullscreen: 'Esci da schermo intero', fullscreenError: 'Schermo intero non disponibile',
   musicIntro: 'Sfoglia la parete e ascolta gli estratti.', photoIntro: 'Scegli una stampa per guardarla da vicino.',
@@ -14,7 +14,7 @@ const it = {
 export const galleryDemoCopy: Record<Locale, typeof it> = {
   it,
   en: {
-    title: 'Gallery', back: 'Admin studio', private: 'Private preview', copy: 'Copy link',
+    title: 'Gallery', back: 'Admin studio', menu: 'Gallery menu', private: 'Private preview', copy: 'Copy link',
     copied: 'Link copied', copyError: 'Could not copy the link',
     fullscreen: 'Full screen', exitFullscreen: 'Exit full screen', fullscreenError: 'Full screen is unavailable',
     musicIntro: 'Browse the wall and listen to the excerpts.', photoIntro: 'Pick a print for a closer look.',
@@ -23,7 +23,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     select: 'Choose a work', open: 'Open work', close: 'Close work', sample: 'Sample exhibit',
   },
   es: {
-    title: 'Galería', back: 'Estudio de administración', private: 'Vista previa privada', copy: 'Copiar enlace',
+    title: 'Galería', back: 'Estudio de administración', menu: 'Menú de la galería', private: 'Vista previa privada', copy: 'Copiar enlace',
     copied: 'Enlace copiado', copyError: 'No se pudo copiar el enlace',
     fullscreen: 'Pantalla completa', exitFullscreen: 'Salir de pantalla completa', fullscreenError: 'Pantalla completa no disponible',
     musicIntro: 'Explora la pared y escucha los fragmentos.', photoIntro: 'Elige una fotografía para verla de cerca.',
@@ -32,7 +32,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     select: 'Elegir obra', open: 'Abrir obra', close: 'Cerrar obra', sample: 'Obra de demostración',
   },
   fr: {
-    title: 'Galerie', back: 'Studio admin', private: 'Aperçu privé', copy: 'Copier le lien',
+    title: 'Galerie', back: 'Studio admin', menu: 'Menu de la galerie', private: 'Aperçu privé', copy: 'Copier le lien',
     copied: 'Lien copié', copyError: 'Impossible de copier le lien',
     fullscreen: 'Plein écran', exitFullscreen: 'Quitter le plein écran', fullscreenError: 'Plein écran indisponible',
     musicIntro: 'Parcourez le mur et écoutez les extraits.', photoIntro: 'Choisissez un tirage pour le voir de plus près.',
@@ -41,7 +41,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     select: 'Choisir une œuvre', open: 'Ouvrir l’œuvre', close: 'Fermer l’œuvre', sample: 'Œuvre de démonstration',
   },
   de: {
-    title: 'Galerie', back: 'Admin-Studio', private: 'Private Vorschau', copy: 'Link kopieren',
+    title: 'Galerie', back: 'Admin-Studio', menu: 'Galeriemenü', private: 'Private Vorschau', copy: 'Link kopieren',
     copied: 'Link kopiert', copyError: 'Link konnte nicht kopiert werden',
     fullscreen: 'Vollbild', exitFullscreen: 'Vollbild verlassen', fullscreenError: 'Vollbild nicht verfügbar',
     musicIntro: 'Entdecke die Platten und hör in die Ausschnitte rein.', photoIntro: 'Wähle einen Abzug für eine nähere Ansicht.',

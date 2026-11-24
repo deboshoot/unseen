@@ -2,16 +2,19 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import * as Dialog from '@radix-ui/react-dialog';
+import * as Menu from '@radix-ui/react-dropdown-menu';
 import useEmblaCarousel from 'embla-carousel-react';
-import { AnimatePresence, motion, motionValue, useIsPresent, useReducedMotion, useSpring, useTransform, type MotionValue } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Disc3, Expand, Image, Link2, LoaderCircle, Maximize, Minimize, Pause, Play, X } from 'lucide-react';
+import { AnimatePresence, motion, motionValue, useIsPresent, useReducedMotion, useSpring, useTransform, type MotionStyle, type MotionValue } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Check, Expand, Link2, LoaderCircle, Maximize, Menu as MenuIcon, Minimize, Pause, Play, X } from 'lucide-react';
 import { toast } from 'sonner';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useI18n } from '@/i18n/I18nProvider';
 import { galleryDemoCopy } from '@/i18n/gallery-demo-copy';
 import { musicCopy } from '@/i18n/music-copy';
 import { adminGalleryDemoPath } from '@/lib/auth-redirect';
 import { demoTracks, formatAudioTime } from '@/lib/music';
 import afterhours from '@/assets/gallery-demo/afterhours.webp';
+import storm from '@/assets/gallery-demo/afterhours-storm.webp';
 import neonBloom from '@/assets/gallery-demo/neon-bloom.webp';
 import glass from '@/assets/gallery-demo/vetro-fume.webp';
 import reflection from '@/assets/gallery-demo/riflessi.webp';
@@ -26,16 +29,20 @@ import reflectionAudio from '@/assets/gallery-demo/riflessi-estratto.wav';
 import '@/gallery-demo.css';
 
 type Room = 'music' | 'photo';
-type Exhibit = { id: string; title: string; artist: string; image: string; audio?: string };
+type Exhibit = { id: string; title: string; artist: string; image: string; audio?: string; showRecordOnShelf?: boolean };
 type Copy = (typeof galleryDemoCopy)['it'];
 type SoundCopy = (typeof musicCopy)['it'];
 
 const exhibits: Record<Room, Exhibit[]> = {
   music: [
-    { id: demoTracks[0].id, title: demoTracks[0].title, artist: demoTracks[0].artist, audio: demoTracks[0].audio_url, image: afterhours },
+    { id: demoTracks[0].id, title: demoTracks[0].title, artist: demoTracks[0].artist, audio: demoTracks[0].audio_url, image: storm },
     { id: demoTracks[1].id, title: demoTracks[1].title, artist: demoTracks[1].artist, audio: demoTracks[1].audio_url, image: neonBloom },
     { id: 'smoked-glass', title: 'Vetro fumé', artist: 'OMBRA', image: glass, audio: glassAudio },
-    { id: 'reflections', title: 'Riflessi', artist: 'ÉCO', image: reflection, audio: reflectionAudio },
+    { id: 'reflections', title: 'Riflessi', artist: 'ÉCO', image: reflection, audio: reflectionAudio, showRecordOnShelf: true },
+    { id: 'night-crossing', title: 'Passaggio notturno', artist: 'NOVA', image: afterhours },
+    { id: 'grey-tide', title: 'Marea grigia', artist: 'Milo Riva', image: winterSea },
+    { id: 'helix', title: 'Elica', artist: 'Ada Ferri', image: spiral },
+    { id: 'quiet', title: 'Silenzio', artist: 'Luce Studio', image: loneTree },
   ],
   photo: [
     { id: 'still-water', title: 'Quota zero', artist: 'Luce Studio', image: stillWater },
@@ -48,7 +55,6 @@ const exhibits: Record<Room, Exhibit[]> = {
 const ease = [0.22, 1, 0.36, 1] as const;
 const settle = { type: 'spring', stiffness: 187, damping: 21, mass: 0.82 } as const;
 const formatIndex = (value: number) => String(value).padStart(2, '0');
-const distanceLimit = (value: number) => Math.min(Math.abs(value), 1.35);
 
 export default function GalleryDemo() {
   const { locale } = useI18n();
@@ -85,30 +91,35 @@ export default function GalleryDemo() {
   };
 
   return <main className="gallery-demo" ref={screen} onPointerMove={event => {
-    if (!reduced && event.pointerType === 'mouse') cameraX.set((event.clientX / window.innerWidth - 0.5) * -34);
+    if (!reduced && event.pointerType === 'mouse') cameraX.set((event.clientX / window.innerWidth - 0.5) * -16);
   }} onPointerLeave={() => cameraX.set(0)}>
     <motion.img className="gallery-demo-stage-wall" src={wall} alt="" width={1440} height={810} fetchPriority="high" draggable={false}
-      initial={reduced ? false : { scale: 1.18, opacity: 0 }} animate={{ scale: reduced ? 1 : 1.045, opacity: 1 }}
-      transition={{ duration: reduced ? 0 : 1.45, ease }} style={reduced ? undefined : { x: cameraX }} />
-    {!reduced && <motion.div className="gallery-demo-light-sweep" aria-hidden="true" initial={{ x: '-100%', opacity: 0 }}
-      animate={{ x: '105%', opacity: [0, 0.55, 0] }} transition={{ duration: 1.6, delay: 0.15, ease }} />}
+      initial={reduced ? false : { scale: 1.18, opacity: 0 }} animate={{ scale: reduced ? 1 : 1.045, opacity: 0.22 }}
+      transition={{ duration: reduced ? 0 : 1.1, ease }} style={reduced ? undefined : { x: cameraX }} />
     <div className="gallery-demo-shell">
-      <motion.div className="gallery-demo-topline" initial={reduced ? false : { opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : 0.52, ease }}>
-        <Link to="/admin"><ArrowLeft size={16} aria-hidden="true" />{copy.back}</Link>
-        <img src="/unseen-logo-transparent.png" alt="UNSEEN" width={29} height={29} />
-        <div>
-          <button type="button" aria-label={copy.copy} title={copy.copy} onClick={() => void copyLink()}><Link2 size={17} aria-hidden="true" /></button>
-          {nativeFullscreen && <button type="button" aria-label={fullscreen ? copy.exitFullscreen : copy.fullscreen} title={fullscreen ? copy.exitFullscreen : copy.fullscreen} onClick={() => void toggleFullscreen()}>
-            {fullscreen ? <Minimize size={17} aria-hidden="true" /> : <Maximize size={17} aria-hidden="true" />}
-          </button>}
-        </div>
-      </motion.div>
-
       <header className="gallery-demo-header">
-        <h1>{copy.title}<span>.</span></h1>
-        <div className="gallery-demo-mode" role="group" aria-label={copy.categories}>
-          <button type="button" aria-pressed={room === 'music'} onClick={() => setRoom('music')}><Disc3 size={15} aria-hidden="true" />{copy.music}</button>
-          <button type="button" aria-pressed={room === 'photo'} onClick={() => setRoom('photo')}><Image size={15} aria-hidden="true" />{copy.photo}</button>
+        <h1 className="sr-only">{copy.title}</h1>
+        <Link to="/admin" className="gallery-demo-logo" aria-label={copy.back} title={copy.back}>
+          <img src="/unseen-logo-transparent.png" alt="UNSEEN" width={29} height={29} />
+        </Link>
+        <div className="gallery-demo-header-actions">
+          <LanguageSwitcher />
+          <Menu.Root modal={false}>
+            <Menu.Trigger className="gallery-demo-menu-trigger" aria-label={copy.menu}><MenuIcon size={24} strokeWidth={1.45} aria-hidden="true" /></Menu.Trigger>
+            <Menu.Portal container={screen.current}>
+              <Menu.Content className="gallery-demo-menu" align="end" sideOffset={7} collisionPadding={12}>
+                <Menu.RadioGroup aria-label={copy.categories} value={room} onValueChange={value => setRoom(value === 'photo' ? 'photo' : 'music')}>
+                  <Menu.RadioItem value="music">{copy.music}<Menu.ItemIndicator><Check size={15} aria-hidden="true" /></Menu.ItemIndicator></Menu.RadioItem>
+                  <Menu.RadioItem value="photo">{copy.photo}<Menu.ItemIndicator><Check size={15} aria-hidden="true" /></Menu.ItemIndicator></Menu.RadioItem>
+                </Menu.RadioGroup>
+                <Menu.Separator className="gallery-demo-menu-separator" />
+                <Menu.Item onSelect={() => void copyLink()}>{copy.copy}<Link2 size={15} aria-hidden="true" /></Menu.Item>
+                {nativeFullscreen && <Menu.Item onSelect={() => void toggleFullscreen()}>{fullscreen ? copy.exitFullscreen : copy.fullscreen}
+                  {fullscreen ? <Minimize size={15} aria-hidden="true" /> : <Maximize size={15} aria-hidden="true" />}
+                </Menu.Item>}
+              </Menu.Content>
+            </Menu.Portal>
+          </Menu.Root>
         </div>
       </header>
 
@@ -121,7 +132,11 @@ export default function GalleryDemo() {
     <Dialog.Root open={detail !== null} onOpenChange={open => { if (!open) setDetail(null); }}>
       <Dialog.Portal container={screen.current}>
         <Dialog.Overlay className="gallery-demo-overlay" />
-        <Dialog.Content className="gallery-demo-detail" onCloseAutoFocus={event => {
+        <Dialog.Content className="gallery-demo-detail" onKeyDown={event => {
+          if (event.key !== 'Escape' || event.defaultPrevented) return;
+          event.preventDefault();
+          setDetail(null);
+        }} onCloseAutoFocus={event => {
           event.preventDefault();
           opener.current?.focus({ preventScroll: true });
         }}>
@@ -152,7 +167,7 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, onOpen }: {
   const [viewport, carousel] = useEmblaCarousel({ align: 'center', loop: true, containScroll: false, duration: reduced ? 0 : 32 });
   const [index, setIndex] = useState(0);
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [distances] = useState(() => works.map((_, i) => motionValue(i === works.length - 1 ? -1 : i)));
+  const [distances] = useState(() => works.map((_, i) => motionValue(i - Math.round(i / works.length) * works.length)));
   const selected = works[index];
 
   useEffect(() => {
@@ -164,7 +179,7 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, onOpen }: {
   }, [carousel]);
 
   useEffect(() => {
-    if (!carousel || reduced) return;
+    if (!carousel) return;
     let snaps = carousel.scrollSnapList();
     const follow = () => {
       const position = carousel.scrollProgress();
@@ -180,7 +195,7 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, onOpen }: {
     follow();
     carousel.on('scroll', follow).on('select', follow).on('settle', follow).on('reInit', resize);
     return () => { carousel.off('scroll', follow).off('select', follow).off('settle', follow).off('reInit', resize); };
-  }, [carousel, distances, reduced]);
+  }, [carousel, distances]);
 
   const navigate = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -188,43 +203,43 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, onOpen }: {
     if (event.key === 'ArrowRight') { event.preventDefault(); carousel?.scrollNext(reduced); }
   };
 
-  return <section className="gallery-demo-exhibition" aria-label={copy.categories}>
+  return <section className="gallery-demo-exhibition" data-room={room} aria-label={copy.categories}>
     <div className="gallery-demo-stage" data-room={room}>
       <AnimatePresence>
         <HangingWork key={selected.id} work={selected} music={music} playing={playingId === selected.id}
           reduced={reduced} label={copy.open} onClick={event => onOpen(selected, event.currentTarget)} />
       </AnimatePresence>
-      <button type="button" className="gallery-demo-round gallery-demo-prev" aria-label={copy.previous} aria-controls="gallery-demo-works" onClick={() => carousel?.scrollPrev(reduced)}>
-        <ArrowLeft size={19} aria-hidden="true" />
-      </button>
-      <button type="button" className="gallery-demo-round gallery-demo-next" aria-label={copy.next} aria-controls="gallery-demo-works" onClick={() => carousel?.scrollNext(reduced)}>
-        <ArrowRight size={19} aria-hidden="true" />
-      </button>
     </div>
 
     <div className="gallery-demo-info">
-      <motion.div className="gallery-demo-selection" key={selected.id} initial={reduced ? false : { opacity: 0, y: 9 }} animate={{ opacity: 1, y: 0 }}
+      <motion.div className="gallery-demo-selection" key={`title-${selected.id}`} initial={reduced ? false : { opacity: 0, y: 9 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: reduced ? 0 : 0.36, ease }}>
         <h2>{selected.title}</h2>
         <p>{selected.artist}</p>
       </motion.div>
 
-      {selected.audio && <Player key={selected.id} source={selected.audio} sound={sound} detailOpen={detailOpen}
+      {selected.audio && <Player key={`audio-${selected.id}`} source={selected.audio} sound={sound} detailOpen={detailOpen}
         onPlayback={playing => setPlayingId(previous => playing ? selected.id : previous === selected.id ? null : previous)} />}
-      <button type="button" className="gallery-demo-open" onClick={event => onOpen(selected, event.currentTarget)}>
-        <Expand size={17} aria-hidden="true" />{copy.open}
-      </button>
+      {!selected.audio && <button type="button" className="gallery-demo-open" aria-label={copy.open} title={copy.open} onClick={event => onOpen(selected, event.currentTarget)}>
+        <Expand size={17} aria-hidden="true" />
+      </button>}
     </div>
 
     <motion.div className="gallery-demo-shelf" initial={reduced ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : 0.65, delay: reduced ? 0 : 0.22, ease }}>
       <div className="gallery-demo-viewport" ref={viewport} tabIndex={0} role="region" aria-label={copy.select} onKeyDown={navigate}>
         <ul className="gallery-demo-track" id="gallery-demo-works">
           {works.map((work, i) => <li className="gallery-demo-slide" key={work.id}>
-            <ShelfSleeve work={work} distance={distances[i]} active={i === index} reduced={reduced} onSelect={() => carousel?.scrollTo(i, reduced)} />
+            <ShelfSleeve work={work} distance={distances[i]} active={i === index} onSelect={() => carousel?.scrollTo(i, reduced)} />
           </li>)}
         </ul>
       </div>
-      <p className="gallery-demo-position" aria-live="polite">
+      <button type="button" className="gallery-demo-round gallery-demo-prev" aria-label={copy.previous} aria-controls="gallery-demo-works" onClick={() => carousel?.scrollPrev(reduced)}>
+        <ArrowLeft size={17} aria-hidden="true" />
+      </button>
+      <button type="button" className="gallery-demo-round gallery-demo-next" aria-label={copy.next} aria-controls="gallery-demo-works" onClick={() => carousel?.scrollNext(reduced)}>
+        <ArrowRight size={17} aria-hidden="true" />
+      </button>
+      <p className="gallery-demo-position sr-only" aria-live="polite">
         <span className="sr-only">{copy.position} </span>{formatIndex(index + 1)} <span>/</span> {formatIndex(works.length)}
       </p>
     </motion.div>
@@ -241,13 +256,11 @@ function HangingWork({ work, music, playing, reduced, label, onClick }: {
     animate={{ opacity: 1, x: 0, y: 0, scale: 1, rotateY: 0 }}
     exit={reduced ? { opacity: 0 } : { opacity: 0, x: -30, scale: 0.94, transition: { duration: 0.18, ease } }}
     transition={reduced ? { duration: 0 } : { ...settle, opacity: { duration: 0.4 } }}>
-      <span className="gallery-demo-anchor" aria-hidden="true" />
-      <span className="gallery-demo-wire" aria-hidden="true" />
       <button type="button" className="gallery-demo-work" disabled={!present} aria-label={`${label} ${work.title}`} onClick={onClick}>
-        <motion.span className="gallery-demo-object" whileHover={reduced ? undefined : { rotateY: -8, rotateX: 5, y: -5 }} whileTap={reduced ? undefined : { scale: 0.985 }}
+        <motion.span className="gallery-demo-object" tabIndex={-1} whileHover={reduced ? undefined : { rotateY: -8, rotateX: 5, y: -5 }} whileTap={reduced ? undefined : { scale: 0.985 }}
           transition={settle}>
           {music && <motion.span className="gallery-demo-record" data-playing={playing}
-            initial={reduced ? false : { x: '-5%', rotate: 12 }} animate={{ x: '-52%', rotate: -17 }}
+            initial={reduced ? false : { x: '-7%', rotate: 12 }} animate={{ x: '-44%', rotate: -17 }}
             transition={reduced ? { duration: 0 } : { ...settle, delay: 0.14 }}>
               <span className="gallery-demo-disc">
                 <img src={vinyl} alt="" draggable={false} decoding="async" width={512} height={512} />
@@ -262,20 +275,19 @@ function HangingWork({ work, music, playing, reduced, label, onClick }: {
   </motion.div>;
 }
 
-function ShelfSleeve({ work, active, reduced, distance, onSelect }: {
-  work: Exhibit; active: boolean; reduced: boolean; distance: MotionValue<number>; onSelect: () => void;
+function ShelfSleeve({ work, active, distance, onSelect }: {
+  work: Exhibit; active: boolean; distance: MotionValue<number>; onSelect: () => void;
 }) {
-  const yaw = useTransform(distance, [-1.5, -0.65, 0, 0.65, 1.5], [67, 58, -14, -58, -67]);
-  const scale = useTransform(distance, value => 1 - distanceLimit(value) * 0.1);
-  const light = useTransform(distance, value => 1 - distanceLimit(value) * 0.22);
-  const tuck = useTransform(distance, [-1.5, 0, 1.5], [32, 0, -32]);
+  const yaw = useTransform(distance, [-4, -2, -0.6, 0, 0.6, 2, 4], ['33deg', '25deg', '8deg', '0deg', '-8deg', '-25deg', '-33deg']);
+  const light = useTransform(distance, [-4, 0, 4], [0.47, 1, 0.47]);
   return <button type="button" className="gallery-demo-sleeve" aria-pressed={active} aria-label={work.title} onClick={onSelect}>
-    <motion.span className="gallery-demo-sleeve-object" style={reduced ? undefined : { x: tuck, rotateY: yaw, scale, opacity: light }}>
-      <span className="gallery-demo-sleeve-face"><img src={work.image} alt="" width={160} height={160} loading="lazy" decoding="async" draggable={false} /></span>
+    <motion.span className="gallery-demo-sleeve-object" style={{ '--sleeve-yaw': yaw } as MotionStyle}>
+      {work.showRecordOnShelf && <img className="gallery-demo-shelf-record" src={vinyl} alt="" width={200} height={200} loading="lazy" decoding="async" draggable={false} />}
+      <motion.span className="gallery-demo-sleeve-face" style={{ opacity: light }}><img src={work.image} alt="" width={240} height={240} loading="lazy" decoding="async" draggable={false} /></motion.span>
+      <span className="gallery-demo-sleeve-back"><img src={work.image} alt="" width={240} height={240} loading="lazy" decoding="async" draggable={false} /></span>
       <span className="gallery-demo-spine gallery-demo-spine-left" aria-hidden="true">{work.title}</span>
       <span className="gallery-demo-spine gallery-demo-spine-right" aria-hidden="true">{work.title}</span>
     </motion.span>
-    <span className="gallery-demo-sleeve-title">{work.title}</span>
   </button>;
 }
 
@@ -319,11 +331,11 @@ function Player({ source, sound, detailOpen, onPlayback }: {
       onPlaying={() => playback(true)} onPause={() => playback(false)} onEnded={() => playback(false)}
       onTimeUpdate={event => setTime(event.currentTarget.currentTime)}
       onDurationChange={event => setDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : 0)} />
-    <button type="button" className="gallery-demo-play" disabled={pending} onClick={() => void toggle()}>
+    <button type="button" className="gallery-demo-play" disabled={pending} aria-label={pending ? sound.loading : playing ? sound.pause : sound.play}
+      title={playing ? sound.pause : sound.play} onClick={() => void toggle()}>
       {pending ? <LoaderCircle size={16} className="gallery-demo-spinner" aria-hidden="true" /> : playing ? <Pause size={16} fill="currentColor" aria-hidden="true" /> : <Play size={16} fill="currentColor" aria-hidden="true" />}
-      {pending ? sound.loading : playing ? sound.pause : sound.play}
     </button>
-    <div className="gallery-demo-transport">
+    <div className="gallery-demo-transport" hidden={!duration}>
       <input type="range" aria-label={sound.seek} min={0} max={duration || 1} value={Math.min(time, duration)}
         step={0.05} disabled={!duration} onChange={event => {
           const value = Number(event.currentTarget.value);
