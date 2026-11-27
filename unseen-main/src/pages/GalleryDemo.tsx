@@ -1,11 +1,11 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Menu from '@radix-ui/react-dropdown-menu';
 import useEmblaCarousel from 'embla-carousel-react';
 import { AnimatePresence, motion, motionValue, useIsPresent, useReducedMotion, useSpring, useTransform, type MotionValue } from 'framer-motion';
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Expand, Link2, LoaderCircle, Maximize, Menu as MenuIcon, Minimize, Pause, Play, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Expand, Heart, Link2, LoaderCircle, Maximize, Menu as MenuIcon, Minimize, Pause, Play, Share, X } from 'lucide-react';
 import { toast } from 'sonner';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -31,9 +31,11 @@ import '@/gallery-demo.css';
 type Room = 'music' | 'photo';
 type Exhibit = { id: string; title: string; artist: string; image: string; audio?: string };
 type Copy = (typeof galleryDemoCopy)['it'];
+type PhotoId = keyof Copy['photoNotes'];
+type PhotoExhibit = Exhibit & { id: PhotoId };
 type SoundCopy = (typeof musicCopy)['it'];
 
-const exhibits: Record<Room, Exhibit[]> = {
+const exhibits: { music: Exhibit[]; photo: PhotoExhibit[] } = {
   music: [
     { id: demoTracks[0].id, title: demoTracks[0].title, artist: demoTracks[0].artist, audio: demoTracks[0].audio_url, image: storm },
     { id: demoTracks[1].id, title: demoTracks[1].title, artist: demoTracks[1].artist, audio: demoTracks[1].audio_url, image: neonBloom },
@@ -55,12 +57,23 @@ const exhibits: Record<Room, Exhibit[]> = {
 const ease = [0.22, 1, 0.36, 1] as const;
 const settle = { type: 'spring', stiffness: 187, damping: 21, mass: 0.82 } as const;
 const formatIndex = (value: number) => String(value).padStart(2, '0');
+const photoFavoritesKey = 'unseen-gallery-demo-photo-favorites';
 
 export default function GalleryDemo() {
   const { locale } = useI18n();
+  const { search } = useLocation();
   const copy = galleryDemoCopy[locale];
   const reduced = useReducedMotion() === true;
-  const [room, setRoom] = useState<Room>('music');
+  const linkedPhoto = new URLSearchParams(search).get('foto');
+  const linkedPhotoIndex = exhibits.photo.findIndex(work => work.id === linkedPhoto);
+  const [room, setRoom] = useState<Room>(linkedPhotoIndex === -1 ? 'music' : 'photo');
+  const [favorites, setFavorites] = useState<PhotoId[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(photoFavoritesKey) ?? '[]');
+      if (Array.isArray(saved)) return exhibits.photo.map(photo => photo.id).filter(id => saved.includes(id));
+    } catch { /* A browser may block local storage. */ }
+    return [];
+  });
   const [detail, setDetail] = useState<Exhibit | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const screen = useRef<HTMLElement | null>(null);
@@ -74,6 +87,11 @@ export default function GalleryDemo() {
     return () => document.removeEventListener('fullscreenchange', update);
   }, []);
 
+  useEffect(() => {
+    try { localStorage.setItem(photoFavoritesKey, JSON.stringify(favorites)); }
+    catch { /* Keep favorites in memory when local storage is unavailable. */ }
+  }, [favorites]);
+
   const toggleFullscreen = async () => {
     try {
       if (document.fullscreenElement === screen.current) await document.exitFullscreen();
@@ -81,12 +99,15 @@ export default function GalleryDemo() {
     } catch { toast.error(copy.fullscreenError); }
   };
 
-  const copyLink = async () => {
+  const copyLink = async (photoId?: PhotoId) => {
+    const feedback = photoId ? { position: 'top-center' as const } : undefined;
     try {
-      await navigator.clipboard.writeText(new URL(adminGalleryDemoPath, window.location.origin).href);
-      toast.success(copy.copied);
+      const url = new URL(adminGalleryDemoPath, window.location.origin);
+      if (photoId) url.searchParams.set('foto', photoId);
+      await navigator.clipboard.writeText(url.href);
+      toast.success(copy.copied, feedback);
     } catch {
-      toast.error(copy.copyError);
+      toast.error(copy.copyError, feedback);
     }
   };
 
@@ -94,14 +115,13 @@ export default function GalleryDemo() {
     if (!reduced && event.pointerType === 'mouse') cameraX.set((event.clientX / window.innerWidth - 0.5) * -16);
   }} onPointerLeave={() => cameraX.set(0)}>
     <motion.img className="gallery-demo-stage-wall" src={wall} alt="" width={1440} height={810} fetchPriority="high" draggable={false}
-      initial={reduced ? false : { scale: 1.18, opacity: 0 }} animate={{ scale: reduced ? 1 : 1.045, opacity: room === 'photo' ? 0.85 : 0.22 }}
+      initial={reduced ? false : { scale: 1.18, opacity: 0 }} animate={{ scale: reduced ? 1 : 1.045, opacity: room === 'photo' ? 0.32 : 0.22 }}
       transition={{ duration: reduced ? 0 : 1.1, ease }} style={reduced ? undefined : { x: cameraX }} />
     <div className="gallery-demo-shell">
       <header className="gallery-demo-header">
-        {room === 'photo' && <h1 className="sr-only">{copy.title}</h1>}
         <Link to="/admin" className="gallery-demo-logo" aria-label={copy.back} title={copy.back}>
           <img src="/unseen-logo-transparent.png" alt="" width={29} height={29} />
-          {room === 'music' && <span aria-hidden="true">UNSEEN</span>}
+          <span aria-hidden="true">UNSEEN</span>
         </Link>
         <div className="gallery-demo-mode" role="group" aria-label={copy.categories}>
           <button type="button" aria-pressed={room === 'music'} onClick={() => setRoom('music')}>{copy.music}</button>
@@ -123,10 +143,13 @@ export default function GalleryDemo() {
         </div>
       </header>
 
-      <GalleryRoom key={room} room={room} copy={copy} sound={musicCopy[locale]} reduced={reduced} detailOpen={detail !== null} onOpen={(work, button) => {
-        opener.current = button;
-        setDetail(work);
-      }} />
+      <GalleryRoom key={room} room={room} copy={copy} sound={musicCopy[locale]} reduced={reduced} detailOpen={detail !== null}
+        startIndex={room === 'photo' ? Math.max(0, linkedPhotoIndex) : 0} favorites={favorites}
+        onFavorite={id => setFavorites(current => current.includes(id) ? current.filter(favorite => favorite !== id) : [...current, id])}
+        onShare={id => void copyLink(id)} onOpen={(work, button) => {
+          opener.current = button;
+          setDetail(work);
+        }} />
     </div>
 
     <Dialog.Root open={detail !== null} onOpenChange={open => { if (!open) setDetail(null); }}>
@@ -154,22 +177,29 @@ export default function GalleryDemo() {
   </main>;
 }
 
-function GalleryRoom({ room, copy, sound, reduced, detailOpen, onOpen }: {
+function GalleryRoom({ room, copy, sound, reduced, detailOpen, startIndex, favorites, onFavorite, onShare, onOpen }: {
   room: Room;
   copy: Copy;
   sound: SoundCopy;
   reduced: boolean;
   detailOpen: boolean;
+  startIndex: number;
+  favorites: PhotoId[];
+  onFavorite: (id: PhotoId) => void;
+  onShare: (id: PhotoId) => void;
   onOpen: (work: Exhibit, button: HTMLButtonElement) => void;
 }) {
   const works = exhibits[room];
   const music = room === 'music';
   const [viewport, carousel] = useEmblaCarousel({
-    align: 'center', loop: true, containScroll: false, watchFocus: music, duration: reduced ? 0 : music ? 32 : 38,
+    align: 'center', loop: true, containScroll: false, startIndex, watchFocus: music, duration: reduced ? 0 : music ? 32 : 38,
   });
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(startIndex);
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [distances] = useState(() => works.map((_, i) => motionValue(i - Math.round(i / works.length) * works.length)));
+  const [distances] = useState(() => works.map((_, i) => {
+    const gap = i - startIndex;
+    return motionValue(gap - Math.round(gap / works.length) * works.length);
+  }));
   const selected = works[index];
 
   useEffect(() => {
@@ -245,25 +275,54 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, onOpen }: {
       <button type="button" className="gallery-demo-round gallery-demo-next" aria-label={copy.next} aria-controls="gallery-demo-works" onClick={() => carousel?.scrollNext(reduced)}>
         {music ? <ChevronRight size={19} aria-hidden="true" /> : <ArrowRight size={17} aria-hidden="true" />}
       </button>
-      <p className={music ? 'sr-only' : 'gallery-demo-position'} aria-live="polite">
-        <span className="sr-only">{copy.position} </span>{formatIndex(index + 1)} <span>/</span> {formatIndex(works.length)}
-      </p>
   </>;
 
-  if (!music) return <section className="gallery-demo-exhibition gallery-demo-photo" aria-label={copy.photo}>
-    <div className="gallery-demo-photo-wall">{galleryCarousel}</div>
-    <div className="gallery-demo-photo-dock">
-      {info}
-      <ul className="gallery-demo-library" aria-label={copy.select}>
-        {works.map((work, i) => <li key={work.id}>
-          <button type="button" aria-pressed={i === index} onClick={() => carousel?.scrollTo(i, reduced)}>
-            <img src={work.image} alt="" width={47} height={47} decoding="async" draggable={false} />
-            <span><strong>{work.title}</strong><small>{work.artist}</small></span>
+  const position = <p className={music ? 'sr-only' : 'gallery-demo-position'} aria-live="polite">
+    <span className="sr-only">{copy.position} </span>{formatIndex(index + 1)} <span>/</span> {formatIndex(works.length)}
+  </p>;
+  const pagination = <ul className="gallery-demo-pagination" aria-label={copy.select}>
+    {works.map((work, i) => <li key={work.id}>
+      <button type="button" aria-label={work.title} aria-pressed={i === index} onClick={() => carousel?.scrollTo(i, reduced)} />
+    </li>)}
+  </ul>;
+
+  if (!music) {
+    const photo = exhibits.photo[index];
+    const [heading, qualifier] = copy.photoHeading;
+    return <section className="gallery-demo-exhibition gallery-demo-photo" aria-label={copy.photo}>
+      <div className="gallery-demo-photo-ambient" aria-hidden="true">
+        <span className="gallery-demo-photo-arc gallery-demo-photo-arc-left" />
+        <span className="gallery-demo-photo-arc gallery-demo-photo-arc-right" />
+      </div>
+      <div className="gallery-demo-photo-heading">
+        <p className="gallery-demo-kicker">{copy.collection}</p>
+        <h1>{heading} <span>{qualifier}</span><span className="gallery-demo-photo-period" aria-hidden="true">.</span></h1>
+        <p>{copy.photoIntro}</p>
+      </div>
+      <div className="gallery-demo-photo-wall">{galleryCarousel}</div>
+      {position}
+      {pagination}
+      <div className="gallery-demo-photo-dock">
+        <div className="gallery-demo-selection">
+          <h2>{photo.title}</h2>
+          <p className="gallery-demo-artist">{photo.artist}</p>
+        </div>
+        <p className="gallery-demo-photo-note">{copy.photoNotes[photo.id]}</p>
+        <div className="gallery-demo-actions">
+          <button type="button" className="gallery-demo-round gallery-demo-favorite" aria-label={copy.favorite} title={copy.favorite}
+            aria-pressed={favorites.includes(photo.id)} onClick={() => onFavorite(photo.id)}>
+            <Heart size={18} aria-hidden="true" />
           </button>
-        </li>)}
-      </ul>
-    </div>
-  </section>;
+          <button type="button" className="gallery-demo-round" aria-label={copy.sharePhoto} title={copy.sharePhoto} onClick={() => onShare(photo.id)}>
+            <Share size={18} aria-hidden="true" />
+          </button>
+          <button type="button" className="gallery-demo-open" onClick={event => onOpen(photo, event.currentTarget)}>
+            <Expand size={16} aria-hidden="true" />{copy.open}
+          </button>
+        </div>
+      </div>
+    </section>;
+  }
 
   return <section className="gallery-demo-exhibition gallery-demo-music" aria-label={copy.music}>
     <div className="gallery-demo-hero">
@@ -285,11 +344,8 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, onOpen }: {
       <Soundscape />
       <div className="gallery-demo-shelf">
         {galleryCarousel}
-        <ul className="gallery-demo-pagination" aria-label={copy.select}>
-          {works.map((work, i) => <li key={work.id}>
-            <button type="button" aria-label={work.title} aria-pressed={i === index} onClick={() => carousel?.scrollTo(i, reduced)} />
-          </li>)}
-        </ul>
+        {position}
+        {pagination}
       </div>
     </div>
   </section>;
@@ -339,14 +395,13 @@ function PhotoPrint({ work, distance, active, reduced, label, onClick }: {
   work: Exhibit; distance: MotionValue<number>; active: boolean; reduced: boolean;
   label: string; onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }) {
-  const scale = useTransform(distance, [-1.35, 0, 1.35], [0.66, 1, 0.66]);
-  const opacity = useTransform(distance, [-1.35, 0, 1.35], [0.37, 1, 0.37]);
-  const y = useTransform(distance, [-1.35, 0, 1.35], [51, 0, 51]);
-  const rotateY = useTransform(distance, [-1.5, 0, 1.5], [37, 0, -37]);
-  const rotateZ = useTransform(distance, [-1.5, 0, 1.5], [-5, 0, 5]);
+  const scale = useTransform(distance, [-1.5, -1, 0, 1, 1.5], [0.56, 0.67, 1, 0.67, 0.56]);
+  const opacity = useTransform(distance, [-1.5, -1, 0, 1, 1.5], [0.18, 0.55, 1, 0.55, 0.18]);
+  const y = useTransform(distance, [-1, 0, 1], [-15, 0, -15]);
+  const filter = useTransform(distance, [-1, 0, 1], ['blur(2.5px)', 'blur(0px)', 'blur(2.5px)']);
 
   return <motion.div className="gallery-demo-print" data-active={active}
-    style={reduced ? { opacity: active ? 1 : 0.48, scale: active ? 1 : 0.76 } : { scale, opacity, y, rotateY, rotateZ }}>
+    style={reduced ? { opacity: active ? 1 : 0.55, scale: active ? 1 : 0.67, y: active ? 0 : -15 } : { scale, opacity, y, filter }}>
     <span className="gallery-demo-print-hook" aria-hidden="true" />
     <span className="gallery-demo-print-wire" aria-hidden="true" />
     <button type="button" className="gallery-demo-work" tabIndex={active ? 0 : -1}
