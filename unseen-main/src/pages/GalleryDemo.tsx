@@ -1,11 +1,11 @@
 
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Menu from '@radix-ui/react-dropdown-menu';
 import useEmblaCarousel from 'embla-carousel-react';
 import { AnimatePresence, motion, motionValue, useIsPresent, useReducedMotion, useSpring, useTransform, type MotionValue } from 'framer-motion';
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Expand, Heart, Link2, LoaderCircle, Maximize, Menu as MenuIcon, Minimize, Pause, Play, Share, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Ellipsis, Heart, Link2, LoaderCircle, Maximize, Menu as MenuIcon, Minimize, Pause, Play, Share, X } from 'lucide-react';
 import { toast } from 'sonner';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -57,23 +57,27 @@ const exhibits: { music: Exhibit[]; photo: PhotoExhibit[] } = {
 const ease = [0.22, 1, 0.36, 1] as const;
 const settle = { type: 'spring', stiffness: 187, damping: 21, mass: 0.82 } as const;
 const formatIndex = (value: number) => String(value).padStart(2, '0');
-const photoFavoritesKey = 'unseen-gallery-demo-photo-favorites';
+const favoriteKeys = { photo: 'unseen-gallery-demo-photo-favorites', music: 'unseen-gallery-demo-music-favorites' };
+const exhibitLinkKeys = { photo: 'foto', music: 'vinile' };
+
+function readFavorites(room: Room) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(favoriteKeys[room]) ?? '[]');
+    if (Array.isArray(saved)) return exhibits[room].map(work => work.id).filter(id => saved.includes(id));
+  } catch { /* A browser may block local storage. */ }
+  return [];
+}
 
 export default function GalleryDemo() {
   const { locale } = useI18n();
   const { search } = useLocation();
   const copy = galleryDemoCopy[locale];
   const reduced = useReducedMotion() === true;
-  const linkedPhoto = new URLSearchParams(search).get('foto');
-  const linkedPhotoIndex = exhibits.photo.findIndex(work => work.id === linkedPhoto);
+  const params = new URLSearchParams(search);
+  const linkedPhotoIndex = exhibits.photo.findIndex(work => work.id === params.get(exhibitLinkKeys.photo));
+  const linkedMusicIndex = exhibits.music.findIndex(work => work.id === params.get(exhibitLinkKeys.music));
   const [room, setRoom] = useState<Room>(linkedPhotoIndex === -1 ? 'music' : 'photo');
-  const [favorites, setFavorites] = useState<PhotoId[]>(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(photoFavoritesKey) ?? '[]');
-      if (Array.isArray(saved)) return exhibits.photo.map(photo => photo.id).filter(id => saved.includes(id));
-    } catch { /* A browser may block local storage. */ }
-    return [];
-  });
+  const [favorites, setFavorites] = useState(() => ({ photo: readFavorites('photo'), music: readFavorites('music') }));
   const [detail, setDetail] = useState<Exhibit | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const screen = useRef<HTMLElement | null>(null);
@@ -88,7 +92,10 @@ export default function GalleryDemo() {
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem(photoFavoritesKey, JSON.stringify(favorites)); }
+    try {
+      localStorage.setItem(favoriteKeys.photo, JSON.stringify(favorites.photo));
+      localStorage.setItem(favoriteKeys.music, JSON.stringify(favorites.music));
+    }
     catch { /* Keep favorites in memory when local storage is unavailable. */ }
   }, [favorites]);
 
@@ -99,11 +106,11 @@ export default function GalleryDemo() {
     } catch { toast.error(copy.fullscreenError); }
   };
 
-  const copyLink = async (photoId?: PhotoId) => {
-    const feedback = photoId ? { position: 'top-center' as const } : undefined;
+  const copyLink = async (workId?: string) => {
+    const feedback = workId ? { position: 'top-center' as const } : undefined;
     try {
       const url = new URL(adminGalleryDemoPath, window.location.origin);
-      if (photoId) url.searchParams.set('foto', photoId);
+      if (workId) url.searchParams.set(exhibitLinkKeys[room], workId);
       await navigator.clipboard.writeText(url.href);
       toast.success(copy.copied, feedback);
     } catch {
@@ -144,8 +151,11 @@ export default function GalleryDemo() {
       </header>
 
       <GalleryRoom key={room} room={room} copy={copy} sound={musicCopy[locale]} reduced={reduced} detailOpen={detail !== null}
-        startIndex={room === 'photo' ? Math.max(0, linkedPhotoIndex) : 0} favorites={favorites}
-        onFavorite={id => setFavorites(current => current.includes(id) ? current.filter(favorite => favorite !== id) : [...current, id])}
+        menuContainer={screen.current}
+        startIndex={Math.max(0, room === 'photo' ? linkedPhotoIndex : linkedMusicIndex)} favorites={favorites[room]}
+        onFavorite={id => setFavorites(current => ({ ...current,
+          [room]: current[room].includes(id) ? current[room].filter(favorite => favorite !== id) : [...current[room], id],
+        }))}
         onShare={id => void copyLink(id)} onOpen={(work, button) => {
           opener.current = button;
           setDetail(work);
@@ -177,16 +187,17 @@ export default function GalleryDemo() {
   </main>;
 }
 
-function GalleryRoom({ room, copy, sound, reduced, detailOpen, startIndex, favorites, onFavorite, onShare, onOpen }: {
+function GalleryRoom({ room, copy, sound, reduced, detailOpen, menuContainer, startIndex, favorites, onFavorite, onShare, onOpen }: {
   room: Room;
   copy: Copy;
   sound: SoundCopy;
   reduced: boolean;
   detailOpen: boolean;
+  menuContainer: HTMLElement | null;
   startIndex: number;
-  favorites: PhotoId[];
-  onFavorite: (id: PhotoId) => void;
-  onShare: (id: PhotoId) => void;
+  favorites: string[];
+  onFavorite: (id: string) => void;
+  onShare: (id: string) => void;
   onOpen: (work: Exhibit, button: HTMLButtonElement) => void;
 }) {
   const works = exhibits[room];
@@ -235,30 +246,10 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, startIndex, favor
     if (event.key === 'ArrowRight') { event.preventDefault(); carousel?.scrollNext(reduced); }
   };
 
-  const featured = music && selected.id === demoTracks[0].id;
-  const info = <div className="gallery-demo-info">
-    <motion.div className="gallery-demo-selection" key={selected.id} initial={reduced ? false : { opacity: 0, y: 9 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: reduced ? 0 : 0.36, ease }}>
-      {featured && <p className="gallery-demo-kicker gallery-demo-featured-label">{copy.featured}</p>}
-      <h2>{selected.title}</h2>
-      <p className="gallery-demo-artist">{selected.artist}</p>
-      {featured && <p className="gallery-demo-description">{copy.afterhours}</p>}
-    </motion.div>
-
-    <div className="gallery-demo-actions">
-      {selected.audio && <Player key={selected.id} source={selected.audio} sound={sound} detailOpen={detailOpen}
-        onPlayback={playing => setPlayingId(previous => playing ? selected.id : previous === selected.id ? null : previous)} />}
-      <button type="button" className="gallery-demo-open" aria-label={copy.open} title={copy.open} onClick={event => onOpen(selected, event.currentTarget)}>
-        <Expand size={17} aria-hidden="true" />
-        {!selected.audio && copy.open}
-      </button>
-    </div>
-  </div>;
-
   const galleryCarousel = <>
       <div className="gallery-demo-viewport" ref={viewport} tabIndex={0} role="region" aria-label={music ? copy.select : copy.wall} onKeyDown={navigate}>
         <ul className="gallery-demo-track" id="gallery-demo-works">
-          {works.map((work, i) => <li className="gallery-demo-slide" key={work.id}>
+          {works.map((work, i) => <li className="gallery-demo-slide" data-active={music ? i === index : undefined} key={work.id}>
             {music
               ? <ShelfSleeve work={work} distance={distances[i]} active={i === index} onSelect={() => carousel?.scrollTo(i, reduced)} />
               : <PhotoPrint work={work} distance={distances[i]} active={i === index} reduced={reduced}
@@ -286,6 +277,15 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, startIndex, favor
     </li>)}
   </ul>;
 
+  const dock = {
+    work: selected,
+    room,
+    copy,
+    favorite: favorites.includes(selected.id),
+    onFavorite: () => onFavorite(selected.id),
+    onOpen: (event: MouseEvent<HTMLButtonElement>) => onOpen(selected, event.currentTarget),
+  };
+
   if (!music) {
     const photo = exhibits.photo[index];
     const [heading, qualifier] = copy.photoHeading;
@@ -301,29 +301,15 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, startIndex, favor
       </div>
       <div className="gallery-demo-photo-wall">{galleryCarousel}</div>
       {position}
-      {pagination}
-      <div className="gallery-demo-photo-dock">
-        <div className="gallery-demo-selection">
-          <h2>{photo.title}</h2>
-          <p className="gallery-demo-artist">{photo.artist}</p>
-        </div>
+      <WorkDock {...dock} secondaryAction={<button type="button" className="gallery-demo-dock-icon" aria-label={copy.sharePhoto}
+        title={copy.sharePhoto} onClick={() => onShare(photo.id)}><Share size={20} aria-hidden="true" /></button>}>
         <p className="gallery-demo-photo-note">{copy.photoNotes[photo.id]}</p>
-        <div className="gallery-demo-actions">
-          <button type="button" className="gallery-demo-round gallery-demo-favorite" aria-label={copy.favorite} title={copy.favorite}
-            aria-pressed={favorites.includes(photo.id)} onClick={() => onFavorite(photo.id)}>
-            <Heart size={18} aria-hidden="true" />
-          </button>
-          <button type="button" className="gallery-demo-round" aria-label={copy.sharePhoto} title={copy.sharePhoto} onClick={() => onShare(photo.id)}>
-            <Share size={18} aria-hidden="true" />
-          </button>
-          <button type="button" className="gallery-demo-open" onClick={event => onOpen(photo, event.currentTarget)}>
-            <Expand size={16} aria-hidden="true" />{copy.open}
-          </button>
-        </div>
-      </div>
+      </WorkDock>
+      {pagination}
     </section>;
   }
 
+  const featured = selected.id === demoTracks[0].id;
   return <section className="gallery-demo-exhibition gallery-demo-music" aria-label={copy.music}>
     <div className="gallery-demo-hero">
       <div className="gallery-demo-intro">
@@ -338,17 +324,67 @@ function GalleryRoom({ room, copy, sound, reduced, detailOpen, startIndex, favor
             reduced={reduced} label={copy.open} onClick={event => onOpen(selected, event.currentTarget)} />
         </AnimatePresence>
       </div>
-      {info}
+      <motion.div className="gallery-demo-selection gallery-demo-info" key={selected.id} initial={reduced ? false : { opacity: 0, y: 9 }}
+        animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : 0.36, ease }}>
+        {featured && <p className="gallery-demo-kicker gallery-demo-featured-label">{copy.featured}</p>}
+        <h2>{selected.title}</h2>
+        <p className="gallery-demo-artist">{selected.artist}</p>
+        {featured && <p className="gallery-demo-description">{copy.afterhours}</p>}
+      </motion.div>
     </div>
     <div className="gallery-demo-floor">
       <Soundscape />
       <div className="gallery-demo-shelf">
         {galleryCarousel}
         {position}
-        {pagination}
       </div>
+      <WorkDock {...dock} secondaryAction={<Menu.Root modal={false}>
+        <Menu.Trigger className="gallery-demo-dock-icon" aria-label={copy.workOptions} title={copy.workOptions}>
+          <Ellipsis size={23} aria-hidden="true" />
+        </Menu.Trigger>
+        <Menu.Portal container={menuContainer}>
+          <Menu.Content className="gallery-demo-menu" side="top" align="end" sideOffset={7}>
+            <Menu.Item onSelect={() => onShare(selected.id)}>{copy.copy}<Link2 size={15} aria-hidden="true" /></Menu.Item>
+          </Menu.Content>
+        </Menu.Portal>
+      </Menu.Root>}>
+        {selected.audio ? <Player key={selected.id} source={selected.audio} sound={sound} detailOpen={detailOpen}
+          onPlayback={playing => setPlayingId(previous => playing ? selected.id : previous === selected.id ? null : previous)} />
+          : <p className="gallery-demo-no-excerpt">{copy.noExcerpt}</p>}
+      </WorkDock>
+      {pagination}
     </div>
   </section>;
+}
+
+function WorkDock({ work, room, copy, favorite, onFavorite, onOpen, secondaryAction, children }: {
+  work: Exhibit;
+  room: Room;
+  copy: Copy;
+  favorite: boolean;
+  onFavorite: () => void;
+  onOpen: (event: MouseEvent<HTMLButtonElement>) => void;
+  secondaryAction: ReactNode;
+  children: ReactNode;
+}) {
+  return <div className={`gallery-demo-dock gallery-demo-${room}-dock`}>
+    <div className="gallery-demo-dock-work">
+      <img src={work.image} alt="" width={84} height={68} decoding="async" draggable={false} />
+      <div className="gallery-demo-selection">
+        <h2>{work.title}</h2>
+        <p className="gallery-demo-artist">{work.artist}</p>
+      </div>
+    </div>
+    <div className="gallery-demo-dock-content">{children}</div>
+    <div className="gallery-demo-actions">
+      <button type="button" className="gallery-demo-dock-icon gallery-demo-favorite" aria-label={copy.favorite} title={copy.favorite}
+        aria-pressed={favorite} onClick={onFavorite}><Heart size={24} strokeWidth={1.45} aria-hidden="true" /></button>
+      {secondaryAction}
+      <button type="button" className="gallery-demo-open" onClick={onOpen}>
+        {copy.open}<ArrowUpRight size={19} aria-hidden="true" />
+      </button>
+    </div>
+  </div>;
 }
 
 function Soundscape() {

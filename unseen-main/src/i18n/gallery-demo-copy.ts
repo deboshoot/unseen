@@ -7,6 +7,7 @@ const it = {
   fullscreen: 'Schermo intero', exitFullscreen: 'Esci da schermo intero', fullscreenError: 'Schermo intero non disponibile',
   musicIntro: 'Sfoglia la collezione di vinili e ascolta gli estratti.', photoIntro: 'Scatti, visioni, storie dalla community.',
   photoHeading: ['Galleria', 'Fotografica'], favorite: 'Preferito', sharePhoto: 'Copia il link alla fotografia',
+  workOptions: 'Opzioni opera', noExcerpt: 'Estratto audio non disponibile',
   photoNotes: {
     'still-water': 'Un incontro tra silenzio e altitudine, dove la luce disegna i confini tra cielo e terra.',
     spiral: 'La luce attraversa la scala e fa emergere la geometria delle sue linee.',
@@ -28,6 +29,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     fullscreen: 'Full screen', exitFullscreen: 'Exit full screen', fullscreenError: 'Full screen is unavailable',
     musicIntro: 'Browse the record collection and listen to the excerpts.', photoIntro: 'Photographs, viewpoints and stories from the community.',
     photoHeading: ['Photography', 'Gallery'], favorite: 'Favorite', sharePhoto: 'Copy link to photograph',
+    workOptions: 'Work options', noExcerpt: 'Audio excerpt unavailable',
     photoNotes: {
       'still-water': 'Silence meets altitude, where light draws the boundary between sky and earth.',
       spiral: 'Light crosses the staircase and reveals the geometry of its lines.',
@@ -46,6 +48,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     fullscreen: 'Pantalla completa', exitFullscreen: 'Salir de pantalla completa', fullscreenError: 'Pantalla completa no disponible',
     musicIntro: 'Explora la colección de vinilos y escucha los fragmentos.', photoIntro: 'Fotografías, miradas e historias de la comunidad.',
     photoHeading: ['Galería', 'Fotográfica'], favorite: 'Favorita', sharePhoto: 'Copiar enlace a la fotografía',
+    workOptions: 'Opciones de la obra', noExcerpt: 'Fragmento de audio no disponible',
     photoNotes: {
       'still-water': 'Un encuentro entre silencio y altitud, donde la luz traza el límite entre el cielo y la tierra.',
       spiral: 'La luz atraviesa la escalera y revela la geometría de sus líneas.',
@@ -64,6 +67,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     fullscreen: 'Plein écran', exitFullscreen: 'Quitter le plein écran', fullscreenError: 'Plein écran indisponible',
     musicIntro: 'Parcourez la collection de vinyles et écoutez les extraits.', photoIntro: 'Photos, regards et histoires de la communauté.',
     photoHeading: ['Galerie', 'Photographique'], favorite: 'Favori', sharePhoto: 'Copier le lien vers la photographie',
+    workOptions: 'Options de l’œuvre', noExcerpt: 'Extrait audio indisponible',
     photoNotes: {
       'still-water': 'Une rencontre entre silence et altitude, où la lumière dessine la frontière entre ciel et terre.',
       spiral: 'La lumière traverse l’escalier et révèle la géométrie de ses lignes.',
@@ -82,6 +86,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     fullscreen: 'Vollbild', exitFullscreen: 'Vollbild verlassen', fullscreenError: 'Vollbild nicht verfügbar',
     musicIntro: 'Entdecke die Plattensammlung und hör in die Ausschnitte rein.', photoIntro: 'Fotos, Blickwinkel und Geschichten aus der Community.',
     photoHeading: ['Galerie für', 'Fotografie'], favorite: 'Favorit', sharePhoto: 'Link zum Foto kopieren',
+    workOptions: 'Werkoptionen', noExcerpt: 'Kein Audioausschnitt verfügbar',
     photoNotes: {
       'still-water': 'Stille trifft auf Höhe, wo das Licht die Grenze zwischen Himmel und Erde zeichnet.',
       spiral: 'Licht fällt auf die Treppe und legt die Geometrie ihrer Linien frei.',
