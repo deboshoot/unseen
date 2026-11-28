@@ -2,6 +2,7 @@
 import type { Locale } from './index';
 
 const it = {
+  qualifier: 'dei vincitori', winner: 'Vincitore', tournaments: 'Tornei', winners: 'I vincitori', viewAll: 'Vedi tutta la galleria', collapse: 'Riduci galleria', musicLabel: 'Musica',
   title: 'Galleria', back: 'Studio admin', menu: 'Menu galleria', private: 'Anteprima riservata', copy: 'Copia link',
   copied: 'Link copiato', copyError: 'Impossibile copiare il link',
   fullscreen: 'Schermo intero', exitFullscreen: 'Esci da schermo intero', fullscreenError: 'Schermo intero non disponibile',
@@ -24,6 +25,7 @@ const it = {
 export const galleryDemoCopy: Record<Locale, typeof it> = {
   it,
   en: {
+    qualifier: 'of winners', winner: 'Winner', tournaments: 'Tournaments', winners: 'The winners', viewAll: 'View full gallery', collapse: 'Collapse gallery', musicLabel: 'Music',
     title: 'Gallery', back: 'Admin studio', menu: 'Gallery menu', private: 'Private preview', copy: 'Copy link',
     copied: 'Link copied', copyError: 'Could not copy the link',
     fullscreen: 'Full screen', exitFullscreen: 'Exit full screen', fullscreenError: 'Full screen is unavailable',
@@ -43,6 +45,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     select: 'Choose a work', open: 'Open work', close: 'Close work', sample: 'Sample exhibit',
   },
   es: {
+    qualifier: 'de ganadores', winner: 'Ganador', tournaments: 'Torneos', winners: 'Los ganadores', viewAll: 'Ver toda la galería', collapse: 'Contraer galería', musicLabel: 'Música',
     title: 'Galería', back: 'Estudio de administración', menu: 'Menú de la galería', private: 'Vista previa privada', copy: 'Copiar enlace',
     copied: 'Enlace copiado', copyError: 'No se pudo copiar el enlace',
     fullscreen: 'Pantalla completa', exitFullscreen: 'Salir de pantalla completa', fullscreenError: 'Pantalla completa no disponible',
@@ -62,6 +65,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     select: 'Elegir obra', open: 'Abrir obra', close: 'Cerrar obra', sample: 'Obra de demostración',
   },
   fr: {
+    qualifier: 'des lauréats', winner: 'Lauréat', tournaments: 'Tournois', winners: 'Les lauréats', viewAll: 'Voir toute la galerie', collapse: 'Réduire la galerie', musicLabel: 'Musique',
     title: 'Galerie', back: 'Studio admin', menu: 'Menu de la galerie', private: 'Aperçu privé', copy: 'Copier le lien',
     copied: 'Lien copié', copyError: 'Impossible de copier le lien',
     fullscreen: 'Plein écran', exitFullscreen: 'Quitter le plein écran', fullscreenError: 'Plein écran indisponible',
@@ -81,6 +85,7 @@ export const galleryDemoCopy: Record<Locale, typeof it> = {
     select: 'Choisir une œuvre', open: 'Ouvrir l’œuvre', close: 'Fermer l’œuvre', sample: 'Œuvre de démonstration',
   },
   de: {
+    qualifier: 'der Gewinner', winner: 'Gewinner', tournaments: 'Turniere', winners: 'Die Gewinner', viewAll: 'Gesamte Galerie ansehen', collapse: 'Galerie einklappen', musicLabel: 'Musik',
     title: 'Galerie', back: 'Admin-Studio', menu: 'Galeriemenü', private: 'Private Vorschau', copy: 'Link kopieren',
     copied: 'Link kopiert', copyError: 'Link konnte nicht kopiert werden',
     fullscreen: 'Vollbild', exitFullscreen: 'Vollbild verlassen', fullscreenError: 'Vollbild nicht verfügbar',
